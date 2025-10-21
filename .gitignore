@@ -6,7 +6,7 @@ Thumbs.db
 *.log
 
 # Generated code
-generate/
+generated/
 
 # HELP.md - 일반적으로 버전 관리에 포함합니다. 제외가 필요 없다면 이 줄을 삭제하세요.
 HELP.md
