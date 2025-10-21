@@ -26,6 +26,7 @@ repositories {
 
 dependencies {
 
+    //아아아아아아아아
     //pgvector
     implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
 
