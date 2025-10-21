@@ -27,7 +27,7 @@ repositories {
 dependencies {
 
     //pgvector
-    implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
+    implementation "org.springframework.ai:spring-ai-pgvector-store:1.0.0"
 
     // Caffeine
     implementation 'org.springframework.boot:spring-boot-starter-cache'
