@@ -2,7 +2,8 @@ package com.oath.domain.plan;
 
 import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception400;
-import com.oath.domain.members.Member;
+import com.oath.domain.members.domain.Member;
+import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.plan.request.PlanMemberResponse;
 import com.oath.domain.plan.request.PlanResponse;
 import lombok.RequiredArgsConstructor;

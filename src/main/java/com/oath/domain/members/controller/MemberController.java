@@ -1,6 +1,6 @@
 package com.oath.domain.members.controller;
 
-import com.oath.common.auth.JwtTokenProvider;
+import com.oath.common.JwtTokenProvider;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.dto.MemberCreateDto;
 import com.oath.domain.members.dto.MemberLoginDto;
@@ -37,7 +37,7 @@ public class MemberController {
     public ResponseEntity<?> doLogin(@RequestBody MemberLoginDto memberLoginDto){
         Member member = memberService.login(memberLoginDto);
 
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole().toString());
+        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole());
 
         Map<String, Object> loginInfo = new HashMap<>();
         loginInfo.put("id", member.getId());

@@ -2,8 +2,8 @@ package com.oath.common.auth;
 
 import com.oath.common.exception.Exception401;
 import com.oath.common.exception.Exception403;
-import com.oath.common.JwtProvider;
-import com.oath.domain.members.MemberRole;
+import com.oath.common.JwtTokenProvider;
+import com.oath.domain.members.domain.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private final JwtProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public boolean preHandle(
@@ -43,18 +43,18 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 3. 헤더에서 토큰 추출 및 검증 (early return)
         String token = resolveToken(request);
-        if (token == null || !jwtProvider.validateToken(token)) {
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new Exception401("인증되지 않은 사용자입니다.");
         }
 
         // 4. 역할(Role) 검사 (인가)
-        MemberRole[] requiredRoles = auth.roles();
+        Role[] requiredRoles = auth.roles();
         if (requiredRoles.length > 0 && !hasPermission(token, requiredRoles)) {
             throw new Exception403("해당 페이지에 접근할 권한이 없습니다.");
         }
 
         // 5. (선택) 컨트롤러에서 사용자 정보를 사용할 수 있도록 request에 저장
-        String email = jwtProvider.getSubject(token);
+        String email = jwtTokenProvider.getSubject(token);
         request.setAttribute(
                 "userEmail",
                 email
@@ -71,8 +71,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         return null;
     }
 
-    private boolean hasPermission(String token, MemberRole[] requiredRoles) {
-        MemberRole userRole = jwtProvider.getRole(token);
+    private boolean hasPermission(String token, Role[] requiredRoles) {
+        Role userRole = jwtTokenProvider.getRole(token);
         return Arrays.stream(requiredRoles).anyMatch(requiredRole -> requiredRole == userRole);
     }
 }
