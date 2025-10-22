@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StompAuthChannelInterceptor implements ChannelInterceptor {
+public class StompInterceptor implements ChannelInterceptor {
 
     private final JwtProvider jwtProvider;
     private static final String AUTHORIZATION_HEADER = "Authorization";
