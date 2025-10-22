@@ -1,12 +1,13 @@
-package com.oath.domain.members;
+package com.oath.domain.members.domain;
 
+import com.oath.domain.members.OathkeeperRank;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "members")
+@Table(name = "members_tb")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,11 +27,18 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String email;
 
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String provider;
+    private SocialType socialType;
 
     @Column(nullable = false)
-    private String providerKey;
+    private String socialId;
 
     private String defaultAddress;
 
