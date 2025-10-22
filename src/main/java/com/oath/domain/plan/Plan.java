@@ -1,8 +1,10 @@
 package com.oath.domain.plan;
 
+import com.oath.domain.members.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,41 +14,42 @@ import java.util.List;
 
 @Entity
 @Table(name = "plan_tb")
-@AllArgsConstructor
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Plan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @Column(name = "group_id", nullable = false)
-    private Long groupId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_member_id", nullable = false)
+    private Member creatorMember;
 
     @Column(name = "title", nullable = false)
     private String title;
 
-
     @Column(name = "plan_datetime", nullable = false)
-    private LocalDateTime meetingTime; // 약속 시간
+    private LocalDateTime planDatetime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = "place_name", nullable = false)
+    @Column(name = "place_name")
     private String placeName;
 
+    @Column(name = "place_latitude")
+    private Double placeLatitude;
 
-    @Column(name = "place_location")
-    private String placeLocation; // 포인트 타입으로 한다고 했는데 일단 뭔지 몰라서 문자열로 둡니다
+    @Column(name = "place_longitude")
+    private Double placeLongitude;
+
+    @Column(name = "late_fine_amount")
+    private Long lateFineAmount;
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PlanMember> members = new ArrayList<>();
-
-    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PlanStatusLog> statusLogs = new ArrayList<>();
+    private List<PlanMember> participants = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
@@ -56,5 +59,24 @@ public class Plan {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    public Plan(Member creatorMember, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
+        this.creatorMember = creatorMember;
+        this.title = title;
+        this.planDatetime = planDatetime;
+        this.status = status;
+        this.lateFineAmount = lateFineAmount;
+    }
+
+    public void update(String title, LocalDateTime planDatetime, Status status) {
+        if (title != null) this.title = title;
+        if (planDatetime != null) this.planDatetime = planDatetime;
+        if (status != null) this.status = status;
+    }
+
+    public void confirmPlace(String placeName, Double latitude, Double longitude) {
+        this.placeName = placeName;
+        this.placeLatitude = latitude;
+        this.placeLongitude = longitude;
+    }
 
 }

@@ -3,7 +3,9 @@ package com.oath.domain.plan;
 
 import com.oath.domain.members.Member;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @Table(name = "plan_status_logs_tb")
+@Getter
+@ToString(exclude = {"plan", "member"})
 public class PlanStatusLog {
 
     @Id
