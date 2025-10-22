@@ -1,6 +1,7 @@
 package com.oath.domain.members.service;
 
 import com.oath.domain.members.domain.Member;
+import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.dto.MemberCreateDto;
 import com.oath.domain.members.dto.MemberLoginDto;
@@ -24,6 +25,7 @@ public class MemberService {
         Member member = Member.builder()
                 .email(memberCreateDto.getEmail())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
+                .role(Role.USER)
                 .build();
         memberRepository.save(member);
         return member;

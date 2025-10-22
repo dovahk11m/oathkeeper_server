@@ -1,6 +1,6 @@
 package com.oath.common;
 
-import com.oath.domain.members.MemberRole;
+import com.oath.domain.members.domain.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -13,12 +13,12 @@ import java.util.Date;
 
 @Slf4j
 @Component
-public class JwtProvider {
+public class JwtTokenProvider {
 
     private final SecretKey key;
     private final Long validityInMilliseconds;
 
-    public JwtProvider(
+    public JwtTokenProvider(
 
             @Value("${jwt.secret}") String secretKey,
             @Value("${jwt.expiration-in-ms}") Long validityInMilliseconds
@@ -28,7 +28,7 @@ public class JwtProvider {
     }
 
     //로그인시 새 토큰 생성
-    public String createToken(String email, MemberRole role) {
+    public String createToken(String email, Role role) {
         final Date now = new Date();
         final Date validity = new Date(now.getTime() + validityInMilliseconds);
 
@@ -83,9 +83,9 @@ public class JwtProvider {
         return parseClaims(token).getSubject();
     }
 
-    //토큰에서 MemberRole 추출
-    public MemberRole getRole(String token){
+    //토큰에서 Role 추출
+    public Role getRole(String token){
         String role = parseClaims(token).get("role", String.class);
-        return MemberRole.valueOf(role);
+        return Role.valueOf(role);
     }
 }

@@ -1,7 +1,7 @@
 package com.oath.common.auth;
 
-import com.oath.domain.members.MemberRole;
-import com.oath.common.JwtProvider;
+import com.oath.common.JwtTokenProvider;
+import com.oath.domain.members.domain.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class StompInterceptor implements ChannelInterceptor {
 
-    private final JwtProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -47,9 +47,9 @@ public class StompInterceptor implements ChannelInterceptor {
     private void validateAndSetAuthentication(String authHeader, StompHeaderAccessor accessor) {
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        if (jwtProvider.validateToken(token)) {
-            String email = jwtProvider.getSubject(token);
-            MemberRole role = jwtProvider.getRole(token);
+        if (jwtTokenProvider.validateToken(token)) {
+            String email = jwtTokenProvider.getSubject(token);
+            Role role = jwtTokenProvider.getRole(token);
 
             StompPrincipal principal = new StompPrincipal(email, role);
             accessor.setUser(principal);

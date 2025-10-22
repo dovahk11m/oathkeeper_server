@@ -1,6 +1,6 @@
 package com.oath.common.auth;
 
-import com.oath.domain.members.MemberRole;
+import com.oath.domain.members.domain.Role;
 import lombok.Getter;
 
 import java.security.Principal;
@@ -12,9 +12,9 @@ import java.security.Principal;
 public class StompPrincipal implements Principal {
 
     private final String email;
-    private final MemberRole role;
+    private final Role role;
 
-    public StompPrincipal(String email, MemberRole role) {
+    public StompPrincipal(String email, Role role) {
         this.email = email;
         this.role = role;
     }
