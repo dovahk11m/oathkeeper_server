@@ -48,7 +48,7 @@ spring:
       mail.smtp.starttls.enable: true
 
 jwt:
-  secret: 'VGhpc0lzQVNlY3JldEtleUZvckpXVFNhZmUhIT8xMjM0NTY='
+  secret: 'b2F0aHNlY3JleWtleW9hdGhzZWNyZXlrZXlvYXRoc2VjcmV5a2V5'
   expiration-in-ms: 3600000 # 1??
 
 notification:

@@ -1,7 +1,7 @@
 package com.oath.domain.plan;
 
 
-import com.oath.domain.members.Member;
+import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
