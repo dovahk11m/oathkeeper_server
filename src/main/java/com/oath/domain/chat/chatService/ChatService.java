@@ -5,6 +5,7 @@ import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.chat.ChatMessage;
 import com.oath.domain.chat.ChatRoom;
 import com.oath.domain.chat.ChatRoomMember;
+import com.oath.domain.chat.chatDTO.MemberResponse;
 import com.oath.domain.chat.chatDTO.MessageRequest;
 import com.oath.domain.chat.chatDTO.MessageResponse;
 import com.oath.domain.chat.chatDTO.RoomCreateRequest;
@@ -41,7 +42,7 @@ public class ChatService {
         Member creator = memberRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
 
-        // 1. 채팅방 생성
+        //채팅방 생성
         ChatRoom newChatRoom = ChatRoom.builder()
                 .groupId(request.getGroupId())
                 .name(request.getName())
@@ -49,7 +50,7 @@ public class ChatService {
                 .build();
         chatRoomRepository.save(newChatRoom);
 
-        // 2. 생성자를 채팅방 멤버로 추가
+        //생성자를 채팅방 멤버로 추가
         ChatRoomMember chatRoomMember = ChatRoomMember.builder()
                 .chatRoom(newChatRoom)
                 .member(creator)
@@ -91,13 +92,61 @@ public class ChatService {
                             .unreadCount(unreadCount)
                             .build();
                 },
-                5
-        ); // 페이지네이션 바에 5개씩 표시
+                5 // 페이지네이션 바에 5개씩 표시
+        );
     }
 
     /**
-     * 채팅 메시지를 DB에 저장하고, 브로드캐스팅을 위해 DTO로 변환하여 반환합니다.
+     * 특정 채팅방의 이전 대화 내용을 페이징하여 조회합니다.
      */
+    public PageResponseDTO<MessageResponse> getPreviousMessages(
+            Long roomId,
+            Pageable pageable
+    ) {
+        Page<ChatMessage> messagesPage = chatMessageRepository.findByChatRoomIdOrderBySentAtDesc(
+                roomId,
+                pageable
+        );
+
+        return PageResponseDTO.from(
+                messagesPage,
+                chatMessage -> MessageResponse.builder()
+                        .messageId(chatMessage.getId())
+                        .senderId(chatMessage.getSender().getId())
+                        .senderName(chatMessage.getSender().getUsername())
+                        .senderProfileImageUrl(chatMessage.getSender().getProfileImageUrl())
+                        .content(chatMessage.getContent())
+                        .planId(chatMessage.getPlanId())
+                        .sentAt(chatMessage.getSentAt())
+                        .build(),
+                5 // 페이지네이션 바에 5개씩 표시
+        );
+    }
+
+    /**
+     * 특정 채팅방에 참여하고 있는 멤버 목록을 조회합니다.
+     */
+    public PageResponseDTO<MemberResponse> getChatRoomMembers(
+            Long roomId,
+            Pageable pageable
+    ) {
+        Page<ChatRoomMember> membersPage = chatRoomMemberRepository.findByChatRoomId(roomId, pageable);
+
+        return PageResponseDTO.from(
+                membersPage,
+                chatRoomMember -> {
+                    Member member = chatRoomMember.getMember();
+                    return MemberResponse.builder()
+                            .memberId(member.getId())
+                            .username(member.getUsername())
+                            .profileImageUrl(member.getProfileImageUrl())
+                            .build();
+                },
+                5 // 페이지네이션 바에 5개씩 표시
+        );
+    }
+
+    //채팅 메시지 저장 및 브로드캐스팅
     @Transactional
     public MessageResponse processAndSaveMessage(
             MessageRequest request,
