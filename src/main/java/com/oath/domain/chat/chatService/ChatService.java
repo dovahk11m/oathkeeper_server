@@ -2,7 +2,9 @@ package com.oath.domain.chat.chatService;
 
 import com.oath.common.exception.Exception404;
 import com.oath.common.paging.PageResponseDTO;
-import com.oath.domain.chat.*;
+import com.oath.domain.chat.ChatMessage;
+import com.oath.domain.chat.ChatRoom;
+import com.oath.domain.chat.ChatRoomMember;
 import com.oath.domain.chat.chatDTO.MessageRequest;
 import com.oath.domain.chat.chatDTO.MessageResponse;
 import com.oath.domain.chat.chatDTO.RoomCreateRequest;
@@ -10,7 +12,7 @@ import com.oath.domain.chat.chatDTO.RoomListResponse;
 import com.oath.domain.chat.chatRepository.ChatMessageRepository;
 import com.oath.domain.chat.chatRepository.ChatRoomMemberRepository;
 import com.oath.domain.chat.chatRepository.ChatRoomRepository;
-import com.oath.domain.members.Member;
+import com.oath.domain.members.domain.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +33,10 @@ public class ChatService {
 
     //채팅방 생성 로직
     @Transactional
-    public ChatRoom createChatRoom(RoomCreateRequest request, String creatorEmail) {
+    public ChatRoom createChatRoom(
+            RoomCreateRequest request,
+            String creatorEmail
+    ) {
         Member creator = memberRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
 
@@ -57,33 +62,47 @@ public class ChatService {
     }
 
     //채팅 목록조회 로직
-    public PageResponseDTO<RoomListResponse> getMyChatRooms(String email, Pageable pageable) {
+    public PageResponseDTO<RoomListResponse> getMyChatRooms(
+            String email,
+            Pageable pageable
+    ) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
 
-        Page<ChatRoomMember> myRoomsPage = chatRoomMemberRepository.findByMemberIdWithChatRoom(member.getId(), pageable);
+        Page<ChatRoomMember> myRoomsPage = chatRoomMemberRepository.findByMemberIdWithChatRoom(
+                member.getId(),
+                pageable
+        );
 
         // Page<ChatRoomMember>를 PageResponseDTO<RoomListResponse>로 변환
-        return PageResponseDTO.from(myRoomsPage, chatRoomMember -> {
-            ChatRoom chatRoom = chatRoomMember.getChatRoom();
-            // TODO: 각 채팅방의 마지막 메시지 및 안 읽은 메시지 수 조회 로직 구현
-            String lastMessage = "대화 내용이 없습니다.";
-            Long unreadCount = 0L;
+        return PageResponseDTO.from(
+                myRoomsPage,
+                chatRoomMember -> {
+                    ChatRoom chatRoom = chatRoomMember.getChatRoom();
+                    // TODO: 각 채팅방의 마지막 메시지 및 안 읽은 메시지 수 조회 로직 구현
+                    String lastMessage = "대화 내용이 없습니다.";
+                    Long unreadCount = 0L;
 
-            return RoomListResponse.builder()
-                    .chatRoomId(chatRoom.getId())
-                    .chatRoomName(chatRoom.getName())
-                    .lastMessage(lastMessage)
-                    .unreadCount(unreadCount)
-                    .build();
-        }, 5); // 페이지네이션 바에 5개씩 표시
+                    return RoomListResponse.builder()
+                            .chatRoomId(chatRoom.getId())
+                            .chatRoomName(chatRoom.getName())
+                            .lastMessage(lastMessage)
+                            .unreadCount(unreadCount)
+                            .build();
+                },
+                5
+        ); // 페이지네이션 바에 5개씩 표시
     }
 
     /**
      * 채팅 메시지를 DB에 저장하고, 브로드캐스팅을 위해 DTO로 변환하여 반환합니다.
      */
     @Transactional
-    public MessageResponse processAndSaveMessage(MessageRequest request, Long roomId, String senderEmail) {
+    public MessageResponse processAndSaveMessage(
+            MessageRequest request,
+            Long roomId,
+            String senderEmail
+    ) {
         Member sender = memberRepository.findByEmail(senderEmail)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
