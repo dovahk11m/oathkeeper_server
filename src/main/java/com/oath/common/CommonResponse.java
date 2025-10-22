@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+// 모든 API 응답을 위한 표준 래퍼(Wrapper) 클래스입니다.
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class CommonResponse<T> {
