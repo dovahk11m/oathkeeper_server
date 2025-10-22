@@ -13,15 +13,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     private final AuthInterceptor authInterceptor;
 
-    // 전역 CORS 설정
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // 모든 경로에 대해
-                .allowedOrigins("http://localhost:3000") // 허용할 오리진
-                .allowedMethods("*") // 모든 HTTP 메서드 허용
-                .allowedHeaders("*") // 모든 헤더 허용
-                .allowCredentials(true); // 쿠키/인증 정보 허용
-    }
+    // 전역 CORS 설정 (웹에서만 사용하는 설정)
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/**") // 모든 경로에 대해
+//                .allowedOrigins("http://localhost:3000") // 허용할 오리진
+//                .allowedMethods("*") // 모든 HTTP 메서드 허용
+//                .allowedHeaders("*") // 모든 헤더 허용
+//                .allowCredentials(true); // 쿠키/인증 정보 허용
+//    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

@@ -1,7 +1,7 @@
 package com.oath.domain.chat;
 
+import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
-import com.oath.domain.members.Member;
 import lombok.*;
 
 import java.time.LocalDateTime;

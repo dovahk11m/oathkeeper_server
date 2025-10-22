@@ -13,6 +13,7 @@ import com.oath.domain.chat.chatRepository.ChatMessageRepository;
 import com.oath.domain.chat.chatRepository.ChatRoomMemberRepository;
 import com.oath.domain.chat.chatRepository.ChatRoomRepository;
 import com.oath.domain.members.domain.Member;
+import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
