@@ -1,6 +1,9 @@
 package com.oath.common.config;
 
+import com.oath.common.auth.StompAuthChannelInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -17,8 +20,12 @@ http 통신 -- 프로토콜 업그레이드 /ws-stomp (by클라이언트)
 
 //메시지 브로커
 @Configuration
+@RequiredArgsConstructor
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    // WebSocket 연결 시 JWT 인증을 처리할 인터셉터
+    private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
 
     /*메시지 브로커 설정
     /topic 으로 시작하는 경로는 이 브로커가 처리한다
@@ -47,6 +54,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setSendBufferSizeLimit(1024 * 1024);
         //대기시간 최대치 (20)
         registry.setSendTimeLimit(20000);
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        // 클라이언트로부터 들어오는 메시지 채널에 커스텀 인터셉터를 추가합니다.
+        registration.interceptors(stompAuthChannelInterceptor);
     }
 
 }//end
