@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "plan_participants_tb")
+@ToString(exclude = "plan")
 public class PlanMember {
 
     @Id
@@ -29,20 +30,38 @@ public class PlanMember {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // 포인트 타입 뭔지 몰라서 일단 문자열
-    @Column(name = "start_location")
-    private String startLocation;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "arrival_status", nullable = false)
-    private ArrivalStatus arrivalStatus; // ON_TIME, LATE, ABSENT
+    @Column(name = "participant_status", nullable = false)
+    private ParticipantStatus participantStatus;
 
-    @Column(name = "arrival_offset_minutes")
-    private Integer arrivalOffsetMinutes;
+    @Column(name = "transport_method")
+    private String transportMethod;
 
-    @Column(name = "created_at", nullable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(name = "start_address")
+    private String startAddress;
 
+    @Column(name = "start_latitude")
+    private Double startLatitude;
+
+    @Column(name = "start_longitude")
+    private Double startLongitude;
+
+    @Column(name = "expected_travel_time_minutes")
+    private Integer expectedTravelTimeMinutes;
+
+    @Column(name = "expected_departure_time")
+    private LocalDateTime expectedDepartureTime;
+
+    @Column(name = "actual_departure_time")
+    private LocalDateTime actualDepartureTime;
+
+    @Column(name = "actual_arrival_time")
+    private LocalDateTime actualArrivalTime;
+
+    @Column(name = "time_burden_minutes")
+    private Integer timeBurdenMinutes;
+
+    @Column(name = "departure_failure_reason")
+    private String departureFailureReason;
 
 }
