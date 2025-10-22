@@ -1,4 +1,4 @@
-package com.oath.common.token;
+package com.oath.common;
 
 import com.oath.domain.members.MemberRole;
 import io.jsonwebtoken.*;
