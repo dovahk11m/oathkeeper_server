@@ -4,12 +4,9 @@ import com.oath.common.exception.Exception404;
 import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.chat.ChatMessage;
 import com.oath.domain.chat.ChatRoom;
+import com.oath.domain.groups.Group;
 import com.oath.domain.chat.ChatRoomMember;
-import com.oath.domain.chat.chatDTO.MemberResponse;
-import com.oath.domain.chat.chatDTO.MessageRequest;
-import com.oath.domain.chat.chatDTO.MessageResponse;
-import com.oath.domain.chat.chatDTO.RoomCreateRequest;
-import com.oath.domain.chat.chatDTO.RoomListResponse;
+import com.oath.domain.chat.chatDTO.*;
 import com.oath.domain.chat.chatRepository.ChatMessageRepository;
 import com.oath.domain.chat.chatRepository.ChatRoomMemberRepository;
 import com.oath.domain.chat.chatRepository.ChatRoomRepository;
@@ -33,67 +30,21 @@ public class ChatService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final MemberRepository memberRepository;
 
-    //채팅방 생성 로직
+    /**
+     * 특정 그룹에 종속되는 1:1 채팅방을 생성합니다.
+     * 이 메서드는 GroupService에 의해 호출되는 것을 가정합니다.
+     * @param group 이 채팅방이 속하게 될 Group 엔티티
+     * @return 생성된 ChatRoom 엔티티
+     */
     @Transactional
-    public ChatRoom createChatRoom(
-            RoomCreateRequest request,
-            String creatorEmail
-    ) {
-        Member creator = memberRepository.findByEmail(creatorEmail)
-                .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
-
-        //채팅방 생성
+    public ChatRoom createChatRoomForGroup(Group group) {
         ChatRoom newChatRoom = ChatRoom.builder()
-                .groupId(request.getGroupId())
-                .name(request.getName())
+                .group(group)
+                .name(group.getName() + " 채팅방") // 그룹 이름 기반으로 채팅방 이름 자동 생성
+                .group(group) // 연관관계의 주인인 ChatRoom에 Group을 설정
                 .createdAt(LocalDateTime.now())
                 .build();
-        chatRoomRepository.save(newChatRoom);
-
-        //생성자를 채팅방 멤버로 추가
-        ChatRoomMember chatRoomMember = ChatRoomMember.builder()
-                .chatRoom(newChatRoom)
-                .member(creator)
-                .joinedAt(LocalDateTime.now())
-                .build();
-        chatRoomMemberRepository.save(chatRoomMember);
-
-        // TODO: 그룹의 다른 멤버들도 ChatRoomMember로 추가하는 로직 필요
-
-        return newChatRoom;
-    }
-
-    //채팅 목록조회 로직
-    public PageResponseDTO<RoomListResponse> getMyChatRooms(
-            String email,
-            Pageable pageable
-    ) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
-
-        Page<ChatRoomMember> myRoomsPage = chatRoomMemberRepository.findByMemberIdWithChatRoom(
-                member.getId(),
-                pageable
-        );
-
-        // Page<ChatRoomMember>를 PageResponseDTO<RoomListResponse>로 변환
-        return PageResponseDTO.from(
-                myRoomsPage,
-                chatRoomMember -> {
-                    ChatRoom chatRoom = chatRoomMember.getChatRoom();
-                    // TODO: 각 채팅방의 마지막 메시지 및 안 읽은 메시지 수 조회 로직 구현
-                    String lastMessage = "대화 내용이 없습니다.";
-                    Long unreadCount = 0L;
-
-                    return RoomListResponse.builder()
-                            .chatRoomId(chatRoom.getId())
-                            .chatRoomName(chatRoom.getName())
-                            .lastMessage(lastMessage)
-                            .unreadCount(unreadCount)
-                            .build();
-                },
-                5 // 페이지네이션 바에 5개씩 표시
-        );
+        return chatRoomRepository.save(newChatRoom);
     }
 
     /**
@@ -112,14 +63,18 @@ public class ChatService {
                 messagesPage,
                 chatMessage -> MessageResponse.builder()
                         .messageId(chatMessage.getId())
-                        .senderId(chatMessage.getSender().getId())
-                        .senderName(chatMessage.getSender().getUsername())
-                        .senderProfileImageUrl(chatMessage.getSender().getProfileImageUrl())
+                        .senderId(chatMessage.getSender()
+                                          .getId())
+                        .senderName(chatMessage.getSender()
+                                            .getUsername())
+                        .senderProfileImageUrl(chatMessage.getSender()
+                                                       .getProfileImageUrl())
                         .content(chatMessage.getContent())
                         .planId(chatMessage.getPlanId())
                         .sentAt(chatMessage.getSentAt())
                         .build(),
-                5 // 페이지네이션 바에 5개씩 표시
+                5
+                // 페이지네이션 바에 5개씩 표시
         );
     }
 
@@ -130,7 +85,10 @@ public class ChatService {
             Long roomId,
             Pageable pageable
     ) {
-        Page<ChatRoomMember> membersPage = chatRoomMemberRepository.findByChatRoomId(roomId, pageable);
+        Page<ChatRoomMember> membersPage = chatRoomMemberRepository.findByChatRoomId(
+                roomId,
+                pageable
+        );
 
         return PageResponseDTO.from(
                 membersPage,
@@ -142,7 +100,8 @@ public class ChatService {
                             .profileImageUrl(member.getProfileImageUrl())
                             .build();
                 },
-                5 // 페이지네이션 바에 5개씩 표시
+                5
+                // 페이지네이션 바에 5개씩 표시
         );
     }
 
