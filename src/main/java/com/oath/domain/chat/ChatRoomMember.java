@@ -29,4 +29,15 @@ public class ChatRoomMember {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime joinedAt;
+
+    /**
+     * 새로운 ChatRoomMember 엔티티를 생성하는 정적 팩토리 메서드입니다.
+     */
+    public static ChatRoomMember of(ChatRoom chatRoom, Member member) {
+        return ChatRoomMember.builder()
+                .chatRoom(chatRoom)
+                .member(member)
+                .joinedAt(LocalDateTime.now())
+                .build();
+    }
 }
