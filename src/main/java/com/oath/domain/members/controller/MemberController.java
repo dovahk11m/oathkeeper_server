@@ -48,7 +48,9 @@ public class MemberController {
     @PostMapping("/kakao/doLogin")
     public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto) {
         AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
-        KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
+        KakaoProfileDto kakaoProfileDto =
+                kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
+        System.out.println("로그인한 카카오 프로필: " + kakaoProfileDto);
         Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getSub());
         if(originalMember == null){
             originalMember = memberService.createOauth(kakaoProfileDto.getSub(), kakaoProfileDto.getEmail(), SocialType.KAKAO);

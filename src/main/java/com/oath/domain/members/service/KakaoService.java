@@ -40,12 +40,12 @@ public class KakaoService {
 
     public KakaoProfileDto getKakaoProfile(String token) {
         RestClient restClient = RestClient.create();
-        ResponseEntity<String> response = restClient.get()
+        ResponseEntity<KakaoProfileDto> response = restClient.get()
                 .uri("https://kapi.kakao.com/v2/user/me")
                 .header("Authorization", "Bearer "+token)
                 .retrieve()
-                .toEntity(String.class);
+                .toEntity(KakaoProfileDto.class);
         System.out.println("profile JSON" + response.getBody());
-        return null;
+        return response.getBody();
     }
 }
