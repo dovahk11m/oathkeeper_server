@@ -35,9 +35,8 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(email) // 'sub' 클레임
                 .claim("role", role.name()) // 비공개 클레임
-                .issuedAt(now)
                 .expiration(validity)
-                .signWith(key)
+                .signWith(key, Jwts.SIG.HS384) // [수정] HS384 알고리즘 명시
                 .compact();
     }
 

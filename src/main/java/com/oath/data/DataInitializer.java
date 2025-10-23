@@ -1,12 +1,9 @@
 package com.oath.data;
 
-import com.oath.domain.chat.ChatMessage;
-import com.oath.domain.chat.ChatRoomMember;
-import com.oath.domain.chat.chatRepository.ChatMessageRepository;
-import com.oath.domain.chat.chatRepository.ChatRoomMemberRepository;
+import com.oath.domain.chat.Chat;
+import com.oath.domain.chat.ChatRepository;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
-import com.oath.domain.groups.GroupRole;
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
 import com.oath.domain.groups.groupRepository.GroupMemberRepository;
 import com.oath.domain.groups.groupService.GroupService;
@@ -38,8 +35,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final GroupService groupService;
     private final GroupMemberRepository groupMemberRepository;
-    private final ChatRoomMemberRepository chatRoomMemberRepository;
-    private final ChatMessageRepository chatMessageRepository;
+    private final ChatRepository chatRepository;
 
     @Override
     @Transactional
@@ -73,29 +69,25 @@ public class DataInitializer implements CommandLineRunner {
         );
 
         // 3. 그룹에 멤버 추가
-        groupMemberRepository.save(GroupMember.builder()
-                                           .group(sampleGroup)
-                                           .member(user2)
-                                           .role(GroupRole.MEMBER)
-                                           .joinedAt(LocalDateTime.now())
-                                           .build());
-
-        // 4. 그룹에 추가된 멤버를 채팅방에도 추가
-        chatRoomMemberRepository.save(ChatRoomMember.of(sampleGroup.getChatRoom(), user2));
+        // GroupMember.of() 정적 팩토리 메서드를 사용하여 user2를 멤버로 추가합니다.
+        groupMemberRepository.save(GroupMember.of(
+                sampleGroup,
+                user2
+        ));
 
         // 5. 샘플 채팅 메시지 생성 (user1, user2가 모두 참여한 후)
-        chatMessageRepository.save(new ChatMessage(
+        chatRepository.save(new Chat(
                 null,
-                sampleGroup.getChatRoom(),
+                sampleGroup,
                 user1,
                 "안녕하세요! 샘플 데이터입니다.",
                 null,
                 LocalDateTime.now()
                         .minusMinutes(5)
         ));
-        chatMessageRepository.save(new ChatMessage(
+        chatRepository.save(new Chat(
                 null,
-                sampleGroup.getChatRoom(),
+                sampleGroup,
                 user2,
                 "네, 반갑습니다!",
                 null,

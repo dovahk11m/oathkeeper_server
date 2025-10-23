@@ -38,7 +38,7 @@ public class MemberService {
         }
 
         Member member = optMember.get();
-        if(passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
+        if(!passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
             throw new IllegalArgumentException("password가 일치하지 않습니다.");
         }
         return member;

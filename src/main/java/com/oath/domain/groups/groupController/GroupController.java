@@ -2,12 +2,17 @@ package com.oath.domain.groups.groupController;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.auth.Auth;
-import com.oath.common.paging.PageResponseDTO;
+import com.oath.common.paging.PageResponseDTO; 
+import com.oath.domain.groups.groupDTO.GroupMembersAddRequest;
+import com.oath.domain.groups.groupDTO.GroupMemberResponse;
+import com.oath.domain.chat.ChatResponse;
+import com.oath.domain.chat.ChatService;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
 import com.oath.domain.groups.groupDTO.GroupListResponse;
 import com.oath.domain.groups.groupService.GroupService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -20,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class GroupController {
 
     private final GroupService groupService;
+    private final ChatService chatService; // Chat 관련 기능 처리를 위해 주입
 
     /**
      * 새로운 그룹을 생성합니다.
@@ -61,5 +67,49 @@ public class GroupController {
     ) {
         groupService.leaveGroup(groupId, email);
         return ResponseEntity.ok(CommonResponse.success(null, "그룹에서 탈퇴했습니다."));
+    }
+
+    /**
+     * 특정 그룹에 여러 멤버를 추가합니다.
+     */
+    @Auth
+    @PostMapping("/{groupId}/members")
+    public ResponseEntity<CommonResponse<Void>> addMembers(
+            @PathVariable Long groupId,
+            @RequestBody GroupMembersAddRequest request,
+            @RequestAttribute("userEmail") String email
+    ) {
+        groupService.addMembers(groupId, request, email);
+        return ResponseEntity.ok(CommonResponse.success(null, "멤버가 그룹에 추가되었습니다."));
+    }
+
+
+    /**
+     * 특정 그룹(채팅방)의 이전 대화 내용을 페이징하여 조회합니다.
+     */
+    @Auth
+    @GetMapping("/{groupId}/chat/messages")
+    public ResponseEntity<CommonResponse<PageResponseDTO<ChatResponse>>> getPreviousMessages(
+            @PathVariable Long groupId,
+            // TODO: ChatRoom ID를 어떻게 가져올지 결정 필요 (GroupRepository 사용 등)
+            @PageableDefault(size = 30, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        // 임시로 roomId를 groupId로 사용. 실제로는 groupId로 chatRoomId를 조회해야 함.
+        Long roomId = groupId;
+        PageResponseDTO<ChatResponse> messages = chatService.getPreviousMessages(roomId, pageable);
+        return ResponseEntity.ok(CommonResponse.success(messages, "이전 대화 내용 조회가 완료되었습니다."));
+    }
+
+    /**
+     * 특정 그룹의 멤버 목록(채팅방 참여자 목록)을 조회합니다.
+     */
+    @Auth
+    @GetMapping("/{groupId}/members")
+    public ResponseEntity<CommonResponse<PageResponseDTO<GroupMemberResponse>>> getGroupMembers(
+            @PathVariable Long groupId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        PageResponseDTO<GroupMemberResponse> members = groupService.getGroupMembers(groupId, pageable);
+        return ResponseEntity.ok(CommonResponse.success(members, "그룹 멤버 목록 조회가 완료되었습니다."));
     }
 }
