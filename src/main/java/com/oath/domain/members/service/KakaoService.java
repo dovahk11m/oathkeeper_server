@@ -35,7 +35,6 @@ public class KakaoService {
                 .retrieve()
                 .toEntity(AccessTokenDto.class);
 
-        System.out.println("응답 accesstoken JSON" + response.getBody());
         return response.getBody();
     }
 
