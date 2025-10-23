@@ -1,4 +1,4 @@
-package com.oath.domain.chat.chatDTO;
+package com.oath.domain.chat;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Builder
-public class MessageResponse {
+public class ChatResponse {
     private Long messageId;
     private Long senderId;
     private String senderName;
