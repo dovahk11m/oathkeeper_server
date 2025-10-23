@@ -31,7 +31,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 // 단, 로그인, 회원가입 등 인증이 필요 없는 경로는 제외합니다.
                 .excludePathPatterns(
                         "/api/member/create",
-                        "/api/member/doLogin"
+                        "/api/member/login",
+                        "/api/member/kakao/login"
                         // TODO: 소셜 로그인 관련 경로도 필요 시 추가
                 );
     }
