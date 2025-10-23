@@ -1,5 +1,6 @@
 package com.oath.domain.chat;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,5 +19,24 @@ public class ChatResponse {
     private String senderProfileImageUrl;
     private String content;
     private Long planId; // 플랜 관련 메시지 식별용
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime sentAt;
+
+    /**
+     * Chat 엔티티를 ChatResponse DTO로 변환하는 정적 팩토리 메서드입니다.
+     * @param chat 변환할 Chat 엔티티
+     * @return 생성된 ChatResponse DTO
+     */
+    public static ChatResponse from(Chat chat) {
+        return ChatResponse.builder()
+                .messageId(chat.getId())
+                .senderId(chat.getSender().getId())
+                .senderName(chat.getSender().getUsername())
+                .senderProfileImageUrl(chat.getSender().getProfileImageUrl())
+                .content(chat.getContent())
+                .planId(chat.getPlanId())
+                .sentAt(chat.getSentAt())
+                .build();
+    }
 }
