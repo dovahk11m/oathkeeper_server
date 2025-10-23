@@ -12,6 +12,7 @@ import com.oath.domain.groups.groupRepository.GroupMemberRepository;
 import com.oath.domain.groups.groupService.GroupService;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
+import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +117,10 @@ public class DataInitializer implements CommandLineRunner {
                                              .username(username)
                                              .password(passwordEncoder.encode(password))
                                              .role(role)
+                                             .socialType(SocialType.LOCAL)
+                                             .socialId(email)
+                                             .createdAt(LocalDateTime.now())
+                                             .updatedAt(LocalDateTime.now())
                                              .build());
     }
 }
