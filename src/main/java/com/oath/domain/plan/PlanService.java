@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,21 +25,27 @@ public class PlanService {
     private final MemberRepository memberRepository;
 
     // 기존 엔티티 반환 메서드들은 내부 로직에서 사용
-    // 플랜 조회 (엔티티)
+    // 플랜 조회
     public Plan getPlanById(Long planId) {
         return planJpaRepository.findById(planId).orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
     }
 
-    // 플랜 생성 (엔티티)
+    // 플랜 생성
     @Transactional
     public Plan createPlan(Long creatorMemberId, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
         Member creator = memberRepository.findById(creatorMemberId).orElseThrow(() -> new Exception404("해당 멤버를 찾을 수 없습니다."));
-        Plan plan = new Plan(creator, title, planDatetime, status, lateFineAmount);
+        Plan plan = Plan.builder()
+                .creatorMember(creator)
+                .title(title)
+                .planDatetime(planDatetime)
+                .status(status)
+                .lateFineAmount(lateFineAmount)
+                .build();
 
         return planJpaRepository.save(plan);
     }
 
-    // 플랜 수정 (엔티티)
+    // 플랜 수정
     @Transactional
     public Plan updatePlan(Long planId, String title, LocalDateTime planDatetime, Status status) {
         Plan plan = getPlanById(planId);
@@ -56,20 +63,21 @@ public class PlanService {
         planJpaRepository.deleteById(planId);
     }
 
-    // 플랜 목록 조회 (엔티티)
+    // 플랜 목록 조회
     public List<Plan> listPlans() {
         return planJpaRepository.findAll();
     }
 
-    // 참가자 추가 (엔티티)
+    // 참가자 추가
     @Transactional
     public PlanMember addParticipant(Long planId, Long memberId) {
         Plan plan = getPlanById(planId);
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new Exception404("해당 멤버를 찾을 수 없습니다."));
-        PlanMember participant = new PlanMember();
-        participant.setPlan(plan);
-        participant.setMember(member);
-        participant.setParticipantStatus(ParticipantStatus.PENDING);
+        PlanMember participant = PlanMember.builder()
+                .plan(plan)
+                .member(member)
+                .participantStatus(ParticipantStatus.PENDING)
+                .build();
         PlanMember saved = planMemberRepository.save(participant);
         plan.getParticipants().add(saved);
 
@@ -85,7 +93,7 @@ public class PlanService {
         planMemberRepository.deleteById(participantId);
     }
 
-    // 참가자 상태 변경 (엔티티)
+    // 참가자 상태 변경
     @Transactional
     public PlanMember changeParticipantStatus(Long participantId, ParticipantStatus status) {
         PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
@@ -94,7 +102,7 @@ public class PlanService {
         return planMemberRepository.save(pm);
     }
 
-    // 참가자 조회 (엔티티)
+    // 참가자 조회
     public List<PlanMember> getParticipants(Long planId) {
         if (!planJpaRepository.existsById(planId)) {
             throw new Exception404("해당 플랜을 찾을 수 없습니다.");
@@ -102,7 +110,7 @@ public class PlanService {
         return planMemberRepository.findByPlanId(planId);
     }
 
-    // 출발 시간 기록 (엔티티)
+    // 출발 시간 기록
     @Transactional
     public PlanMember recordDeparture(Long participantId, LocalDateTime actualDeparture) {
         PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
@@ -111,7 +119,7 @@ public class PlanService {
         return planMemberRepository.save(pm);
     }
 
-    // 도착 시간 기록 (엔티티)
+    // 도착 시간 기록
     @Transactional
     public PlanMember recordArrival(Long participantId, LocalDateTime actualArrival) {
         PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
@@ -126,7 +134,7 @@ public class PlanService {
         return planMemberRepository.save(pm);
     }
 
-    // 예상 출발 시간 제안 (엔티티)
+    // 예상 출발 시간 제안
     @Transactional
     public PlanMember suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes) {
         PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
@@ -153,7 +161,7 @@ public class PlanService {
         return 0L;
     }
 
-    // 장소 확정 (엔티티)
+    // 장소 확정
     @Transactional
     public Plan confirmPlace(Long planId, String placeName, Double latitude, Double longitude) {
         Plan plan = getPlanById(planId);
@@ -162,12 +170,12 @@ public class PlanService {
         return planJpaRepository.save(plan);
     }
 
-    // ------------------ DTO 반환용 래퍼 메서드 ------------------
+
 
     @Transactional(readOnly = true)
     public List<PlanResponse.CreatePlan> listPlansDto() {
         List<Plan> plans = planJpaRepository.findAllWithParticipants();
-        return plans.stream().map(PlanResponse.CreatePlan::of).collect(Collectors.toList());
+        return plans.stream().map(p -> PlanResponse.CreatePlan.of(p)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -184,8 +192,29 @@ public class PlanService {
     }
 
     @Transactional
-    public PlanResponse.CreatePlan updatePlanDto(Long planId, String title, LocalDateTime planDatetime, Status status) {
+    public PlanResponse.CreatePlan updatePlanDto(Long planId, String title, LocalDateTime planDatetime, Status status, List<String> tags) {
+
         Plan plan = updatePlan(planId, title, planDatetime, status);
+
+        // 태그 처리: null이면 변경 없음, 빈 리스트면 태그 제거
+        if (tags != null) {
+            List<String> normalized = tags.stream()
+                    .filter(s -> Objects.nonNull(s))
+                    .map(s -> s.trim())
+                    .filter(s -> !s.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            // 기존 태그 삭제 후 새 태그 추가
+            plan.clearTags();
+            for (String tagName : normalized) {
+                Tag tag = Tag.builder().tagName(tagName).build();
+                plan.addTag(tag);
+            }
+
+            plan = planJpaRepository.save(plan);
+        }
+
         Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId()).orElse(plan);
         return PlanResponse.CreatePlan.of(reloaded);
     }
@@ -212,7 +241,7 @@ public class PlanService {
     @Transactional(readOnly = true)
     public List<PlanMemberResponse> getParticipantsDto(Long planId) {
         List<PlanMember> list = getParticipants(planId);
-        return list.stream().map(PlanMemberResponse::of).collect(Collectors.toList());
+        return list.stream().map(pm -> PlanMemberResponse.of(pm)).collect(Collectors.toList());
     }
 
     @Transactional

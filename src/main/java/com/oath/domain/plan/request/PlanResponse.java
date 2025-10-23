@@ -29,7 +29,7 @@ public class PlanResponse {
             }
             this.title = plan != null ? plan.getTitle() : null;
             this.location = plan != null ? plan.getPlaceName() : null;
-            this.participants = plan != null ? plan.getParticipants().stream().map(PlanMemberResponse::of).collect(Collectors.toList()) : null;
+            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> PlanMemberResponse.of(pm)).collect(Collectors.toList()) : null;
         }
 
         public static CreatePlan of(Plan plan) {
@@ -54,7 +54,7 @@ public class PlanResponse {
             }
             this.title = plan != null ? plan.getTitle() : null;
             this.location = plan != null ? plan.getPlaceName() : null;
-            this.participants = plan != null ? plan.getParticipants().stream().map(PlanMemberResponse::of).collect(Collectors.toList()) : null;
+            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> PlanMemberResponse.of(pm)).collect(Collectors.toList()) : null;
         }
 
         public static UpdatePlan of(Plan plan) {
@@ -63,4 +63,3 @@ public class PlanResponse {
     }
 
 }
-

@@ -3,6 +3,7 @@ package com.oath.domain.plan;
 import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -51,6 +52,9 @@ public class Plan {
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlanMember> participants = new ArrayList<>();
 
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<com.oath.domain.plan.Tag> tags = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -59,6 +63,7 @@ public class Plan {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder
     public Plan(Member creatorMember, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
         this.creatorMember = creatorMember;
         this.title = title;
@@ -77,6 +82,28 @@ public class Plan {
         this.placeName = placeName;
         this.placeLatitude = latitude;
         this.placeLongitude = longitude;
+    }
+
+    // 태그 헬퍼 메서드: 양방향 무결성 유지
+    public void addTag(Tag tag) {
+        if (tag == null) return;
+        tag.setPlan(this);
+        this.tags.add(tag);
+    }
+
+    public void clearTags() {
+        if (this.tags == null || this.tags.isEmpty()) return;
+        this.tags.forEach(t -> t.setPlan(null));
+        this.tags.clear();
+    }
+
+    public enum Polarity {
+        POSITIVE, NEGATIVE
+    }
+
+    public enum Option {
+        TOTAL, // 한명이 희생
+        EQUAL  // 동등
     }
 
 }

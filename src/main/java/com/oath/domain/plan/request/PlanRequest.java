@@ -1,13 +1,16 @@
 package com.oath.domain.plan.request;
 
 
+import com.oath.domain.plan.Plan.Option;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 public class PlanRequest {
 
-    // 요청(Request) DTO들만 남깁니다.
+    // 요청 DTO들만 남깁니다.
     @Getter
     @Setter
     @NoArgsConstructor
@@ -26,6 +29,12 @@ public class PlanRequest {
         public String title;
         public String planDatetime;
         public String status;
+
+        // 새로 추가된 요청 필드들
+        public List<String> negative;
+        public List<String> positive;
+        public Option option;
+        public List<String> tags; // 변경: 엔티티 대신 태그명 리스트로 수신
     }
 
     @Getter

@@ -71,7 +71,7 @@ public class PlanRestController {
         Status status = null;
         if (req.status != null) status =
                 parseStatusOrThrow(req.status, null);
-        PlanResponse.CreatePlan dto = planService.updatePlanDto(id, req.title, dt, status);
+        PlanResponse.CreatePlan dto = planService.updatePlanDto(id, req.title, dt, status, req.tags);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -110,14 +110,14 @@ public class PlanRestController {
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
-    // 참가자 조회
+    // 참가자 목록
     @GetMapping("/{planId}/participants")
     public ResponseEntity<CommonResponse<List<PlanMemberResponse>>> getParticipants(@PathVariable Long planId) {
         List<PlanMemberResponse> dtos = planService.getParticipantsDto(planId);
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
-    // 출발시간 기록
+    // 출발 시간 기록
     @PostMapping("/participants/{participantId}/departure")
     public ResponseEntity<CommonResponse<PlanMemberResponse>> recordDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
@@ -125,7 +125,7 @@ public class PlanRestController {
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
-    // 도착시간 기록
+    // 도착 시간 기록
     @PostMapping("/participants/{participantId}/arrival")
     public ResponseEntity<CommonResponse<PlanMemberResponse>> recordArrival(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
@@ -133,7 +133,7 @@ public class PlanRestController {
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
-    // 예상출발 제안
+    // 예상 출발 제안
     @PostMapping("/participants/{participantId}/suggest-departure")
     public ResponseEntity<CommonResponse<PlanMemberResponse>> suggestDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.SuggestDepartureRequest req) {
         PlanMemberResponse dto = planService.suggestExpectedDepartureDto(participantId, req.expectedTravelTimeMinutes);
