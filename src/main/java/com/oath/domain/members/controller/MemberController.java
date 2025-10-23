@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/api/member")
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
@@ -33,8 +33,8 @@ public class MemberController {
         return new ResponseEntity<>(member.getId(), HttpStatus.CREATED);
     }
 
-    @PostMapping("/doLogin")
-    public ResponseEntity<?> doLogin(@RequestBody MemberLoginDto memberLoginDto){
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody MemberLoginDto memberLoginDto){
         Member member = memberService.login(memberLoginDto);
 
         String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole());
