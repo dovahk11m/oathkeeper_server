@@ -28,15 +28,25 @@ public class JwtTokenProvider {
     }
 
     //로그인시 새 토큰 생성
-    public String createToken(String email, Role role) {
+    public String createToken(
+            String email,
+            Role role
+    ) {
         final Date now = new Date();
         final Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
-                .subject(email) // 'sub' 클레임
-                .claim("role", role.name()) // 비공개 클레임
+                .subject(email)
+                .claim(
+                        "role",
+                        role.name()
+                )
                 .expiration(validity)
-                .signWith(key, Jwts.SIG.HS384) // [수정] HS384 알고리즘 명시
+                .signWith(
+                        key,
+                        Jwts.SIG.HS256
+                        // HS256 알고리즘
+                )
                 .compact();
     }
 
@@ -45,7 +55,8 @@ public class JwtTokenProvider {
         try {
             Jwts.parser()
                     .verifyWith(key)
-                    .build().parseSignedClaims(token);
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.error(
@@ -53,7 +64,10 @@ public class JwtTokenProvider {
                     e
             );
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다: {}", e.getMessage());
+            log.info(
+                    "만료된 JWT 토큰입니다: {}",
+                    e.getMessage()
+            );
         } catch (UnsupportedJwtException e) {
             log.error(
                     "지원되지 않는 JWT 토큰입니다",
@@ -83,8 +97,11 @@ public class JwtTokenProvider {
     }
 
     //토큰에서 Role 추출
-    public Role getRole(String token){
-        String role = parseClaims(token).get("role", String.class);
+    public Role getRole(String token) {
+        String role = parseClaims(token).get(
+                "role",
+                String.class
+        );
         return Role.valueOf(role);
     }
 }

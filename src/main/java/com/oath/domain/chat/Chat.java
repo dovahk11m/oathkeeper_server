@@ -3,16 +3,19 @@ package com.oath.domain.chat;
 import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chat_messages_tb")
+@Table(name = "chats_tb")
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Chat {
 
     @Id
@@ -25,15 +28,26 @@ public class Chat {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member sender; // 메시지를 보낸 사람
+    private Member sender;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 1000)
     private String content;
 
-    // 이 메시지가 특정 플랜과 관련이 있다면 해당 플랜의 ID를 저장합니다.
-    // TODO: Plan 엔티티 생성 후 @ManyToOne(fetch = FetchType.LAZY)
     private Long planId;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime sentAt;
+
+    /**
+     * 새로운 Chat 엔티티를 생성하는 정적 팩토리 메서드입니다.
+     */
+    public static Chat of(Group group, Member sender, String content, Long planId) {
+        return Chat.builder()
+                .group(group)
+                .sender(sender)
+                .content(content)
+                .planId(planId)
+                .sentAt(LocalDateTime.now())
+                .build();
+    }
 }
