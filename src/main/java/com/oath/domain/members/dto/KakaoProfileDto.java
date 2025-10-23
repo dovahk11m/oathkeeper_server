@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GoogleProfileDto {
+public class KakaoProfileDto {
     private String sub;
     private String email;
 }
