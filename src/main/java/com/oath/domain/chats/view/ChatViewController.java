@@ -1,7 +1,7 @@
-package com.oath.domain.chat.view;
+package com.oath.domain.chats.view;
 
 import com.oath.common.JwtTokenProvider;
-import com.oath.domain.chat.Chat;
+import com.oath.domain.chats.Chat;
 import com.oath.domain.members.domain.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

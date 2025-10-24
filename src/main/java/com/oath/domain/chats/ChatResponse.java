@@ -1,4 +1,4 @@
-package com.oath.domain.chat;
+package com.oath.domain.chats;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;

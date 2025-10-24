@@ -1,4 +1,4 @@
-package com.oath.domain.chat;
+package com.oath.domain.chats;
 
 import com.oath.common.auth.StompPrincipal;
 import lombok.RequiredArgsConstructor;

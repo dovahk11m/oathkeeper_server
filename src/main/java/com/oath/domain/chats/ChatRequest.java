@@ -1,4 +1,4 @@
-package com.oath.domain.chat;
+package com.oath.domain.chats;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
