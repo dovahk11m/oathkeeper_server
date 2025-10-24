@@ -49,11 +49,13 @@ public class Plan {
     @Column(name = "late_fine_amount")
     private Long lateFineAmount;
 
+    // 참가자 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participant> participants = new ArrayList<>();
+    private final List<Participant> participants = new ArrayList<>();
 
+    // 태그 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<com.oath.domain.plan.Tag> tags = new ArrayList<>();
+    private final List<Tag> tags = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
