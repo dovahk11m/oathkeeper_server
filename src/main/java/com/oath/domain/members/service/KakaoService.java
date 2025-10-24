@@ -40,6 +40,7 @@ public class KakaoService {
 
     public KakaoProfileDto getKakaoProfile(String token) {
         RestClient restClient = RestClient.create();
+
         ResponseEntity<KakaoProfileDto> response = restClient.get()
                 .uri("https://kapi.kakao.com/v2/user/me")
                 .header("Authorization", "Bearer "+token)
