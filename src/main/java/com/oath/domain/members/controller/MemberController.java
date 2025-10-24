@@ -51,9 +51,9 @@ public class MemberController {
         KakaoProfileDto kakaoProfileDto =
                 kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
         System.out.println("로그인한 카카오 프로필: " + kakaoProfileDto);
-        Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getSub());
+        Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
         if(originalMember == null){
-            originalMember = memberService.createOauth(kakaoProfileDto.getSub(), kakaoProfileDto.getEmail(), SocialType.KAKAO);
+            originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
         }
         String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole());
 

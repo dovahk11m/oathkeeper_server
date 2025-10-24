@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -26,6 +27,7 @@ public class MemberService {
                 .email(memberCreateDto.getEmail())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
                 .role(Role.USER)
+                .createdAt(LocalDateTime.now())
                 .build();
         memberRepository.save(member);
         return member;
@@ -49,11 +51,13 @@ public class MemberService {
         return member;
     }
 
-    public Member createOauth(String socialId, String email, SocialType socialType) {
+    public Member createOauth(String socialId, String email, SocialType socialType, String nickname) {
         Member member = Member.builder()
+                .username(nickname)
                 .email(email)
                 .socialType(socialType)
                 .socialId(socialId)
+                .createdAt(LocalDateTime.now())
                 .build();
         memberRepository.save(member);
         return member;

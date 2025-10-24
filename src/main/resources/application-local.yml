@@ -56,6 +56,7 @@ oauth:
     client-id: 1b3011acfb9ddd1a3f7f2fcb1d22e2c6
     redirect-uri: http://localhost:3000/oauth/kakao/redirect
 
+
 notification:
   policy:
     # 이슈 상태가 DONE 으로 변경되었을 때 사용할 알림 타입 지정
