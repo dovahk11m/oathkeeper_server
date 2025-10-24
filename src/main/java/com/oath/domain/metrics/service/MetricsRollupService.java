@@ -10,36 +10,52 @@ import com.oath.domain.plan.Participant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MetricsRollupService {
 
-    private final LocationTrackRepository trackRepo;         // location_tracks_tb
-    private final ParticipantMetricsRepository metricsRepo;   // plan_member_metrics_tb
+    private final LocationTrackRepository trackRepo;
+    private final ParticipantMetricsRepository metricsRepo;
 
     @PersistenceContext
     private EntityManager em;
 
-    /** 약속(planId) 단위로 모든 참가자 메트릭 계산 */
     @Transactional
     public void rebuildForPlan(Long planId){
         List<Participant> participants = em.createQuery(
-                "select pm from Participant pm join fetch pm.member where pm.plan.id = :planId",
+                "select p from Participant p join fetch p.member where p.plan.id = :planId",
                 Participant.class
         ).setParameter("planId", planId).getResultList();
+
+        log.info("[rollup] planId={} participants={}", planId, participants.size());
 
         for (Participant p : participants){
             computeAndSave(planId, p.getMember().getId(), p.getId());
         }
     }
 
-    /** 특정 참가자만 재계산 */
+    @Transactional
+    public void rebuildForParticipantByParticipantId(Long planId, Long participantId) {
+        Participant p = em.find(Participant.class, participantId);
+        if (p == null) {
+            log.warn("[rollup] skip: participantId={} not found", participantId);
+            return;
+        }
+        if (!p.getPlan().getId().equals(planId)) {
+            log.warn("[rollup] skip: participantId={} not in planId={}", participantId, planId);
+            return;
+        }
+        computeAndSave(planId, p.getMember().getId(), participantId);
+    }
+
     @Transactional
     public void rebuildForParticipant(Long planId, Long memberId, Long participantId){
         computeAndSave(planId, memberId, participantId);
@@ -47,6 +63,8 @@ public class MetricsRollupService {
 
     private void computeAndSave(Long planId, Long memberId, Long participantId){
         List<LocationTrack> tracks = trackRepo.findAllByParticipantIdOrderByTsAsc(participantId);
+        log.info("[rollup] planId={} participantId={} tracks={}", planId, participantId, tracks.size());
+
         if (tracks.isEmpty()) return;
 
         // 거리(km)
@@ -66,7 +84,6 @@ public class MetricsRollupService {
             if (minutes < 0) minutes = 0;
         }
 
-        // upsert
         var m = metricsRepo.findByPlanIdAndMemberId(planId, memberId)
                 .orElse(ParticipantMetrics.builder()
                         .planId(planId)
@@ -76,5 +93,8 @@ public class MetricsRollupService {
         m.setDistanceKm(distKm);
         m.setTravelMinutes((int) minutes);
         metricsRepo.save(m);
+
+        log.info("[rollup] saved planId={} memberId={} distKm={} minutes={}",
+                planId, memberId, distKm, minutes);
     }
 }
