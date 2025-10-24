@@ -26,29 +26,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
-                // AuthInterceptor가 필요한 경로들을 명시적으로 추가
-                .addPathPatterns(
-                        // ===== Post (게시글) =====
-                        "/posts/save",
-                        // 글쓰기 페이지
-                        "/posts/save",
-                        // 글쓰기 처리
-                        "/posts/update/**",
-                        // 글 수정 페이지
-                        "/posts/update/**",
-                        // 글 수정 처리
-                        "/posts/delete/**",
-                        // 글 삭제 처리
-
-                        // ===== Member (회원) =====
-                        "/members/logout",
-                        "/members/update-form",
-                        "/members/update-nickname",
-                        "/members/update-password",
-
-                        // ===== Chat (채팅) =====
-                        "/api/chats"
-                        // 채팅 내역 불러오기
+                // /api/ 로 시작하는 모든 경로에 인터셉터를 적용합니다.
+                .addPathPatterns("/api/**")
+                // 단, 로그인, 회원가입 등 인증이 필요 없는 경로는 제외합니다.
+                .excludePathPatterns(
+                        "/api/member/create",
+                        "/api/member/login",
+                        "/api/member/kakao/login"
+                        // TODO: 소셜 로그인 관련 경로도 필요 시 추가
                 );
     }
 }

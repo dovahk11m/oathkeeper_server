@@ -1,4 +1,4 @@
-package com.oath.domain.chat.chatDTO;
+package com.oath.domain.groups.groupDTO;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,9 +7,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class RoomListResponse {
+public class GroupListResponse {
+    private Long groupId;
+    private String groupName;
     private Long chatRoomId;
-    private String chatRoomName;
     private String lastMessage;
     private LocalDateTime lastMessageSentAt;
     private Long unreadCount;

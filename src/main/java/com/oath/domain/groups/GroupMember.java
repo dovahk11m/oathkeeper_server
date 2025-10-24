@@ -1,12 +1,14 @@
 package com.oath.domain.groups;
 
+import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "group_members")
+@Table(name = "group_members_tb")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,13 +18,25 @@ public class GroupMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long groupId; // FK groups.id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
 
-    @Column(nullable = false)
-    private Long memberId; // FK members.id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private GroupRole role;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime joinedAt;
+    
+    /**
+     * 새로운 GroupMember 엔티티를 생성하는 정적 팩토리 메서드입니다.
+     */
+    public static GroupMember of(Group group, Member member) {
+        return GroupMember.builder()
+                .group(group)
+                .member(member)
+                .joinedAt(LocalDateTime.now())
+                .build();
+    }
 }
