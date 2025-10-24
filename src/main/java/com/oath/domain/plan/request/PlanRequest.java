@@ -10,7 +10,7 @@ import java.util.List;
 
 public class PlanRequest {
 
-    // 요청 DTO들만 남깁니다.
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -30,11 +30,11 @@ public class PlanRequest {
         public String planDatetime;
         public String status;
 
-        // 새로 추가된 요청 필드들
+
         public List<String> negative;
         public List<String> positive;
         public Option option;
-        public List<String> tags; // 변경: 엔티티 대신 태그명 리스트로 수신
+        public List<String> tags;
     }
 
     @Getter
