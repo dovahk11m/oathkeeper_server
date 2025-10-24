@@ -3,6 +3,9 @@ package com.oath.domain.plan;
 
 import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +19,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "plan_participants_tb")
 @ToString(exclude = "plan")
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class PlanMember {
 
     @Id

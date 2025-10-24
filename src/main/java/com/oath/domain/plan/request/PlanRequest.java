@@ -1,13 +1,16 @@
 package com.oath.domain.plan.request;
 
 
+import com.oath.domain.plan.Plan.Option;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 public class PlanRequest {
 
-    // 요청(Request) DTO들만 남깁니다.
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -26,6 +29,12 @@ public class PlanRequest {
         public String title;
         public String planDatetime;
         public String status;
+
+
+        public List<String> negative;
+        public List<String> positive;
+        public Option option;
+        public List<String> tags;
     }
 
     @Getter
