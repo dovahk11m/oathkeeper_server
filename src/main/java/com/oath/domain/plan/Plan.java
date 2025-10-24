@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -80,10 +81,23 @@ public class Plan {
         if (status != null) this.status = status;
     }
 
-    public void confirmPlace(String placeName, Double latitude, Double longitude) {
+    public void confirmPlace(String placeName, Point location) {
         this.placeName = placeName;
-        this.placeLatitude = latitude;
-        this.placeLongitude = longitude;
+        if (location == null) {
+            this.placeLatitude = null;
+            this.placeLongitude = null;
+        } else {
+            // Spring Data Point: x=longitude, y=latitude
+            this.placeLatitude = location.getY();
+            this.placeLongitude = location.getX();
+        }
+    }
+
+    // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환
+    @Transient
+    public Point getPlaceLocation() {
+        if (placeLatitude == null || placeLongitude == null) return null;
+        return new Point(placeLongitude, placeLatitude);
     }
 
     // 태그 헬퍼 메서드: 양방향 무결성 유지

@@ -1,5 +1,6 @@
 package com.oath.domain.plan.request;
 
+import org.springframework.data.geo.Point;
 import com.oath.domain.plan.Plan;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,8 @@ public class PlanResponse {
         private String time;
         private String title;
         private String location;
+        private Double placeLatitude;
+        private Double placeLongitude;
         private List<ParticipantResponse> participants;
 
         public CreatePlan(Plan plan) {
@@ -29,6 +32,11 @@ public class PlanResponse {
             }
             this.title = plan != null ? plan.getTitle() : null;
             this.location = plan != null ? plan.getPlaceName() : null;
+            Point lp = plan != null ? plan.getPlaceLocation() : null;
+            if (lp != null) {
+                this.placeLatitude = lp.getY();
+                this.placeLongitude = lp.getX();
+            }
             this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
         }
 
@@ -45,6 +53,8 @@ public class PlanResponse {
         private String time;
         private String title;
         private String location;
+        private Double placeLatitude;
+        private Double placeLongitude;
         private List<ParticipantResponse> participants;
 
         public UpdatePlan(Plan plan) {
@@ -54,6 +64,11 @@ public class PlanResponse {
             }
             this.title = plan != null ? plan.getTitle() : null;
             this.location = plan != null ? plan.getPlaceName() : null;
+            Point lp = plan != null ? plan.getPlaceLocation() : null;
+            if (lp != null) {
+                this.placeLatitude = lp.getY();
+                this.placeLongitude = lp.getX();
+            }
             this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
         }
 
