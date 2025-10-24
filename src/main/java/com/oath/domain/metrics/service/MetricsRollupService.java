@@ -3,10 +3,10 @@ package com.oath.domain.metrics.service;
 
 import com.oath.domain.locationevents.domain.LocationTrack;
 import com.oath.domain.locationevents.repository.LocationTrackRepository;
-import com.oath.domain.metrics.domain.PlanMemberMetrics;
-import com.oath.domain.metrics.repository.PlanMemberMetricsRepository;
+import com.oath.domain.metrics.domain.ParticipantMetrics;
+import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
 import com.oath.domain.metrics.util.GeoUtils;
-import com.oath.domain.plan.PlanMember;
+import com.oath.domain.plan.Participant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.List;
 public class MetricsRollupService {
 
     private final LocationTrackRepository trackRepo;         // location_tracks_tb
-    private final PlanMemberMetricsRepository metricsRepo;   // plan_member_metrics_tb
+    private final ParticipantMetricsRepository metricsRepo;   // plan_member_metrics_tb
 
     @PersistenceContext
     private EntityManager em;
@@ -29,12 +29,12 @@ public class MetricsRollupService {
     /** 약속(planId) 단위로 모든 참가자 메트릭 계산 */
     @Transactional
     public void rebuildForPlan(Long planId){
-        List<PlanMember> participants = em.createQuery(
-                "select pm from PlanMember pm join fetch pm.member where pm.plan.id = :planId",
-                PlanMember.class
+        List<Participant> participants = em.createQuery(
+                "select pm from Participant pm join fetch pm.member where pm.plan.id = :planId",
+                Participant.class
         ).setParameter("planId", planId).getResultList();
 
-        for (PlanMember p : participants){
+        for (Participant p : participants){
             computeAndSave(planId, p.getMember().getId(), p.getId());
         }
     }
@@ -68,7 +68,7 @@ public class MetricsRollupService {
 
         // upsert
         var m = metricsRepo.findByPlanIdAndMemberId(planId, memberId)
-                .orElse(PlanMemberMetrics.builder()
+                .orElse(ParticipantMetrics.builder()
                         .planId(planId)
                         .memberId(memberId)
                         .build());

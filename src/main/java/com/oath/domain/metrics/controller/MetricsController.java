@@ -1,8 +1,8 @@
 // com/oath/domain/metrics/controller/MetricsController.java
 package com.oath.domain.metrics.controller;
 
-import com.oath.domain.metrics.domain.PlanMemberMetrics;
-import com.oath.domain.metrics.repository.PlanMemberMetricsRepository;
+import com.oath.domain.metrics.domain.ParticipantMetrics;
+import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
 import com.oath.domain.metrics.service.MetricsPushService;
 import com.oath.domain.metrics.service.MetricsRollupService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.List;
 public class MetricsController {
 
     private final MetricsRollupService rollupService;
-    private final PlanMemberMetricsRepository metricsRepo;
+    private final ParticipantMetricsRepository metricsRepo;
     private final MetricsPushService pushService;
 
     /** 약속 단위 롤업 */
@@ -35,7 +35,7 @@ public class MetricsController {
 
     /** 약속별 메트릭 조회 */
     @GetMapping("/plan/{planId}")
-    public List<PlanMemberMetrics> listByPlan(@PathVariable Long planId){
+    public List<ParticipantMetrics> listByPlan(@PathVariable Long planId){
         return metricsRepo.findAllByPlanId(planId);
     }
 

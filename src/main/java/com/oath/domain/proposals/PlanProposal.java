@@ -19,9 +19,9 @@ public class PlanProposal {
     private Long id;
 
     @Column(nullable = false)
-    private Long groupId; // FK groups.id
+    private Long groupId;
 
-    private Long proposerMemberId; // FK members.id (nullable for anonymous)
+    private Long proposerMemberId;
 
     @Column(nullable = false)
     private String message;

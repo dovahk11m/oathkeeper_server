@@ -17,7 +17,7 @@ import java.util.Arrays;
 public class PlanDataInitializer implements CommandLineRunner {
 
     private final PlanJpaRepository planJpaRepository;
-    private final PlanMemberRepository planMemberRepository;
+    private final ParticipantRepository participantRepository;
     private final MemberRepository memberRepository;
 
     @Override
@@ -80,7 +80,7 @@ public class PlanDataInitializer implements CommandLineRunner {
         planJpaRepository.save(studyPlan);
 
 
-        PlanMember pm1 = PlanMember.builder()
+        Participant pm1 = Participant.builder()
                 .plan(studyPlan)
                 .member(bob)
                 .participantStatus(ParticipantStatus.ACCEPTED)
@@ -89,7 +89,7 @@ public class PlanDataInitializer implements CommandLineRunner {
                 .expectedTravelTimeMinutes(20)
                 .build();
 
-        PlanMember pm2 = PlanMember.builder()
+        Participant pm2 = Participant.builder()
                 .plan(studyPlan)
                 .member(carol)
                 .participantStatus(ParticipantStatus.PENDING)
@@ -98,7 +98,7 @@ public class PlanDataInitializer implements CommandLineRunner {
                 .expectedTravelTimeMinutes(30)
                 .build();
 
-        planMemberRepository.saveAll(Arrays.asList(pm1, pm2));
+        participantRepository.saveAll(Arrays.asList(pm1, pm2));
 
         //  점심 모임
         Plan lunchPlan = Plan.builder()
@@ -114,7 +114,7 @@ public class PlanDataInitializer implements CommandLineRunner {
 
         planJpaRepository.save(lunchPlan);
 
-        PlanMember pm3 = PlanMember.builder()
+        Participant pm3 = Participant.builder()
                 .plan(lunchPlan)
                 .member(alice)
                 .participantStatus(ParticipantStatus.ACCEPTED)
@@ -123,7 +123,7 @@ public class PlanDataInitializer implements CommandLineRunner {
                 .expectedTravelTimeMinutes(5)
                 .build();
 
-        planMemberRepository.save(pm3);
+        participantRepository.save(pm3);
 
         //영화
         Plan moviePlan = Plan.builder()
@@ -138,7 +138,7 @@ public class PlanDataInitializer implements CommandLineRunner {
         planJpaRepository.save(moviePlan);
 
         // 참가자(완료된 플랜에 지각/도착 정보 포함)
-        PlanMember pm4 = PlanMember.builder()
+        Participant pm4 = Participant.builder()
                 .plan(moviePlan)
                 .member(alice)
                 .participantStatus(ParticipantStatus.ACCEPTED)
@@ -147,6 +147,6 @@ public class PlanDataInitializer implements CommandLineRunner {
                 .timeBurdenMinutes(5)
                 .build();
 
-        planMemberRepository.save(pm4);
+        participantRepository.save(pm4);
     }
 }

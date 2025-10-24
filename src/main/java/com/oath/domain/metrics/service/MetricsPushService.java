@@ -2,7 +2,7 @@
 package com.oath.domain.metrics.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oath.domain.metrics.repository.PlanMemberMetricsRepository;
+import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MetricsPushService {
 
-    private final PlanMemberMetricsRepository metricsRepo;
+    private final ParticipantMetricsRepository metricsRepo;
     private final RestTemplate restTemplate;  // ✅ RestTemplate 사용
     private final ObjectMapper objectMapper;  // ✅ JSON 직렬화 보장
 

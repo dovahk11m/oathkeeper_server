@@ -15,7 +15,7 @@ public class LocationTrack {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // PlanMember.id (느슨결합)
+    // Participant.id (느슨결합)
     @Column(nullable = false)
     private Long participantId;
 

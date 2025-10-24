@@ -20,7 +20,7 @@ public class PlanResponse {
         private String time;
         private String title;
         private String location;
-        private List<PlanMemberResponse> participants;
+        private List<ParticipantResponse> participants;
 
         public CreatePlan(Plan plan) {
             if (plan != null && plan.getPlanDatetime() != null) {
@@ -29,7 +29,7 @@ public class PlanResponse {
             }
             this.title = plan != null ? plan.getTitle() : null;
             this.location = plan != null ? plan.getPlaceName() : null;
-            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> PlanMemberResponse.of(pm)).collect(Collectors.toList()) : null;
+            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
         }
 
         public static CreatePlan of(Plan plan) {
@@ -45,7 +45,7 @@ public class PlanResponse {
         private String time;
         private String title;
         private String location;
-        private List<PlanMemberResponse> participants;
+        private List<ParticipantResponse> participants;
 
         public UpdatePlan(Plan plan) {
             if (plan != null && plan.getPlanDatetime() != null) {
@@ -54,7 +54,7 @@ public class PlanResponse {
             }
             this.title = plan != null ? plan.getTitle() : null;
             this.location = plan != null ? plan.getPlaceName() : null;
-            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> PlanMemberResponse.of(pm)).collect(Collectors.toList()) : null;
+            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
         }
 
         public static UpdatePlan of(Plan plan) {

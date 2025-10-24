@@ -2,7 +2,7 @@ package com.oath.domain.plan;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.exception.Exception400;
-import com.oath.domain.plan.request.PlanMemberResponse;
+import com.oath.domain.plan.request.ParticipantResponse;
 import com.oath.domain.plan.request.PlanRequest;
 import com.oath.domain.plan.request.PlanResponse;
 import org.springframework.http.ResponseEntity;
@@ -84,9 +84,9 @@ public class PlanRestController {
 
     // 참가자 추가
     @PostMapping("/{planId}/participants")
-    public ResponseEntity<CommonResponse<PlanMemberResponse>> addParticipant(@PathVariable Long planId,
-                                                                     @RequestBody PlanRequest.ParticipantAddRequest req) {
-        PlanMemberResponse dto = planService.addParticipantDto(planId, req.memberId);
+    public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(@PathVariable Long planId,
+                                                                              @RequestBody PlanRequest.ParticipantAddRequest req) {
+        ParticipantResponse dto = planService.addParticipantDto(planId, req.memberId);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -99,44 +99,44 @@ public class PlanRestController {
 
     // 참가자 상태 변경
     @PutMapping("/participants/{participantId}/status")
-    public ResponseEntity<CommonResponse<PlanMemberResponse>> changeParticipantStatus(@PathVariable Long participantId, @RequestBody PlanRequest.ParticipantStatusRequest req) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> changeParticipantStatus(@PathVariable Long participantId, @RequestBody PlanRequest.ParticipantStatusRequest req) {
         ParticipantStatus status;
         try {
             status = ParticipantStatus.valueOf(req.status);
         } catch (IllegalArgumentException e) {
             throw new Exception400("상태 값이 올바르지 않습니다.");
         }
-        PlanMemberResponse dto = planService.changeParticipantStatusDto(participantId, status);
+        ParticipantResponse dto = planService.changeParticipantStatusDto(participantId, status);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 참가자 목록
     @GetMapping("/{planId}/participants")
-    public ResponseEntity<CommonResponse<List<PlanMemberResponse>>> getParticipants(@PathVariable Long planId) {
-        List<PlanMemberResponse> dtos = planService.getParticipantsDto(planId);
+    public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(@PathVariable Long planId) {
+        List<ParticipantResponse> dtos = planService.getParticipantsDto(planId);
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
     // 출발 시간 기록
     @PostMapping("/participants/{participantId}/departure")
-    public ResponseEntity<CommonResponse<PlanMemberResponse>> recordDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        PlanMemberResponse dto = planService.recordDepartureDto(participantId, dt);
+        ParticipantResponse dto = planService.recordDepartureDto(participantId, dt);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 도착 시간 기록
     @PostMapping("/participants/{participantId}/arrival")
-    public ResponseEntity<CommonResponse<PlanMemberResponse>> recordArrival(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        PlanMemberResponse dto = planService.recordArrivalDto(participantId, dt);
+        ParticipantResponse dto = planService.recordArrivalDto(participantId, dt);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 예상 출발 제안
     @PostMapping("/participants/{participantId}/suggest-departure")
-    public ResponseEntity<CommonResponse<PlanMemberResponse>> suggestDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.SuggestDepartureRequest req) {
-        PlanMemberResponse dto = planService.suggestExpectedDepartureDto(participantId, req.expectedTravelTimeMinutes);
+    public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.SuggestDepartureRequest req) {
+        ParticipantResponse dto = planService.suggestExpectedDepartureDto(participantId, req.expectedTravelTimeMinutes);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
