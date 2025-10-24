@@ -4,7 +4,7 @@ import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception400;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
-import com.oath.domain.plan.request.PlanMemberResponse;
+import com.oath.domain.plan.request.ParticipantResponse;
 import com.oath.domain.plan.request.PlanResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class PlanService {
 
     private final PlanJpaRepository planJpaRepository;
-    private final PlanMemberRepository planMemberRepository;
+    private final ParticipantRepository participantRepository;
     private final MemberRepository memberRepository;
 
     // 기존 엔티티 반환 메서드들은 내부 로직에서 사용
@@ -70,15 +70,15 @@ public class PlanService {
 
     // 참가자 추가
     @Transactional
-    public PlanMember addParticipant(Long planId, Long memberId) {
+    public Participant addParticipant(Long planId, Long memberId) {
         Plan plan = getPlanById(planId);
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new Exception404("해당 멤버를 찾을 수 없습니다."));
-        PlanMember participant = PlanMember.builder()
+        Participant participant = Participant.builder()
                 .plan(plan)
                 .member(member)
                 .participantStatus(ParticipantStatus.PENDING)
                 .build();
-        PlanMember saved = planMemberRepository.save(participant);
+        Participant saved = participantRepository.save(participant);
         plan.getParticipants().add(saved);
 
         return saved;
@@ -87,42 +87,42 @@ public class PlanService {
     // 참가자 삭제
     @Transactional
     public void removeParticipant(Long participantId) {
-        if (!planMemberRepository.existsById(participantId)) {
+        if (!participantRepository.existsById(participantId)) {
             throw new Exception404("해당 참가자를 찾을 수 없습니다.");
         }
-        planMemberRepository.deleteById(participantId);
+        participantRepository.deleteById(participantId);
     }
 
     // 참가자 상태 변경
     @Transactional
-    public PlanMember changeParticipantStatus(Long participantId, ParticipantStatus status) {
-        PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+    public Participant changeParticipantStatus(Long participantId, ParticipantStatus status) {
+        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
         pm.setParticipantStatus(status);
 
-        return planMemberRepository.save(pm);
+        return participantRepository.save(pm);
     }
 
     // 참가자 조회
-    public List<PlanMember> getParticipants(Long planId) {
+    public List<Participant> getParticipants(Long planId) {
         if (!planJpaRepository.existsById(planId)) {
             throw new Exception404("해당 플랜을 찾을 수 없습니다.");
         }
-        return planMemberRepository.findByPlanId(planId);
+        return participantRepository.findByPlanId(planId);
     }
 
     // 출발 시간 기록
     @Transactional
-    public PlanMember recordDeparture(Long participantId, LocalDateTime actualDeparture) {
-        PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+    public Participant recordDeparture(Long participantId, LocalDateTime actualDeparture) {
+        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
         pm.setActualDepartureTime(actualDeparture != null ? actualDeparture : LocalDateTime.now());
 
-        return planMemberRepository.save(pm);
+        return participantRepository.save(pm);
     }
 
     // 도착 시간 기록
     @Transactional
-    public PlanMember recordArrival(Long participantId, LocalDateTime actualArrival) {
-        PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+    public Participant recordArrival(Long participantId, LocalDateTime actualArrival) {
+        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
         pm.setActualArrivalTime(actualArrival != null ? actualArrival : LocalDateTime.now());
         LocalDateTime planTime = pm.getPlan().getPlanDatetime();
         if (planTime == null) {
@@ -131,13 +131,13 @@ public class PlanService {
         long minutesDiff = ChronoUnit.MINUTES.between(planTime, pm.getActualArrivalTime());
         pm.setTimeBurdenMinutes((int) minutesDiff);
 
-        return planMemberRepository.save(pm);
+        return participantRepository.save(pm);
     }
 
     // 예상 출발 시간 제안
     @Transactional
-    public PlanMember suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes) {
-        PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+    public Participant suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes) {
+        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
         pm.setExpectedTravelTimeMinutes(expectedTravelTimeMinutes);
         LocalDateTime planTime = pm.getPlan().getPlanDatetime();
         if (planTime == null) {
@@ -146,12 +146,12 @@ public class PlanService {
         LocalDateTime expectedDeparture = planTime.minusMinutes(expectedTravelTimeMinutes != null ? expectedTravelTimeMinutes : 0);
         pm.setExpectedDepartureTime(expectedDeparture);
 
-        return planMemberRepository.save(pm);
+        return participantRepository.save(pm);
     }
 
     // 지각 벌금 계산
     public Long calculateLateFine(Long participantId) {
-        PlanMember pm = planMemberRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
         Integer burden = pm.getTimeBurdenMinutes();
         if (burden != null && burden > 0) {
             Long fine = pm.getPlan().getLateFineAmount();
@@ -227,39 +227,39 @@ public class PlanService {
     }
 
     @Transactional
-    public PlanMemberResponse addParticipantDto(Long planId, Long memberId) {
-        PlanMember pm = addParticipant(planId, memberId);
-        return PlanMemberResponse.of(pm);
+    public ParticipantResponse addParticipantDto(Long planId, Long memberId) {
+        Participant pm = addParticipant(planId, memberId);
+        return ParticipantResponse.of(pm);
     }
 
     @Transactional
-    public PlanMemberResponse changeParticipantStatusDto(Long participantId, ParticipantStatus status) {
-        PlanMember pm = changeParticipantStatus(participantId, status);
-        return PlanMemberResponse.of(pm);
+    public ParticipantResponse changeParticipantStatusDto(Long participantId, ParticipantStatus status) {
+        Participant pm = changeParticipantStatus(participantId, status);
+        return ParticipantResponse.of(pm);
     }
 
     @Transactional(readOnly = true)
-    public List<PlanMemberResponse> getParticipantsDto(Long planId) {
-        List<PlanMember> list = getParticipants(planId);
-        return list.stream().map(pm -> PlanMemberResponse.of(pm)).collect(Collectors.toList());
+    public List<ParticipantResponse> getParticipantsDto(Long planId) {
+        List<Participant> list = getParticipants(planId);
+        return list.stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList());
     }
 
     @Transactional
-    public PlanMemberResponse recordDepartureDto(Long participantId, LocalDateTime actualDeparture) {
-        PlanMember pm = recordDeparture(participantId, actualDeparture);
-        return PlanMemberResponse.of(pm);
+    public ParticipantResponse recordDepartureDto(Long participantId, LocalDateTime actualDeparture) {
+        Participant pm = recordDeparture(participantId, actualDeparture);
+        return ParticipantResponse.of(pm);
     }
 
     @Transactional
-    public PlanMemberResponse recordArrivalDto(Long participantId, LocalDateTime actualArrival) {
-        PlanMember pm = recordArrival(participantId, actualArrival);
-        return PlanMemberResponse.of(pm);
+    public ParticipantResponse recordArrivalDto(Long participantId, LocalDateTime actualArrival) {
+        Participant pm = recordArrival(participantId, actualArrival);
+        return ParticipantResponse.of(pm);
     }
 
     @Transactional
-    public PlanMemberResponse suggestExpectedDepartureDto(Long participantId, Integer expectedTravelTimeMinutes) {
-        PlanMember pm = suggestExpectedDeparture(participantId, expectedTravelTimeMinutes);
-        return PlanMemberResponse.of(pm);
+    public ParticipantResponse suggestExpectedDepartureDto(Long participantId, Integer expectedTravelTimeMinutes) {
+        Participant pm = suggestExpectedDeparture(participantId, expectedTravelTimeMinutes);
+        return ParticipantResponse.of(pm);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.oath.domain.plan.request;
 
-import com.oath.domain.plan.PlanMember;
+import com.oath.domain.plan.Participant;
 import com.oath.domain.plan.ParticipantStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @ToString
-public class PlanMemberResponse {
+public class ParticipantResponse {
 
     private Long id;
     private Long memberId;
@@ -27,7 +27,7 @@ public class PlanMemberResponse {
     private Integer timeBurdenMinutes;
     private String departureFailureReason;
 
-    public PlanMemberResponse(PlanMember pm) {
+    public ParticipantResponse(Participant pm) {
         if (pm == null) return;
         this.id = pm.getId();
         if (pm.getMember() != null) this.memberId = pm.getMember().getId();
@@ -44,8 +44,8 @@ public class PlanMemberResponse {
         this.departureFailureReason = pm.getDepartureFailureReason();
     }
 
-    public static PlanMemberResponse of(PlanMember pm) {
-        return new PlanMemberResponse(pm);
+    public static ParticipantResponse of(Participant pm) {
+        return new ParticipantResponse(pm);
     }
 }
 

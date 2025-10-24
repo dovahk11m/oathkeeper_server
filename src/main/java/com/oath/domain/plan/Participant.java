@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @ToString(exclude = "plan")
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class PlanMember {
+public class Participant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -19,10 +19,10 @@ public class ProposalVote {
     private Long id;
 
     @Column(nullable = false)
-    private Long proposalId; // FK plan_proposals.id
+    private Long proposalId;
 
     @Column(nullable = false)
-    private Long memberId; // FK members.id
+    private Long memberId;
 
     @Column(nullable = false)
     private LocalDateTime selectedDatetime;

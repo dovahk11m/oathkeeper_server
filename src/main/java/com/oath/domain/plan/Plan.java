@@ -50,7 +50,7 @@ public class Plan {
     private Long lateFineAmount;
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PlanMember> participants = new ArrayList<>();
+    private List<Participant> participants = new ArrayList<>();
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<com.oath.domain.plan.Tag> tags = new ArrayList<>();
