@@ -1,7 +1,10 @@
 package com.oath.domain.latefines;
 
+import com.oath.domain.plan.Participant;
+import com.oath.domain.plan.Plan;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -18,11 +21,15 @@ public class LateFine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long planId; // FK plans.id
 
-    @Column(nullable = false)
-    private Long payerParticipantId; // FK plan_participants.id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payer_participant_id", nullable = false)
+    private Participant payerParticipant;
 
     @Column(nullable = false)
     private Integer amount;
@@ -34,6 +41,7 @@ public class LateFine {
     private String paymentLink;
 
     @Column(nullable = false, updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     private LocalDateTime completedAt;

@@ -9,6 +9,7 @@ import com.oath.domain.plan.request.PlanResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -163,9 +164,9 @@ public class PlanService {
 
     // 장소 확정
     @Transactional
-    public Plan confirmPlace(Long planId, String placeName, Double latitude, Double longitude) {
+    public Plan confirmPlace(Long planId, String placeName, Point location) {
         Plan plan = getPlanById(planId);
-        plan.confirmPlace(placeName, latitude, longitude);
+        plan.confirmPlace(placeName, location);
 
         return planJpaRepository.save(plan);
     }
@@ -220,8 +221,8 @@ public class PlanService {
     }
 
     @Transactional
-    public PlanResponse.CreatePlan confirmPlaceDto(Long planId, String placeName, Double latitude, Double longitude) {
-        Plan plan = confirmPlace(planId, placeName, latitude, longitude);
+    public PlanResponse.CreatePlan confirmPlaceDto(Long planId, String placeName, Point location) {
+        Plan plan = confirmPlace(planId, placeName, location);
         Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId()).orElse(plan);
         return PlanResponse.CreatePlan.of(reloaded);
     }

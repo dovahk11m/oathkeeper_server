@@ -7,6 +7,7 @@ import com.oath.domain.plan.request.PlanRequest;
 import com.oath.domain.plan.request.PlanResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -150,7 +151,8 @@ public class PlanRestController {
     // 장소 확정
     @PostMapping("/{planId}/confirm-place")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(@PathVariable Long planId, @RequestBody PlanRequest.ConfirmPlaceRequest req) {
-        PlanResponse.CreatePlan dto = planService.confirmPlaceDto(planId, req.placeName, req.latitude, req.longitude);
+        Point loc = (req.longitude != null && req.latitude != null) ? new Point(req.longitude, req.latitude) : null;
+        PlanResponse.CreatePlan dto = planService.confirmPlaceDto(planId, req.placeName, loc);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
