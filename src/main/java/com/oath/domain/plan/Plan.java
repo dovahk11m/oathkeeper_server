@@ -87,7 +87,7 @@ public class Plan {
             this.placeLatitude = null;
             this.placeLongitude = null;
         } else {
-            // Spring Data Point: x=longitude, y=latitude
+            //x=위도 y=경도
             this.placeLatitude = location.getY();
             this.placeLongitude = location.getX();
         }

@@ -25,7 +25,7 @@ public class PlanService {
     private final ParticipantRepository participantRepository;
     private final MemberRepository memberRepository;
 
-    // 기존 엔티티 반환 메서드들은 내부 로직에서 사용
+
     // 플랜 조회
     public Plan getPlanById(Long planId) {
         return planJpaRepository.findById(planId).orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
