@@ -1,4 +1,4 @@
-package com.oath.domain.chat;
+package com.oath.domain.chats;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

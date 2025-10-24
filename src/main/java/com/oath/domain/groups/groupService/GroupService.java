@@ -3,20 +3,21 @@ package com.oath.domain.groups.groupService;
 import com.oath.common.exception.Exception403;
 import com.oath.common.exception.Exception404;
 import com.oath.common.paging.PageResponseDTO;
-import com.oath.domain.chat.Chat;
-import com.oath.domain.chat.ChatRepository;
-import com.oath.domain.chat.ChatService;
+import com.oath.domain.chats.Chat;
+import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
 import com.oath.domain.groups.groupDTO.GroupListResponse;
 import com.oath.domain.groups.groupDTO.GroupMemberResponse;
 import com.oath.domain.groups.groupDTO.GroupMembersAddRequest;
+import com.oath.domain.groups.groupEvent.CreateGroupEvent;
 import com.oath.domain.groups.groupRepository.GroupMemberRepository;
 import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final MemberRepository memberRepository;
     private final ChatRepository chatRepository;
-    private final ChatService chatService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Group createGroup(
@@ -49,9 +50,14 @@ public class GroupService {
         groupRepository.save(newGroup);
 
         // 2. 생성자를 OWNER로 하는 그룹 멤버 생성 및 저장
-        GroupMember ownerMember = GroupMember.of(newGroup, creator);
+        GroupMember ownerMember = GroupMember.of(
+                newGroup,
+                creator
+        );
         groupMemberRepository.save(ownerMember);
 
+        // 3.완료되면 변경사실 전파
+        eventPublisher.publishEvent(new CreateGroupEvent(newGroup, creator));
         return newGroup;
     }
 
@@ -142,7 +148,10 @@ public class GroupService {
                 .orElseThrow(() -> new Exception404("그룹을 찾을 수 없습니다."));
 
         // 2. [수정] 요청자가 그룹의 멤버이기만 하면 누구나 초대할 수 있도록 변경
-        boolean isMember = groupMemberRepository.existsByGroupIdAndMemberId(groupId, requester.getId());
+        boolean isMember = groupMemberRepository.existsByGroupIdAndMemberId(
+                groupId,
+                requester.getId()
+        );
         if (!isMember) {
             throw new Exception403("그룹 멤버만 다른 사람을 초대할 수 있습니다.");
         }
@@ -166,7 +175,10 @@ public class GroupService {
         // 5. 새로운 멤버들만 GroupMember 객체로 만들어 저장
         List<GroupMember> newGroupMembers = membersToAdd.stream()
                 .filter(member -> !existingMemberIds.contains(member.getId()))
-                .map(member -> GroupMember.of(group, member))
+                .map(member -> GroupMember.of(
+                        group,
+                        member
+                ))
                 .toList();
 
         groupMemberRepository.saveAll(newGroupMembers);

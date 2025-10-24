@@ -1,4 +1,4 @@
-package com.oath.domain.chat;
+package com.oath.domain.chats;
 
 import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;

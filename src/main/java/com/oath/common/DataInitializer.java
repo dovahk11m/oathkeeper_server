@@ -1,7 +1,7 @@
-package com.oath.data;
+package com.oath.common;
 
-import com.oath.domain.chat.Chat;
-import com.oath.domain.chat.ChatRepository;
+import com.oath.domain.chats.Chat;
+import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
