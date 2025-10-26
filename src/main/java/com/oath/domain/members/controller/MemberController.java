@@ -75,7 +75,7 @@ public class MemberController {
     @PostMapping("/find-id")
     public ResponseEntity<?> findId(@RequestBody MemberRequest.FindId request) {
         String foundId = memberService.findId(request);
-        return ResponseEntity.ok(CommonResponse.success(foundId, "비밀번호 수정 성공"));
+        return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
     }
 
     /** 비밀번호 찾기 (임시 비밀번호 발급) */
