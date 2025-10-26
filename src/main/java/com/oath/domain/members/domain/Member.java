@@ -56,4 +56,13 @@ public class Member {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+
+    public void updateInfo(String email) {
+        this.email = email;
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }

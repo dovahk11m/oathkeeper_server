@@ -5,6 +5,8 @@ import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.dto.MemberCreateDto;
 import com.oath.domain.members.dto.MemberLoginDto;
+import com.oath.domain.members.dto.MemberRequest;
+import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +21,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+
+    private final EmailService emailService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -62,5 +66,72 @@ public class MemberService {
         memberRepository.save(member);
         return member;
     }
+
+
+    @Transactional(readOnly = true)
+    public MemberResponse.DTO getMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+        return new MemberResponse.DTO(member);
+    }
+
+
+    public MemberResponse.DTO updateMember(Long memberId, MemberRequest.Update request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+        member.updateInfo(request.getEmail());
+        return new MemberResponse.DTO(member);
+    }
+
+
+    public void updatePassword(Long memberId, MemberRequest.PasswordUpdate request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        member.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+
+    }
+
+
+    public String findId(MemberRequest.FindId request) {
+        return memberRepository.findByEmail(request.getEmail())
+                .map(member -> member.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+    }
+
+    public void deleteMember(Long memberId) {
+        memberRepository.deleteById(memberId);
+    }
+
+
+    private String generateTempPassword() {
+        return Long.toHexString(Double.doubleToLongBits(Math.random())).substring(0, 8);
+    }
+
+    public void sendTemporaryPassword(MemberRequest.FindPassword request) {
+        memberRepository.findByUsernameAndEmail(request.getUsername(), request.getEmail())
+                .ifPresentOrElse(
+                        m -> {
+                            String tempPassword = generateTempPassword();
+                            m.updatePassword(passwordEncoder.encode(tempPassword));
+
+                            // 이메일 발송
+                            emailService.sendMail(
+                                    m.getEmail(),
+                                    "[서비스명] 임시 비밀번호 안내",
+                                    "안녕하세요 " + m.getUsername() + "님.\n\n" +
+                                            "요청하신 임시 비밀번호는 다음과 같습니다:\n\n" +
+                                            tempPassword + "\n\n" +
+                                            "로그인 후 반드시 비밀번호를 변경해주세요."
+                            );
+                        },
+                        () -> { throw new IllegalArgumentException("일치하는 회원이 없습니다."); }
+                );
+    }
+
 
 }
