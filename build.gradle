@@ -31,8 +31,15 @@ ext {
 
 dependencies {
 
-    //pgvector
+    //PostSQL + pgvector
     implementation "org.springframework.ai:spring-ai-pgvector-store:1.0.0"
+    implementation 'org.postgresql:postgresql:42.7.4'
+
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // YML 설정을 자바 객체로 바인딩할 때 꼭 필요한 라이브러리
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     // Caffeine
     implementation 'org.springframework.boot:spring-boot-starter-cache'
