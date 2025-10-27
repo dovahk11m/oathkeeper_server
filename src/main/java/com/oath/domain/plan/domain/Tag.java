@@ -1,4 +1,4 @@
-package com.oath.domain.plan;
+package com.oath.domain.plan.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

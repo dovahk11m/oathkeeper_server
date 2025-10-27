@@ -1,7 +1,7 @@
 package com.oath.domain.plan.request;
 
 
-import com.oath.domain.plan.Plan.Option;
+import com.oath.domain.plan.domain.Plan.Option;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -6,7 +6,7 @@ import com.oath.domain.locationevents.repository.LocationTrackRepository;
 import com.oath.domain.metrics.domain.ParticipantMetrics;
 import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
 import com.oath.domain.metrics.util.GeoUtils;
-import com.oath.domain.plan.Participant;
+import com.oath.domain.plan.domain.Participant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;

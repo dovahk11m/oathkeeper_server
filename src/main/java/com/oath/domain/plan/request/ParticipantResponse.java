@@ -1,6 +1,6 @@
 package com.oath.domain.plan.request;
 
-import com.oath.domain.plan.Participant;
+import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.ParticipantStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,7 @@
-package com.oath.domain.plan;
+package com.oath.domain.plan.domain;
 
 import com.oath.domain.members.domain.Member;
+import com.oath.domain.plan.Status;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
