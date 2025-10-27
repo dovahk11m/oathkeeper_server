@@ -3,6 +3,7 @@ package com.oath.domain.members.service;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
+import com.oath.domain.members.domain.Status;
 import com.oath.domain.members.dto.MemberCreateDto;
 import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberRequest;
@@ -28,6 +29,7 @@ public class MemberService {
 
     public Member create(MemberCreateDto memberCreateDto){
         Member member = Member.builder()
+                .username(memberCreateDto.getUsername())
                 .email(memberCreateDto.getEmail())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
                 .role(Role.USER)
@@ -47,6 +49,19 @@ public class MemberService {
         if(!passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
             throw new IllegalArgumentException("password가 일치하지 않습니다.");
         }
+
+        if(member.getStatus() != Status.ACTIVE) {
+            throw new IllegalArgumentException("비활성화된 계정입니다.");
+        }
+
+        if(member.getLastLogin().isBefore(LocalDateTime.now().minusYears(1))) {
+            member.setStatus(Status.INACTIVE);
+            memberRepository.save(member);
+            throw new IllegalArgumentException("휴면계정입니다.");
+        }
+
+        member.setLastLogin(LocalDateTime.now());
+        memberRepository.save(member);
         return member;
     }
 
@@ -66,7 +81,6 @@ public class MemberService {
         memberRepository.save(member);
         return member;
     }
-
 
     @Transactional(readOnly = true)
     public MemberResponse.DTO getMember(Long memberId) {
@@ -98,13 +112,15 @@ public class MemberService {
 
 
     public String findId(MemberRequest.FindId request) {
-        return memberRepository.findByEmail(request.getEmail())
-                .map(member -> member.getUsername())
+         Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+        return member.getUsername();
     }
 
     public void deleteMember(Long memberId) {
-        memberRepository.deleteById(memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+        member.deactivate();
     }
 
 

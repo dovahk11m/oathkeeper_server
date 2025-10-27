@@ -74,8 +74,14 @@ public class MemberController {
     /** 아이디 찾기 */
     @PostMapping("/find-id")
     public ResponseEntity<?> findId(@RequestBody MemberRequest.FindId request) {
-        String foundId = memberService.findId(request);
-        return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
+        try {
+            String foundId = memberService.findId(request);
+            return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(CommonResponse.success(null, e.getMessage()));
+        }
     }
 
     /** 비밀번호 찾기 (임시 비밀번호 발급) */
@@ -89,6 +95,7 @@ public class MemberController {
     @DeleteMapping("/{memberId}")
     public ResponseEntity<?> deleteMember(@PathVariable Long memberId) {
         memberService.deleteMember(memberId);
+
         return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
     }
 

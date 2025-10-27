@@ -18,7 +18,7 @@ public class MemberRequest {
     }
 
     @Data
-    public class FindId {
+    public static class FindId {
         private String email;
 
     }
