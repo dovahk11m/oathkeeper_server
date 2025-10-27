@@ -4,7 +4,6 @@ import com.oath.common.auth.AuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -32,7 +31,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/api/member/create",
                         "/api/member/login",
-                        "/api/member/kakao/login"
+                        "/api/member/kakao/**"
                         // TODO: 소셜 로그인 관련 경로도 필요 시 추가
                 );
     }

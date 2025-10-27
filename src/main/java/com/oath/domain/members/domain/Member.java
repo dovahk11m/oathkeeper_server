@@ -35,10 +35,11 @@ public class Member {
     private Role role = Role.USER;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private SocialType socialType;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     private String socialId;
 
     private String defaultAddress;
@@ -55,6 +56,32 @@ public class Member {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime lastLogin;
+
+
+    public void updateInfo(String email) {
+        this.email = email;
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void deactivate() {
+        this.status = Status.DEACTIVATED;
+    }
+
+    public void activate() {
+        this.status = Status.ACTIVE;
+    }
+
+    public void suspend() {
+        this.status = Status.SUSPENDED;
+    }
+
+    public boolean isActive() {
+        return this.status == Status.ACTIVE;
+    }
 }
