@@ -3,7 +3,7 @@ package com.oath.domain.metrics.controller;
 
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.*;
-import com.oath.domain.plan.ParticipantRepository;
+import com.oath.domain.plan.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

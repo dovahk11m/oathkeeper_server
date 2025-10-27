@@ -1,20 +1,27 @@
-package com.oath.domain.plan;
+package com.oath.domain.plan.service;
 
-import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception400;
+import com.oath.common.exception.Exception404;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
-import com.oath.domain.plan.request.ParticipantResponse;
-import com.oath.domain.plan.request.PlanResponse;
+import com.oath.domain.plan.*;
+import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.event.AlarmType;
+import com.oath.domain.plan.event.ArrivalEvent;
+import com.oath.domain.plan.event.DepartureEvent;
+import com.oath.domain.plan.event.LateEvent;
+import com.oath.domain.plan.repository.ParticipantRepository;
+import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +31,7 @@ public class PlanService {
     private final PlanJpaRepository planJpaRepository;
     private final ParticipantRepository participantRepository;
     private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     // 플랜 조회
@@ -97,10 +105,10 @@ public class PlanService {
     // 참가자 상태 변경
     @Transactional
     public Participant changeParticipantStatus(Long participantId, ParticipantStatus status) {
-        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
-        pm.setParticipantStatus(status);
+        Participant participant = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+        participant.setParticipantStatus(status);
 
-        return participantRepository.save(pm);
+        return participantRepository.save(participant);
     }
 
     // 참가자 조회
@@ -114,25 +122,74 @@ public class PlanService {
     // 출발 시간 기록
     @Transactional
     public Participant recordDeparture(Long participantId, LocalDateTime actualDeparture) {
-        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
-        pm.setActualDepartureTime(actualDeparture != null ? actualDeparture : LocalDateTime.now());
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
 
-        return participantRepository.save(pm);
+        participant.setActualDepartureTime(actualDeparture != null ? actualDeparture : LocalDateTime.now());
+        participant.markDeparted();
+
+        Participant saved = participantRepository.save(participant);
+
+        // 출발 이벤트 발행 (10초 후 다른 참가자들에게 알림) -------- 10초 : 취소 가능 시간.
+        Plan plan = participant.getPlan();
+        List<Participant> otherParticipants = plan.getParticipants().stream()
+                .filter(p -> !p.getId().equals(participantId))
+                .collect(Collectors.toList());
+
+        eventPublisher.publishEvent(
+                new DepartureEvent(plan, saved, otherParticipants, AlarmType.REAL_TIME_DEPARTURE)
+        );
+
+        return saved;
     }
 
     // 도착 시간 기록
     @Transactional
     public Participant recordArrival(Long participantId, LocalDateTime actualArrival) {
-        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
-        pm.setActualArrivalTime(actualArrival != null ? actualArrival : LocalDateTime.now());
-        LocalDateTime planTime = pm.getPlan().getPlanDatetime();
+        // 참가자 조회
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+
+        participant.setActualArrivalTime(actualArrival != null ? actualArrival : LocalDateTime.now());
+
+        LocalDateTime planTime = participant.getPlan().getPlanDatetime();
         if (planTime == null) {
             throw new Exception400("플랜의 약속 시간이 설정되어 있지 않습니다.");
         }
-        long minutesDiff = ChronoUnit.MINUTES.between(planTime, pm.getActualArrivalTime());
-        pm.setTimeBurdenMinutes((int) minutesDiff);
 
-        return participantRepository.save(pm);
+        long minutesDiff = ChronoUnit.MINUTES.between(planTime, participant.getActualArrivalTime());
+        participant.setTimeBurdenMinutes((int) minutesDiff);
+
+        // ArrivalStatus 설정
+        ArrivalStatus arrivalStatus;
+        if (minutesDiff > 0) {
+            arrivalStatus = ArrivalStatus.LATE;
+        } else {
+            arrivalStatus = ArrivalStatus.ON_TIME;
+        }
+
+        participant.markArrived(arrivalStatus, (int) minutesDiff);
+
+        Participant saved = participantRepository.save(participant);
+
+        // 도착 이벤트 발행
+        Plan plan = participant.getPlan();
+        List<Participant> otherParticipants = plan.getParticipants().stream()
+                .filter(p -> !p.getId().equals(participantId))
+                .collect(Collectors.toList());
+
+        eventPublisher.publishEvent(
+                new ArrivalEvent(plan, saved, otherParticipants, AlarmType.ARRIVAL)
+        );
+
+        // 지각했다면 지각 이벤트도 발행
+        if (arrivalStatus == ArrivalStatus.LATE) {
+            eventPublisher.publishEvent(
+                    new LateEvent(plan, saved, otherParticipants, (int) minutesDiff, AlarmType.LATE)
+            );
+        }
+
+        return saved;
     }
 
     // 예상 출발 시간 제안
@@ -162,6 +219,7 @@ public class PlanService {
         return 0L;
     }
 
+
     // 장소 확정
     @Transactional
     public Plan confirmPlace(Long planId, String placeName, Point location) {
@@ -171,96 +229,5 @@ public class PlanService {
         return planJpaRepository.save(plan);
     }
 
-
-
-    @Transactional(readOnly = true)
-    public List<PlanResponse.CreatePlan> listPlansDto() {
-        List<Plan> plans = planJpaRepository.findAllWithParticipants();
-        return plans.stream().map(p -> PlanResponse.CreatePlan.of(p)).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public PlanResponse.CreatePlan getPlanDtoById(Long planId) {
-        Plan plan = planJpaRepository.findByIdWithParticipants(planId).orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
-        return PlanResponse.CreatePlan.of(plan);
-    }
-
-    @Transactional
-    public PlanResponse.CreatePlan createPlanDto(Long creatorMemberId, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
-        Plan plan = createPlan(creatorMemberId, title, planDatetime, status, lateFineAmount);
-        Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId()).orElse(plan);
-        return PlanResponse.CreatePlan.of(reloaded);
-    }
-
-    @Transactional
-    public PlanResponse.CreatePlan updatePlanDto(Long planId, String title, LocalDateTime planDatetime, Status status, List<String> tags) {
-
-        Plan plan = updatePlan(planId, title, planDatetime, status);
-
-        // 태그 처리: null이면 변경 없음, 빈 리스트면 태그 제거
-        if (tags != null) {
-            List<String> normalized = tags.stream()
-                    .filter(s -> Objects.nonNull(s))
-                    .map(s -> s.trim())
-                    .filter(s -> !s.isEmpty())
-                    .distinct()
-                    .collect(Collectors.toList());
-
-            // 기존 태그 삭제 후 새 태그 추가
-            plan.clearTags();
-            for (String tagName : normalized) {
-                Tag tag = Tag.builder().tagName(tagName).build();
-                plan.addTag(tag);
-            }
-
-            plan = planJpaRepository.save(plan);
-        }
-
-        Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId()).orElse(plan);
-        return PlanResponse.CreatePlan.of(reloaded);
-    }
-
-    @Transactional
-    public PlanResponse.CreatePlan confirmPlaceDto(Long planId, String placeName, Point location) {
-        Plan plan = confirmPlace(planId, placeName, location);
-        Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId()).orElse(plan);
-        return PlanResponse.CreatePlan.of(reloaded);
-    }
-
-    @Transactional
-    public ParticipantResponse addParticipantDto(Long planId, Long memberId) {
-        Participant pm = addParticipant(planId, memberId);
-        return ParticipantResponse.of(pm);
-    }
-
-    @Transactional
-    public ParticipantResponse changeParticipantStatusDto(Long participantId, ParticipantStatus status) {
-        Participant pm = changeParticipantStatus(participantId, status);
-        return ParticipantResponse.of(pm);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ParticipantResponse> getParticipantsDto(Long planId) {
-        List<Participant> list = getParticipants(planId);
-        return list.stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList());
-    }
-
-    @Transactional
-    public ParticipantResponse recordDepartureDto(Long participantId, LocalDateTime actualDeparture) {
-        Participant pm = recordDeparture(participantId, actualDeparture);
-        return ParticipantResponse.of(pm);
-    }
-
-    @Transactional
-    public ParticipantResponse recordArrivalDto(Long participantId, LocalDateTime actualArrival) {
-        Participant pm = recordArrival(participantId, actualArrival);
-        return ParticipantResponse.of(pm);
-    }
-
-    @Transactional
-    public ParticipantResponse suggestExpectedDepartureDto(Long participantId, Integer expectedTravelTimeMinutes) {
-        Participant pm = suggestExpectedDeparture(participantId, expectedTravelTimeMinutes);
-        return ParticipantResponse.of(pm);
-    }
 
 }

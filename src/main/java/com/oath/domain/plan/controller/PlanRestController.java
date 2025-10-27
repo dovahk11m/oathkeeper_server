@@ -1,10 +1,16 @@
-package com.oath.domain.plan;
+package com.oath.domain.plan.controller;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.exception.Exception400;
+import com.oath.domain.plan.ParticipantStatus;
+import com.oath.domain.plan.Status;
+import com.oath.domain.plan.facade.ParticipantFacade;
+import com.oath.domain.plan.facade.PlanFacade;
 import com.oath.domain.plan.request.ParticipantResponse;
 import com.oath.domain.plan.request.PlanRequest;
 import com.oath.domain.plan.request.PlanResponse;
+import com.oath.domain.plan.service.PlanService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.geo.Point;
@@ -15,25 +21,26 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/plans")
+@RequiredArgsConstructor
 public class PlanRestController {
 
     private final PlanService planService;
+    private final PlanFacade planFacade;
+    private final ParticipantFacade participantFacade;
 
-    public PlanRestController(PlanService planService) {
-        this.planService = planService;
-    }
+
 
     // 플랜 목록조회
     @GetMapping
     public ResponseEntity<CommonResponse<List<PlanResponse.CreatePlan>>> listPlans() {
-        List<PlanResponse.CreatePlan> dtos = planService.listPlansDto();
+        List<PlanResponse.CreatePlan> dtos = planFacade.listPlans();
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
     // 플랜 조회
     @GetMapping("/{id}")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> getPlan(@PathVariable("id") Long id) {
-        PlanResponse.CreatePlan dto = planService.getPlanDtoById(id);
+        PlanResponse.CreatePlan dto = planFacade.getPlanById(id);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -60,7 +67,7 @@ public class PlanRestController {
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> createPlan(@RequestBody PlanRequest.CreatePlanRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.planDatetime);
         Status status = parseStatusOrThrow(req.status, Status.PLANNING);
-        PlanResponse.CreatePlan dto = planService.createPlanDto(req.creatorMemberId, req.title, dt, status, req.lateFineAmount);
+        PlanResponse.CreatePlan dto = planFacade.createPlan(req.creatorMemberId, req.title, dt, status, req.lateFineAmount);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -70,9 +77,8 @@ public class PlanRestController {
                                                            @RequestBody PlanRequest.UpdatePlanRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.planDatetime);
         Status status = null;
-        if (req.status != null) status =
-                parseStatusOrThrow(req.status, null);
-        PlanResponse.CreatePlan dto = planService.updatePlanDto(id, req.title, dt, status, req.tags);
+        if (req.status != null) status = parseStatusOrThrow(req.status, null);
+        PlanResponse.CreatePlan dto = planFacade.updatePlan(id, req.title, dt, status, req.tags);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -87,7 +93,7 @@ public class PlanRestController {
     @PostMapping("/{planId}/participants")
     public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(@PathVariable Long planId,
                                                                               @RequestBody PlanRequest.ParticipantAddRequest req) {
-        ParticipantResponse dto = planService.addParticipantDto(planId, req.memberId);
+        ParticipantResponse dto = participantFacade.addParticipant(planId, req.memberId);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -107,37 +113,37 @@ public class PlanRestController {
         } catch (IllegalArgumentException e) {
             throw new Exception400("상태 값이 올바르지 않습니다.");
         }
-        ParticipantResponse dto = planService.changeParticipantStatusDto(participantId, status);
+        ParticipantResponse dto = participantFacade.changeParticipantStatus(participantId, status);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 참가자 목록
     @GetMapping("/{planId}/participants")
     public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(@PathVariable Long planId) {
-        List<ParticipantResponse> dtos = planService.getParticipantsDto(planId);
+        List<ParticipantResponse> dtos = participantFacade.getParticipants(planId);
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
-    // 출발 시간 기록
+    // 출발 스타트 (시간 기록)
     @PostMapping("/participants/{participantId}/departure")
     public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        ParticipantResponse dto = planService.recordDepartureDto(participantId, dt);
+        ParticipantResponse dto = participantFacade.recordDeparture(participantId, dt);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
-    // 도착 시간 기록
+    // 도착 완료( 시간 기록)
     @PostMapping("/participants/{participantId}/arrival")
     public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        ParticipantResponse dto = planService.recordArrivalDto(participantId, dt);
+        ParticipantResponse dto = participantFacade.recordArrival(participantId, dt);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 예상 출발 제안
     @PostMapping("/participants/{participantId}/suggest-departure")
     public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.SuggestDepartureRequest req) {
-        ParticipantResponse dto = planService.suggestExpectedDepartureDto(participantId, req.expectedTravelTimeMinutes);
+        ParticipantResponse dto = participantFacade.suggestExpectedDeparture(participantId, req.expectedTravelTimeMinutes);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -152,8 +158,9 @@ public class PlanRestController {
     @PostMapping("/{planId}/confirm-place")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(@PathVariable Long planId, @RequestBody PlanRequest.ConfirmPlaceRequest req) {
         Point loc = (req.longitude != null && req.latitude != null) ? new Point(req.longitude, req.latitude) : null;
-        PlanResponse.CreatePlan dto = planService.confirmPlaceDto(planId, req.placeName, loc);
+        PlanResponse.CreatePlan dto = planFacade.confirmPlace(planId, req.placeName, loc);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
 }
+

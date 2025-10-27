@@ -1,7 +1,7 @@
 package com.oath.domain.latefines;
 
-import com.oath.domain.plan.Participant;
-import com.oath.domain.plan.Plan;
+import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.domain.Plan;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

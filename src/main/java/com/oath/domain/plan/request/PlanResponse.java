@@ -1,7 +1,7 @@
 package com.oath.domain.plan.request;
 
 import org.springframework.data.geo.Point;
-import com.oath.domain.plan.Plan;
+import com.oath.domain.plan.domain.Plan;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor
 public class PlanResponse {
-
     @Getter
     @NoArgsConstructor
     @ToString(exclude = "participants")
@@ -71,6 +70,7 @@ public class PlanResponse {
             }
             this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
         }
+
 
         public static UpdatePlan of(Plan plan) {
             return new UpdatePlan(plan);
