@@ -113,6 +113,7 @@ public class DataInitializer implements CommandLineRunner {
                                              .socialId(email)
                                              .createdAt(LocalDateTime.now())
                                              .updatedAt(LocalDateTime.now())
+                                             .lastLogin(LocalDateTime.now())
                                              .build());
     }
 }

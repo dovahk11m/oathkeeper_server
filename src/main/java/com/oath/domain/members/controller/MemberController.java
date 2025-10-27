@@ -106,6 +106,8 @@ public class MemberController {
         KakaoProfileDto kakaoProfileDto =
                 kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
         System.out.println("로그인한 카카오 프로필: " + kakaoProfileDto);
+
+
         Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
         if(originalMember == null){
             originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());

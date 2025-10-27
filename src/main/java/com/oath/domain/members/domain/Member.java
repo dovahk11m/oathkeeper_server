@@ -38,7 +38,8 @@ public class Member {
     private SocialType socialType;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    @Builder.Default
+    private Status status = Status.ACTIVE;
 
     private String socialId;
 
@@ -60,6 +61,8 @@ public class Member {
 
     private LocalDateTime lastLogin;
 
+    private LocalDateTime bannedUntil;
+
 
     public void updateInfo(String email) {
         this.email = email;
@@ -71,6 +74,10 @@ public class Member {
 
     public void deactivate() {
         this.status = Status.DEACTIVATED;
+    }
+
+    public void inactive() {
+        this.status = Status.INACTIVE;
     }
 
     public void activate() {
