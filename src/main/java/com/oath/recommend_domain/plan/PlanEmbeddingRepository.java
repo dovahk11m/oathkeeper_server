@@ -1,4 +1,4 @@
-package com.oath.domain.recommend.plan;
+package com.oath.recommend_domain.plan;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,4 +1,4 @@
-package com.oath.domain.recommend.plan;
+package com.oath.recommend_domain.plan;
 
 import com.oath.domain.plan.Status;
 import jakarta.persistence.*;
