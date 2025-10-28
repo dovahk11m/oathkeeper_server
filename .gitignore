@@ -5,6 +5,9 @@ Thumbs.db
 # Log files
 *.log
 
+# Documentation (Markdown files)
+*.md
+
 # Generated code
 generated/
 

@@ -44,9 +44,7 @@ public class MemberController {
     public ResponseEntity<?> login(@RequestBody MemberLoginDto memberLoginDto){
         Member member = memberService.login(memberLoginDto);
 
-        memberService.postLogin(member);
-
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole());
+        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
 
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
@@ -117,9 +115,7 @@ public class MemberController {
             originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
         }
 
-        memberService.postLogin(originalMember);
-
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole());
+        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
 
@@ -140,7 +136,7 @@ public class MemberController {
 
         memberService.postLogin(originalMember);
 
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole());
+        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);

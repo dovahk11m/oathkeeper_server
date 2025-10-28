@@ -30,7 +30,8 @@ public class JwtTokenProvider {
     //로그인시 새 토큰 생성
     public String createToken(
             String email,
-            Role role
+            Role role,
+            Long memberId
     ) {
         final Date now = new Date();
         final Date validity = new Date(now.getTime() + validityInMilliseconds);
@@ -40,6 +41,10 @@ public class JwtTokenProvider {
                 .claim(
                         "role",
                         role.name()
+                )
+                .claim(
+                        "memberId",
+                        memberId
                 )
                 .expiration(validity)
                 .signWith(
@@ -103,5 +108,13 @@ public class JwtTokenProvider {
                 String.class
         );
         return Role.valueOf(role);
+    }
+
+    //토큰에서 memberId 추출
+    public Long getMemberId(String token) {
+        return parseClaims(token).get(
+                "memberId",
+                Long.class
+        );
     }
 }

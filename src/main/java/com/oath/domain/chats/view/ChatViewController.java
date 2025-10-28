@@ -31,7 +31,7 @@ public class ChatViewController {
     @GetMapping("/")
     public String index(Model model) {
         // [수정] 테스트를 위해 user1의 토큰을 생성하여 모델에 추가합니다.
-        String testToken = jwtTokenProvider.createToken("user1@test.com", Role.USER);
+        String testToken = jwtTokenProvider.createToken("user1@test.com", Role.USER, 1L);
         model.addAttribute("jwtToken", testToken);
 
         model.addAttribute("models", chatService.findAll());
