@@ -36,7 +36,5 @@ public class AdminService {
         response.setMembers(memberDtos);
 
         return response;
-
-
     }
 }
