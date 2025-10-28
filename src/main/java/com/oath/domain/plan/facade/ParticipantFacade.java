@@ -19,14 +19,14 @@ public class ParticipantFacade {
     private final PlanService planService;
 
     @Transactional
-    public ParticipantResponse addParticipant(Long planId, Long memberId) {
-        Participant participant = planService.addParticipant(planId, memberId);
+    public ParticipantResponse addParticipant(Long planId, Long memberId, Long requesterId) {
+        Participant participant = planService.addParticipant(planId, memberId, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional
-    public ParticipantResponse changeParticipantStatus(Long participantId, ParticipantStatus status) {
-        Participant participant = planService.changeParticipantStatus(participantId, status);
+    public ParticipantResponse changeParticipantStatus(Long participantId, ParticipantStatus status, Long requesterId) {
+        Participant participant = planService.changeParticipantStatus(participantId, status, requesterId);
         return ParticipantResponse.of(participant);
     }
 
