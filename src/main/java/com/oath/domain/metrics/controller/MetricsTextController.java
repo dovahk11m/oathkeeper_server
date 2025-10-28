@@ -1,7 +1,7 @@
 // com/oath/domain/metrics/controller/MetricsTextController.java
 package com.oath.domain.metrics.controller;
 
-import com.oath.domain.plan.ParticipantRepository;
+import com.oath.domain.plan.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
