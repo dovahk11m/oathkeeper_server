@@ -12,9 +12,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/member")
@@ -40,9 +46,7 @@ public class MemberController {
 
         String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
 
-        Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id", member.getId());
-        loginInfo.put("token", jwtToken);
+        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
 
@@ -105,16 +109,16 @@ public class MemberController {
         AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
         KakaoProfileDto kakaoProfileDto =
                 kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
-        System.out.println("로그인한 카카오 프로필: " + kakaoProfileDto);
+
         Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
         if(originalMember == null){
             originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
         }
+
         String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
-        Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id", originalMember.getId());
-        loginInfo.put("token", jwtToken);
+        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
+
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
 
@@ -124,17 +128,29 @@ public class MemberController {
                 facebookService.getAccessToken(redirectDto.getCode());
         FacebookProfileDto facebookProfileDto =
                 facebookService.getFacebookProfile(accessTokenDto.getAccess_token());
-        System.out.println("로그인한 페이스북 프로필: " + facebookProfileDto);
+
         Member originalMember = memberService.getMemberBySocialId(facebookProfileDto.getId());
         if(originalMember == null){
             originalMember = memberService.createOauth(facebookProfileDto.getId(), facebookProfileDto.getEmail(), SocialType.FACEBOOK, facebookProfileDto.getName());
         }
+
+        memberService.postLogin(originalMember);
+
         String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
-        Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id", originalMember.getId());
-        loginInfo.put("token", jwtToken);
+        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+    }
+
+    @PostMapping("/profile/upload")
+    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile image) {
+
+        try {
+            String imageUrl = memberService.uploadProfileImage(image);
+            return new ResponseEntity<>(CommonResponse.success(imageUrl), HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
