@@ -99,7 +99,6 @@ public class MemberController {
     @DeleteMapping("/{memberId}")
     public ResponseEntity<?> deleteMember(@PathVariable Long memberId) {
         memberService.deleteMember(memberId);
-
         return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
     }
 
@@ -114,6 +113,8 @@ public class MemberController {
         if(originalMember == null){
             originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
         }
+
+        memberService.postLogin(originalMember);
 
         String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
@@ -142,15 +143,20 @@ public class MemberController {
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
 
-    @PostMapping("/profile/upload")
-    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile image) {
+    @PostMapping("/profile/upload/{memberId}")
+    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile image, @PathVariable Long memberId) {
 
         try {
-            String imageUrl = memberService.uploadProfileImage(image);
+            String imageUrl = memberService.uploadProfileImage(image, memberId);
             return new ResponseEntity<>(CommonResponse.success(imageUrl), HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @DeleteMapping("/profile/delete/{memberId}")
+    public void deleteProfileImage (@PathVariable Long memberId) {
+        memberService.deleteProfileImage(memberId);
     }
 
 }
