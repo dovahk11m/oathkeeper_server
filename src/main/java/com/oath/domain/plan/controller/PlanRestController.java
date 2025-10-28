@@ -35,11 +35,11 @@ public class PlanRestController {
     private final MemberRepository memberRepository;
 
     private Member getCurrentMember(HttpServletRequest request) {
-        String email = (String) request.getAttribute("userEmail");
-        if (email == null) {
+        Long memberId = (Long) request.getAttribute("memberId");
+        if (memberId == null) {
             throw new Exception401("인증되지 않은 사용자입니다.");
         }
-        return memberRepository.findByEmail(email)
+        return memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception401("사용자를 찾을 수 없습니다."));
     }
 
@@ -57,7 +57,9 @@ public class PlanRestController {
     // 플랜 조회
     @Auth
     @GetMapping("/{id}")
-    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> getPlan(@PathVariable("id") Long id) {
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> getPlan(@PathVariable("id") Long id, HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        planService.validatePlanAccess(id, currentMember.getId());
         PlanResponse.CreatePlan dto = planFacade.getPlanById(id);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
@@ -94,7 +96,10 @@ public class PlanRestController {
     @Auth
     @PutMapping("/{id}")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> updatePlan(@PathVariable("id") Long id,
-                                                           @RequestBody PlanRequest.UpdatePlanRequest req) {
+                                                           @RequestBody PlanRequest.UpdatePlanRequest req,
+                                                           HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        planService.validatePlanCreator(id, currentMember.getId());
         LocalDateTime dt = parseDateTimeOrThrow(req.planDatetime);
         Status status = null;
         if (req.status != null) status = parseStatusOrThrow(req.status, null);
@@ -105,7 +110,9 @@ public class PlanRestController {
     // 플랜 삭제
     @Auth
     @DeleteMapping("/{id}")
-    public ResponseEntity<CommonResponse<Object>> deletePlan(@PathVariable("id") Long id) {
+    public ResponseEntity<CommonResponse<Object>> deletePlan(@PathVariable("id") Long id, HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        planService.validatePlanCreator(id, currentMember.getId());
         planService.deletePlan(id);
         return ResponseEntity.ok(CommonResponse.success(null, "삭제되었습니다."));
     }
@@ -124,8 +131,9 @@ public class PlanRestController {
     // 참가자 삭제
     @Auth
     @DeleteMapping("/{planId}/participants/{participantId}")
-    public ResponseEntity<CommonResponse<Object>> removeParticipant(@PathVariable Long participantId) {
-        planService.removeParticipant(participantId);
+    public ResponseEntity<CommonResponse<Object>> removeParticipant(@PathVariable Long participantId, HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        planService.removeParticipant(participantId, currentMember.getId());
         return ResponseEntity.ok(CommonResponse.success(null, "참가자가 삭제되었습니다."));
     }
 
@@ -149,7 +157,9 @@ public class PlanRestController {
     // 참가자 목록
     @Auth
     @GetMapping("/{planId}/participants")
-    public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(@PathVariable Long planId) {
+    public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(@PathVariable Long planId, HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        planService.validatePlanAccess(planId, currentMember.getId());
         List<ParticipantResponse> dtos = participantFacade.getParticipants(planId);
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
@@ -157,26 +167,35 @@ public class PlanRestController {
     // 출발 스타트 (시간 기록)
     @Auth
     @PostMapping("/participants/{participantId}/departure")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(@PathVariable Long participantId,
+                                                                               @RequestBody PlanRequest.TimeRecordRequest req,
+                                                                               HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        ParticipantResponse dto = participantFacade.recordDeparture(participantId, dt);
+        ParticipantResponse dto = participantFacade.recordDeparture(participantId, dt, currentMember.getId());
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 도착 완료( 시간 기록)
     @Auth
     @PostMapping("/participants/{participantId}/arrival")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(@PathVariable Long participantId, @RequestBody PlanRequest.TimeRecordRequest req) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(@PathVariable Long participantId,
+                                                                             @RequestBody PlanRequest.TimeRecordRequest req,
+                                                                             HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        ParticipantResponse dto = participantFacade.recordArrival(participantId, dt);
+        ParticipantResponse dto = participantFacade.recordArrival(participantId, dt, currentMember.getId());
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 예상 출발 제안
     @Auth
     @PostMapping("/participants/{participantId}/suggest-departure")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(@PathVariable Long participantId, @RequestBody PlanRequest.SuggestDepartureRequest req) {
-        ParticipantResponse dto = participantFacade.suggestExpectedDeparture(participantId, req.expectedTravelTimeMinutes);
+    public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(@PathVariable Long participantId,
+                                                                                @RequestBody PlanRequest.SuggestDepartureRequest req,
+                                                                                HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        ParticipantResponse dto = participantFacade.suggestExpectedDeparture(participantId, req.expectedTravelTimeMinutes, currentMember.getId());
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
@@ -192,7 +211,11 @@ public class PlanRestController {
     // 장소 확정
     @Auth
     @PostMapping("/{planId}/confirm-place")
-    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(@PathVariable Long planId, @RequestBody PlanRequest.ConfirmPlaceRequest req) {
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(@PathVariable Long planId,
+                                                                                 @RequestBody PlanRequest.ConfirmPlaceRequest req,
+                                                                                 HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        planService.validatePlanCreator(planId, currentMember.getId());
         Point loc = (req.longitude != null && req.latitude != null) ? new Point(req.longitude, req.latitude) : null;
         PlanResponse.CreatePlan dto = planFacade.confirmPlace(planId, req.placeName, loc);
         return ResponseEntity.ok(CommonResponse.success(dto));

@@ -38,7 +38,7 @@ public class MemberController {
     public ResponseEntity<?> login(@RequestBody MemberLoginDto memberLoginDto){
         Member member = memberService.login(memberLoginDto);
 
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole());
+        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
 
         Map<String, Object> loginInfo = new HashMap<>();
         loginInfo.put("id", member.getId());
@@ -110,7 +110,7 @@ public class MemberController {
         if(originalMember == null){
             originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
         }
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole());
+        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
         Map<String, Object> loginInfo = new HashMap<>();
         loginInfo.put("id", originalMember.getId());
@@ -129,7 +129,7 @@ public class MemberController {
         if(originalMember == null){
             originalMember = memberService.createOauth(facebookProfileDto.getId(), facebookProfileDto.getEmail(), SocialType.FACEBOOK, facebookProfileDto.getName());
         }
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole());
+        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
         Map<String, Object> loginInfo = new HashMap<>();
         loginInfo.put("id", originalMember.getId());
