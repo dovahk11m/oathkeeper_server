@@ -11,6 +11,9 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.plan.Status;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.recommend.plan.PlanEmbedding;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -168,7 +171,7 @@ public class DataInitializer implements CommandLineRunner {
                                              .username(username)
                                              .password(passwordEncoder.encode(password))
                                              .role(role)
-                                             .status(Status.ACTIVE) // 상태를 ACTIVE로 설정
+                                             .status(com.oath.domain.members.domain.Status.ACTIVE) // 상태를 ACTIVE로 설정
                                              .socialType(SocialType.LOCAL)
                                              .socialId(email)
                                              .createdAt(LocalDateTime.now())
