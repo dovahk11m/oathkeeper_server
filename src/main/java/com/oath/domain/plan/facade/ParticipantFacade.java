@@ -39,20 +39,20 @@ public class ParticipantFacade {
     }
 
     @Transactional
-    public ParticipantResponse recordDeparture(Long participantId, LocalDateTime actualDeparture) {
-        Participant participant = planService.recordDeparture(participantId, actualDeparture);
+    public ParticipantResponse recordDeparture(Long participantId, LocalDateTime actualDeparture, Long requesterId) {
+        Participant participant = planService.recordDeparture(participantId, actualDeparture, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional
-    public ParticipantResponse recordArrival(Long participantId, LocalDateTime actualArrival) {
-        Participant participant = planService.recordArrival(participantId, actualArrival);
+    public ParticipantResponse recordArrival(Long participantId, LocalDateTime actualArrival, Long requesterId) {
+        Participant participant = planService.recordArrival(participantId, actualArrival, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional
-    public ParticipantResponse suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes) {
-        Participant participant = planService.suggestExpectedDeparture(participantId, expectedTravelTimeMinutes);
+    public ParticipantResponse suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes, Long requesterId) {
+        Participant participant = planService.suggestExpectedDeparture(participantId, expectedTravelTimeMinutes, requesterId);
         return ParticipantResponse.of(participant);
     }
 }

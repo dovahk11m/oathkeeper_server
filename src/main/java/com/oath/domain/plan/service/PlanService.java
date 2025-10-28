@@ -40,6 +40,26 @@ public class PlanService {
         return planJpaRepository.findById(planId).orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
     }
 
+    // 플랜 접근 권한 검증 (생성자 또는 참가자만 접근 가능)
+    public void validatePlanAccess(Long planId, Long memberId) {
+        Plan plan = getPlanById(planId);
+        boolean isCreator = plan.getCreatorMember().getId().equals(memberId);
+        boolean isParticipant = plan.getParticipants().stream()
+                .anyMatch(p -> p.getMember().getId().equals(memberId));
+
+        if (!isCreator && !isParticipant) {
+            throw new Exception403("이 플랜에 접근할 권한이 없습니다.");
+        }
+    }
+
+    // 플랜 생성자 권한 검증 (생성자만 가능)
+    public void validatePlanCreator(Long planId, Long memberId) {
+        Plan plan = getPlanById(planId);
+        if (!plan.getCreatorMember().getId().equals(memberId)) {
+            throw new Exception403("플랜 생성자만 수정/삭제할 수 있습니다.");
+        }
+    }
+
     // 플랜 생성
     @Transactional
     public Plan createPlan(Long creatorMemberId, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
@@ -100,12 +120,20 @@ public class PlanService {
         return saved;
     }
 
-    // 참가자 삭제
+    // 참가자 삭제 (생성자 또는 본인만 가능)
     @Transactional
-    public void removeParticipant(Long participantId) {
-        if (!participantRepository.existsById(participantId)) {
-            throw new Exception404("해당 참가자를 찾을 수 없습니다.");
+    public void removeParticipant(Long participantId, Long requesterId) {
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new Exception404("해당 참가자를 찾을 수 없습니다."));
+
+        Plan plan = participant.getPlan();
+        boolean isCreator = plan.getCreatorMember().getId().equals(requesterId);
+        boolean isSelf = participant.getMember().getId().equals(requesterId);
+
+        if (!isCreator && !isSelf) {
+            throw new Exception403("플랜 생성자 또는 본인만 참가자를 삭제할 수 있습니다.");
         }
+
         participantRepository.deleteById(participantId);
     }
 
@@ -132,11 +160,16 @@ public class PlanService {
         return participantRepository.findByPlanId(planId);
     }
 
-    // 출발 시간 기록
+    // 출발 시간 기록 (본인만 가능)
     @Transactional
-    public Participant recordDeparture(Long participantId, LocalDateTime actualDeparture) {
+    public Participant recordDeparture(Long participantId, LocalDateTime actualDeparture, Long requesterId) {
         Participant participant = participantRepository.findById(participantId)
                 .orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+
+        // 본인 확인
+        if (!participant.getMember().getId().equals(requesterId)) {
+            throw new Exception403("본인의 출발 시간만 기록할 수 있습니다.");
+        }
 
         participant.setActualDepartureTime(actualDeparture != null ? actualDeparture : LocalDateTime.now());
         participant.markDeparted();
@@ -156,12 +189,17 @@ public class PlanService {
         return saved;
     }
 
-    // 도착 시간 기록
+    // 도착 시간 기록 (본인만 가능)
     @Transactional
-    public Participant recordArrival(Long participantId, LocalDateTime actualArrival) {
+    public Participant recordArrival(Long participantId, LocalDateTime actualArrival, Long requesterId) {
         // 참가자 조회
         Participant participant = participantRepository.findById(participantId)
                 .orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+
+        // 본인 확인
+        if (!participant.getMember().getId().equals(requesterId)) {
+            throw new Exception403("본인의 도착 시간만 기록할 수 있습니다.");
+        }
 
         participant.setActualArrivalTime(actualArrival != null ? actualArrival : LocalDateTime.now());
 
@@ -205,10 +243,17 @@ public class PlanService {
         return saved;
     }
 
-    // 예상 출발 시간 제안
+    // 예상 출발 시간 제안 (본인만 가능)
     @Transactional
-    public Participant suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes) {
-        Participant pm = participantRepository.findById(participantId).orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+    public Participant suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes, Long requesterId) {
+        Participant pm = participantRepository.findById(participantId)
+                .orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다."));
+
+        // 본인 확인
+        if (!pm.getMember().getId().equals(requesterId)) {
+            throw new Exception403("본인의 예상 출발 시간만 설정할 수 있습니다.");
+        }
+
         pm.setExpectedTravelTimeMinutes(expectedTravelTimeMinutes);
         LocalDateTime planTime = pm.getPlan().getPlanDatetime();
         if (planTime == null) {

@@ -55,9 +55,15 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 5. (선택) 컨트롤러에서 사용자 정보를 사용할 수 있도록 request에 저장
         String email = jwtTokenProvider.getSubject(token);
+        Long memberId = jwtTokenProvider.getMemberId(token);
+
         request.setAttribute(
                 "userEmail",
                 email
+        );
+        request.setAttribute(
+                "memberId",
+                memberId
         );
 
         return true;
