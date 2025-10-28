@@ -34,6 +34,7 @@ dependencies {
     //PostSQL + pgvector
     implementation "org.springframework.ai:spring-ai-pgvector-store:1.0.0"
     implementation 'org.postgresql:postgresql:42.7.4'
+    implementation 'org.hibernate.orm:hibernate-vector:6.5.2.Final'
 
     // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j'
