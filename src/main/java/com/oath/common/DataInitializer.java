@@ -169,14 +169,16 @@ public class DataInitializer implements CommandLineRunner {
             Role role
     ) {
         return memberRepository.save(Member.builder()
-                .email(email)
-                .username(username)
-                .password(passwordEncoder.encode(password))
-                .role(role)
-                .socialType(SocialType.LOCAL)
-                .socialId(email)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build());
+                                             .email(email)
+                                             .username(username)
+                                             .password(passwordEncoder.encode(password))
+                                             .role(role)
+                                             .status(com.oath.domain.members.domain.Status.ACTIVE) // 샘플멤버 상태 ACTIVE
+                                             .socialType(SocialType.LOCAL)
+                                             .socialId(email)
+                                             .createdAt(LocalDateTime.now())
+                                             .updatedAt(LocalDateTime.now())
+                                             .lastLogin(LocalDateTime.now()) // 마지막 로그인
+                                             .build());
     }
 }
