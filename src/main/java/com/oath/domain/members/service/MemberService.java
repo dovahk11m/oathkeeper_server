@@ -1,5 +1,6 @@
 package com.oath.domain.members.service;
 
+import com.oath.common.CommonResponse;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -10,12 +11,19 @@ import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -50,6 +58,12 @@ public class MemberService {
             throw new IllegalArgumentException("password가 일치하지 않습니다.");
         }
 
+        postLogin(member);
+
+        return member;
+    }
+
+    public Member postLogin(Member member) {
         if(member.getStatus() != Status.ACTIVE) {
             throw new IllegalArgumentException("비활성화된 계정입니다.");
         }
@@ -62,6 +76,7 @@ public class MemberService {
 
         member.setLastLogin(LocalDateTime.now());
         memberRepository.save(member);
+
         return member;
     }
 
@@ -93,7 +108,7 @@ public class MemberService {
     public MemberResponse.DTO updateMember(Long memberId, MemberRequest.Update request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
-        member.updateInfo(request.getEmail());
+        member.updateInfo(request.getUsername(), request.getProfileImageUrl(), request.getDefaultAddress());
         return new MemberResponse.DTO(member);
     }
 
@@ -149,5 +164,18 @@ public class MemberService {
                 );
     }
 
+    public String uploadProfileImage (MultipartFile image) throws IOException {
+        String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
+        Path filePath = Paths.get("uploads/profile/" + fileName);
+
+            Files.createDirectories(filePath.getParent());
+
+            Files.copy(image.getInputStream(), filePath);
+
+            String fileUrl = "/파일경로/" + fileName;
+
+            return fileUrl;
+
+    }
 
 }

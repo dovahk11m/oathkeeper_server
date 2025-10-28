@@ -64,13 +64,23 @@ public class Member {
     private LocalDateTime bannedUntil;
 
 
-    public void updateInfo(String email) {
-        this.email = email;
+    public void updateInfo(String username, String profileImageUrl, String defaultAddress) {
+        this.username = username;
+        this.profileImageUrl = profileImageUrl;
+        this.defaultAddress = defaultAddress;
     }
 
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
+
+    public void changeUsername(String username){
+        this.username = username;
+    }
+
+    public void changeProfileImageUrl(){}
+
+
 
     public void deactivate() {
         this.status = Status.DEACTIVATED;
