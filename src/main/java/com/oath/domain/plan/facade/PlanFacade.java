@@ -24,8 +24,8 @@ public class PlanFacade {
     private final PlanJpaRepository planJpaRepository;
 
     @Transactional(readOnly = true)
-    public List<PlanResponse.CreatePlan> listPlans() {
-        List<Plan> plans = planJpaRepository.findAllWithParticipants();
+    public List<PlanResponse.CreatePlan> listPlans(Long memberId) {
+        List<Plan> plans = planJpaRepository.findAllByCreatorOrParticipant(memberId);
         return plans.stream()
                 .map(plan -> PlanResponse.CreatePlan.of(plan))
                 .collect(Collectors.toList());
