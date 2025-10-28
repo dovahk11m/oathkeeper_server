@@ -63,7 +63,6 @@ public class Member {
 
     private LocalDateTime bannedUntil;
 
-
     public void updateInfo(String username, String profileImageUrl, String defaultAddress) {
         this.username = username;
         this.profileImageUrl = profileImageUrl;
