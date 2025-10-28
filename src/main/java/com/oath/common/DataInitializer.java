@@ -11,11 +11,6 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.repository.MemberRepository;
-import com.oath.domain.plan.Status;
-import com.oath.domain.plan.domain.Plan;
-import com.oath.domain.plan.repository.PlanJpaRepository;
-import com.oath.domain.recommend.plan.PlanEmbedding;
-import com.oath.domain.recommend.plan.PlanEmbeddingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -169,14 +164,16 @@ public class DataInitializer implements CommandLineRunner {
             Role role
     ) {
         return memberRepository.save(Member.builder()
-                .email(email)
-                .username(username)
-                .password(passwordEncoder.encode(password))
-                .role(role)
-                .socialType(SocialType.LOCAL)
-                .socialId(email)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build());
+                                             .email(email)
+                                             .username(username)
+                                             .password(passwordEncoder.encode(password))
+                                             .role(role)
+                                             .status(Status.ACTIVE) // 상태를 ACTIVE로 설정
+                                             .socialType(SocialType.LOCAL)
+                                             .socialId(email)
+                                             .createdAt(LocalDateTime.now())
+                                             .updatedAt(LocalDateTime.now())
+                                             .lastLogin(LocalDateTime.now()) // 마지막 로그인 시간 초기화
+                                             .build());
     }
 }
