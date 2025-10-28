@@ -11,6 +11,11 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.plan.Status;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.repository.PlanJpaRepository;
+import com.oath.domain.recommend.plan.PlanEmbedding;
+import com.oath.domain.recommend.plan.PlanEmbeddingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -31,15 +36,29 @@ import java.time.LocalDateTime;
 @Profile("local")
 public class DataInitializer implements CommandLineRunner {
 
+    // --- [H2 DB 소속 빈] ---
     private final MemberRepository memberRepository;
+    private final PlanJpaRepository planJpaRepository;
     private final PasswordEncoder passwordEncoder;
     private final GroupService groupService;
     private final GroupMemberRepository groupMemberRepository;
     private final ChatRepository chatRepository;
 
+    private final PlanEmbeddingRepository planEmbeddingRepository;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+
+        // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+        // 🚀 이게 핵심! 🚀
+        // H2 DB는 어차피 재시작할 때마다 날아가지만,
+        // Supabase DB는 데이터가 남아있으므로, 초기화 코드가 실행되기 전에
+        // Supabase 테이블을 수동으로 먼저 비워준다!
+        log.info("[PG] Supabase의 기존 PlanEmbedding 데이터를 먼저 삭제합니다...");
+        planEmbeddingRepository.deleteAllInBatch(); // (싹 비우기)
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
         log.info("개발 환경 샘플 데이터를 생성합니다...");
 
         // 1. 샘플 사용자 생성
@@ -95,6 +114,51 @@ public class DataInitializer implements CommandLineRunner {
                         .minusMinutes(4)
         ));
 
+        // ===========================================
+        // 🚀 Plan / PlanEmbedding 저장 테스트 시작
+        // ===========================================
+
+        // 1. [H2 DB] 'Plan' 엔티티 생성 및 저장
+        log.info("[H2] Plan 저장을 시도합니다...");
+        Plan plan = Plan.builder()
+                .creatorMember(user1)
+                .title("저녁에 치맥하실 분 (테스트)")
+                .planDatetime(LocalDateTime.now().plusHours(5))
+                .status(Status.PLANNING) // ⬅️ 우리가 만든 공용 Enum 사용
+                .lateFineAmount(5000L)
+                .build();
+
+        // ⬇️ H2 DB의 'plan_tb'에 저장!
+        Plan savedPlan = planJpaRepository.save(plan);
+        log.info("✅ [H2] Plan 저장 성공! (ID: {})", savedPlan.getId());
+
+
+        // 2. [PG DB] 'PlanEmbedding' 엔티티 생성
+        log.info("[PG] PlanEmbedding 저장을 시도합니다...");
+
+        // (임시) AI가 만들어준 가짜 벡터
+        float[] fakeEmbedding = new float[768];
+        fakeEmbedding[0] = 0.1f; // (테스트용 가짜 값)
+
+        PlanEmbedding embedding = PlanEmbedding.builder()
+                .planId(savedPlan.getId()) // ⬅️ [핵심!] H2 DB의 Plan ID를 링크
+                .embedding(fakeEmbedding)
+                // 캐시 데이터 복사
+                .planDatetime(savedPlan.getPlanDatetime())
+                .status(savedPlan.getStatus())
+                .placeLatitude(savedPlan.getPlaceLatitude())
+                .placeLongitude(savedPlan.getPlaceLongitude())
+                .build();
+
+        // ⬇️ PG DB의 'plan_embeddings'에 저장!
+        // (이 시점엔 ddl-auto가 이미 끝나서 테이블이 존재함)
+        planEmbeddingRepository.save(embedding);
+        log.info("✅ [PG] PlanEmbedding 저장 성공! (Plan ID: {})", savedPlan.getId());
+
+        // ===========================================
+        // 🚀 테스트 종료
+        // ===========================================
+
         log.info("샘플 데이터 생성이 완료되었습니다.");
     }
 
@@ -105,14 +169,14 @@ public class DataInitializer implements CommandLineRunner {
             Role role
     ) {
         return memberRepository.save(Member.builder()
-                                             .email(email)
-                                             .username(username)
-                                             .password(passwordEncoder.encode(password))
-                                             .role(role)
-                                             .socialType(SocialType.LOCAL)
-                                             .socialId(email)
-                                             .createdAt(LocalDateTime.now())
-                                             .updatedAt(LocalDateTime.now())
-                                             .build());
+                .email(email)
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .role(role)
+                .socialType(SocialType.LOCAL)
+                .socialId(email)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build());
     }
 }

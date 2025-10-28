@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -20,11 +18,11 @@ import javax.sql.DataSource;
         // 1. h2 리포지토리 위치만 지정
         basePackages = "com.oath.domain",
         // 제외할 패키지(정규식)
-//        excludeFilters = @ComponentScan.Filter(
-//                type = FilterType.REGEX,
-//                // com.oath.domain.test 의 하위 패키지들을 h2에서 제외
-//                pattern = "com.oath.domain\\.test\\..*"
-//        ),
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.REGEX,
+                // com.oath.domain.test 의 하위 패키지들을 h2에서 제외
+                pattern = "com.oath.domain\\.recommend\\..*"
+        ),
         // 2. 이 클래스에서 생성할 Factory와 Manager를 명시
         entityManagerFactoryRef = "h2EntityManagerFactory",
         transactionManagerRef = "h2TransactionManager"
