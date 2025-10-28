@@ -86,6 +86,13 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+# 이미지 저장 시 파일 저장 위치
+upload:
+  root-dir: ./uploads/
+  chat-dir: chat-images/
+  chat-file-dir: chat-file/
+  profile-dir: profile/
+
 jwt:
   secret: 'b2F0aHNlY3JleWtleW9hdGhzZWNyZXlrZXlvYXRoc2VjcmV5a2V5'
   expiration-in-ms: 3600000 # 1??
