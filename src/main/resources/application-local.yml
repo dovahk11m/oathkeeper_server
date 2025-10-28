@@ -12,7 +12,7 @@ spring:
 
     # 1-2. MySQL 설정
     mysql:
-      jdbc-url: jdbc:mysql://localhost:3306/oath?serverTimezone=Asia/Seoul
+      jdbc-url: jdbc:mysql://localhost:3306/oath?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
       username: root
       password: asd1234
       driver-class-name: com.mysql.cj.jdbc.Driver
