@@ -159,4 +159,9 @@ public class MemberController {
         memberService.deleteProfileImage(memberId);
     }
 
+    @GetMapping("/count-join")
+    public void countJoin () {
+        memberService.countJoin();
+    }
+
 }
