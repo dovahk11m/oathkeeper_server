@@ -32,8 +32,8 @@ public class NaverMapService {
 
         // 2. 시크릿 키 주입
         this.clientSecret = clientSecret;
-        if ("FAKE_KEY".equalsIgnoreCase(clientSecret))
-            log.error("\n\n================================\n\n" +
+        if ("FAKE_KEY".equalsIgnoreCase(this.clientSecret))
+            System.err.println("\n\n================================\n\n" +
                     "!!!CAUTION!!!: 시크릿 값이 제대로 적용되지 않았습니다.\n\n" +
                     "================================\n");
     }
