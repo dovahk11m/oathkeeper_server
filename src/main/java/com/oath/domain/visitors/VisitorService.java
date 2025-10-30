@@ -17,7 +17,7 @@ public class VisitorService {
     public void saveVisitor(String ip, String userAgent){
         LocalDate today = LocalDate.now();
 
-        Long count = visitorRepository.countByIpAdressAndVisitedDate(ip, today);
+        Long count = visitorRepository.countByIpAddressAndVisitedDate(ip, today);
 
         if(count == 0) {
             Visitor visitor = Visitor.builder()
@@ -29,9 +29,9 @@ public class VisitorService {
 
     }
 
-    public List<VisitorResponse.PeriodCount> countVisitsGroupByPeriod(VisitorRequest.VisitCountDto request) {
+    public List<VisitorResponse> countVisitsGroupByPeriod(LocalDate startDate, LocalDate endDate) {
 
-        return visitorRepository.countVisitsGroupByPeriod(request.getStartDate(), request.getEndDate());
+        return visitorRepository.findByVisitedDateBetween(startDate, endDate);
     }
 
 

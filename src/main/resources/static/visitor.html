@@ -19,13 +19,21 @@
 </head>
 <body>
 <h2 style="text-align:center;">📊 일별 방문자 통계</h2>
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<button id="loadChart">조회</button>
+
 <div class="chart-container">
     <canvas id="visitorChart"></canvas>
 </div>
 
 <script>
+    document.getElementById('loadChart').addEventListener('click', () => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
     // --- (1) 방문자 데이터 가져오기 (API 호출) ---
-    fetch('/api/visitors/daily')  // 스프링부트에서 이 경로로 데이터 내려줌
+    fetch(`/api/visitor/period?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`)  // 스프링부트에서 이 경로로 데이터 내려줌
       .then(response => response.json())
       .then(data => {
         // --- (2) 데이터 가공 ---
@@ -64,6 +72,7 @@
           }
         });
       });
+    });
 </script>
 </body>
 </html>
