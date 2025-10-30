@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "groups_tb") // 테이블 이름 컨벤션 통일
+@Table(name = "group_tb") // 테이블 이름 컨벤션 통일
 @Getter
 @NoArgsConstructor
 @ToString

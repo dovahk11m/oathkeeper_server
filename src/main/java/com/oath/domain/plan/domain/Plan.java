@@ -1,6 +1,7 @@
 package com.oath.domain.plan.domain;
 
 import com.oath.domain.members.domain.Member;
+import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.plan.Status;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -55,9 +56,9 @@ public class Plan {
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Participant> participants = new ArrayList<>();
 
-    // 태그 목록
+    // 태그 목록 - 중간 테이블(PlanTag)을 통해 N:N 관계 설정
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Tag> tags = new ArrayList<>();
+    private final List<PlanTag> planTags = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
@@ -99,19 +100,6 @@ public class Plan {
     public Point getPlaceLocation() {
         if (placeLatitude == null || placeLongitude == null) return null;
         return new Point(placeLongitude, placeLatitude);
-    }
-
-    // 태그 헬퍼 메서드: 양방향 무결성 유지
-    public void addTag(Tag tag) {
-        if (tag == null) return;
-        tag.setPlan(this);
-        this.tags.add(tag);
-    }
-
-    public void clearTags() {
-        if (this.tags == null || this.tags.isEmpty()) return;
-        this.tags.forEach(t -> t.setPlan(null));
-        this.tags.clear();
     }
 
     public enum Polarity {
