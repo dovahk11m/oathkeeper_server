@@ -125,7 +125,6 @@ public class MemberService {
 
     }
 
-
     public String findId(MemberRequest.FindId request) {
          Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
@@ -137,7 +136,6 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
         member.deactivate();
     }
-
 
     private String generateTempPassword() {
         return Long.toHexString(Double.doubleToLongBits(Math.random())).substring(0, 8);
@@ -164,7 +162,16 @@ public class MemberService {
                 );
     }
 
-    public String uploadProfileImage (MultipartFile image) throws IOException {
+    public String uploadProfileImage (MultipartFile image, Long memberId) throws IOException {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+
+        String oldImageUrl = member.getProfileImageUrl();
+        if (oldImageUrl != null) {
+            Path oldPath = Paths.get("uploads/profile/" + oldImageUrl.replace("/profile-image", ""));
+            Files.deleteIfExists(oldPath);
+        }
+
         String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
         Path filePath = Paths.get("uploads/profile/" + fileName);
 
@@ -174,7 +181,23 @@ public class MemberService {
 
             String fileUrl = "/파일경로/" + fileName;
 
+            member.setProfileImageUrl(fileUrl);
+
+            memberRepository.save(member);
+
             return fileUrl;
+    }
+
+    public void deleteProfileImage (Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+
+        member.setProfileImageUrl(null);
+
+        memberRepository.save(member);
+    }
+
+    public void countJoin () {
 
     }
 
