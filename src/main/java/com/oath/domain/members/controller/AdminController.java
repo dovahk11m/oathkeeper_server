@@ -5,6 +5,8 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.dto.AdminResponse;
 import com.oath.domain.members.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +29,12 @@ public class AdminController {
     @PostMapping("/ban-member")
     public void banMember(Member member, int days){
         adminService.banMember(member, days);
+    }
+
+    @GetMapping("/members")
+    public Page<AdminResponse.MemberDto> getMembers(Pageable pagable) {
+        Page<AdminResponse.MemberDto> members = adminService.getMembers(pagable);
+        return members;
     }
 
 }

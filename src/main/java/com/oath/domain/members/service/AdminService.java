@@ -3,9 +3,12 @@ package com.oath.domain.members.service;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Status;
 import com.oath.domain.members.dto.AdminResponse;
+import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,5 +39,11 @@ public class AdminService {
         response.setMembers(memberDtos);
 
         return response;
+    }
+
+    public Page<AdminResponse.MemberDto> getMembers(Pageable pageable) {
+        Page<AdminResponse.MemberDto> members = memberRepository.findAll(pageable)
+                .map(m -> new AdminResponse.MemberDto(m));
+        return members;
     }
 }
