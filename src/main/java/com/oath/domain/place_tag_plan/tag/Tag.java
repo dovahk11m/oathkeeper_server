@@ -25,9 +25,11 @@ public class Tag {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Builder.Default
     @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlaceTag> placeTags = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlanTag> planTags = new ArrayList<>();
 

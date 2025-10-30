@@ -14,6 +14,8 @@ import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
+import com.oath.domain.visitors.Visitor;
+import com.oath.domain.visitors.VisitorRepository;
 import com.oath.recommend_domain.plan.PlanEmbedding;
 import com.oath.recommend_domain.plan.PlanEmbeddingRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -43,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
     private final GroupService groupService;
     private final GroupMemberRepository groupMemberRepository;
     private final ChatRepository chatRepository;
+    private final VisitorRepository visitorRepository;
 
     private final PlanEmbeddingRepository planEmbeddingRepository;
 
@@ -114,6 +118,18 @@ public class DataInitializer implements CommandLineRunner {
                         .minusMinutes(4)
         ));
 
+        Visitor visitor1 = createVisitor("127.0.0.1", "Mozilla/5.", "2025-10-01");
+        Visitor visitor2 = createVisitor("127.0.0.2", "Mozilla/5.", "2025-10-03");
+        Visitor visitor3 = createVisitor("127.0.0.3", "Mozilla/5.", "2025-10-05");
+        Visitor visitor4 = createVisitor("127.0.0.4", "Mozilla/5.", "2025-10-10");
+        Visitor visitor5 = createVisitor("127.0.0.5", "Mozilla/5.", "2025-10-11");
+        Visitor visitor6 = createVisitor("127.0.0.6", "Mozilla/5.", "2025-10-16");
+        Visitor visitor7 = createVisitor("127.0.0.7", "Mozilla/5.", "2025-10-20");
+        Visitor visitor8 = createVisitor("127.0.0.8", "Mozilla/5.", "2025-10-22");
+        Visitor visitor9 = createVisitor("127.0.0.9", "Mozilla/5.", "2025-10-25");
+        Visitor visitor10 = createVisitor("127.0.0.10", "Mozilla/5.", "2025-10-30");
+
+
         // ===========================================
         // 🚀 Plan / PlanEmbedding 저장 테스트 시작
         // ===========================================
@@ -181,4 +197,13 @@ public class DataInitializer implements CommandLineRunner {
                                              .lastLogin(LocalDateTime.now()) // 마지막 로그인
                                              .build());
     }
+
+    private Visitor createVisitor(String ipAddress, String userAgent, String visitedDate) {
+        return visitorRepository.save(Visitor.builder()
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
+                .visitedDate(LocalDate.parse(visitedDate))
+                .build());
+    }
+
 }
