@@ -3,8 +3,10 @@ package com.oath.common;
 import com.oath.domain.members.domain.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -17,14 +19,16 @@ public class JwtTokenProvider {
 
     private final SecretKey key;
     private final Long validityInMilliseconds;
+    private final CacheManager cacheManager;
 
     public JwtTokenProvider(
-
             @Value("${jwt.secret}") String secretKey,
-            @Value("${jwt.expiration-in-ms}") Long validityInMilliseconds
+            @Value("${jwt.expiration-in-ms}") Long validityInMilliseconds,
+            CacheManager cacheManager
     ) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.validityInMilliseconds = validityInMilliseconds;
+        this.cacheManager = cacheManager;
     }
 
     //로그인시 새 토큰 생성
@@ -57,6 +61,11 @@ public class JwtTokenProvider {
 
     //토큰 유효성 검증
     public boolean validateToken(String token) {
+        if (isBlacklisted(token)) {
+            log.warn("Blacklisted token: {}", token);
+            return false;
+        }
+
         try {
             Jwts.parser()
                     .verifyWith(key)
@@ -85,6 +94,10 @@ public class JwtTokenProvider {
             );
         }
         return false;
+    }
+
+    private boolean isBlacklisted(String token) {
+        return cacheManager.getCache("blacklistedTokens").get(token) != null;
     }
 
     //클레임 정보를 추출하는 기능
@@ -116,5 +129,18 @@ public class JwtTokenProvider {
                 "memberId",
                 Long.class
         );
+    }
+
+    public long getRemainingExpiration(String token) {
+        Date expiration = parseClaims(token).getExpiration();
+        return expiration.getTime() - System.currentTimeMillis();
+    }
+
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

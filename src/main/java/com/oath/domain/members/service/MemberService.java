@@ -1,6 +1,6 @@
 package com.oath.domain.members.service;
 
-import com.oath.common.CommonResponse;
+import com.oath.common.JwtTokenProvider;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -11,7 +11,7 @@ import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +30,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
-
     private final EmailService emailService;
-
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CacheManager cacheManager;
 
     public Member create(MemberCreateDto memberCreateDto){
         Member member = Member.builder()
@@ -61,6 +61,17 @@ public class MemberService {
         postLogin(member);
 
         return member;
+    }
+
+    //로그아웃
+    public void logout(String token) {
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+
+        long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
+
+        cacheManager.getCache("blacklistedTokens").put(token, remainingExpiration);
     }
 
     public Member postLogin(Member member) {
