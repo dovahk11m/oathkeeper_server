@@ -1,19 +1,24 @@
 package com.oath.recommend_domain.plan;
 
+import com.oath.common.util.DateUtil;
 import com.oath.domain.plan.Status;
+import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.recommend_domain.plan.constants.DateMessage;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "plan_embeddings", schema = "oath")
-@Getter
+@Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlanEmbedding {
 
@@ -46,5 +51,65 @@ public class PlanEmbedding {
         this.status = status;
         this.placeLatitude = placeLatitude;
         this.placeLongitude = placeLongitude;
+    }
+
+    // 각 필드를 의미 있는 자연어로 바꾸는 메서드
+    public static String getnaturalLanguage(PlanEmbedding planEmbedding, Plan plan, List<Participant> participants) throws IllegalAccessException {
+
+        // 요일 + 날짜를 DateMessage 클래스에서 한번에 처리
+        // 요일을 자연어로 처리
+        String naturalLanguage = "";
+
+
+        // 날짜를 자연어로 처리
+        String[] splitDate = planEmbedding.getTime().split("/");
+        naturalLanguage = naturalLanguage.concat(DateMessage.buildDateNaturalLanguage(planEmbedding.getWeekend(), splitDate[1], splitDate[2]) + "에 ");
+
+        // 장소를 자연어로 처리
+        naturalLanguage = naturalLanguage.concat(plan.getPlaceName() + "에서 ");
+
+        List<String> memberNames = participants.stream()
+                .map((participant) -> participant.getMember().getUsername())
+                .toList();
+
+        // 참여 인원 자연어 처리
+        for (String s : memberNames) {
+            naturalLanguage = naturalLanguage.concat(s);
+
+            if (!s.equals(memberNames.getLast()))
+                naturalLanguage = naturalLanguage.concat(", ");
+        }
+
+        String lastMemberName = memberNames.getLast();
+
+        if (hasFinalConsonant(lastMemberName.charAt(lastMemberName.length() - 1))) {
+            naturalLanguage = naturalLanguage.concat("과 만났다.");
+        } else {
+            naturalLanguage = naturalLanguage.concat("와 만났다.");
+        }
+
+        return naturalLanguage;
+    }
+
+    private static boolean hasFinalConsonant(char ch) {
+        if (ch < 0xAC00 || ch > 0xD7A3) {
+            // 한글 음절이 아니면 false
+            return false;
+        }
+
+        int baseCode = ch - 0xAC00;
+        int finalConsonantIndex = baseCode % 28;
+
+        return finalConsonantIndex != 0;
+    }
+
+    // 시간 포맷팅
+    public String getTime() {
+        return DateUtil.formatDate(this.planDatetime);
+    }
+
+    // 요일 포맷팅
+    public String getWeekend() {
+        return DateUtil.formatWeekendWithKorean(this.planDatetime);
     }
 }
