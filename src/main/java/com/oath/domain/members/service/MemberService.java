@@ -1,6 +1,6 @@
 package com.oath.domain.members.service;
 
-import com.oath.common.CommonResponse;
+import com.oath.common.JwtTokenProvider;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -11,7 +11,7 @@ import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +30,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
-
     private final EmailService emailService;
-
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CacheManager cacheManager;
 
     public Member create(MemberCreateDto memberCreateDto){
         Member member = Member.builder()
@@ -61,6 +61,17 @@ public class MemberService {
         postLogin(member);
 
         return member;
+    }
+
+    //로그아웃
+    public void logout(String token) {
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+
+        long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
+
+        cacheManager.getCache("blacklistedTokens").put(token, remainingExpiration);
     }
 
     public Member postLogin(Member member) {
@@ -125,7 +136,6 @@ public class MemberService {
 
     }
 
-
     public String findId(MemberRequest.FindId request) {
          Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
@@ -137,7 +147,6 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
         member.deactivate();
     }
-
 
     private String generateTempPassword() {
         return Long.toHexString(Double.doubleToLongBits(Math.random())).substring(0, 8);
@@ -164,7 +173,16 @@ public class MemberService {
                 );
     }
 
-    public String uploadProfileImage (MultipartFile image) throws IOException {
+    public String uploadProfileImage (MultipartFile image, Long memberId) throws IOException {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+
+        String oldImageUrl = member.getProfileImageUrl();
+        if (oldImageUrl != null) {
+            Path oldPath = Paths.get("uploads/profile/" + oldImageUrl.replace("/profile-image", ""));
+            Files.deleteIfExists(oldPath);
+        }
+
         String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
         Path filePath = Paths.get("uploads/profile/" + fileName);
 
@@ -174,8 +192,30 @@ public class MemberService {
 
             String fileUrl = "/파일경로/" + fileName;
 
-            return fileUrl;
+            member.setProfileImageUrl(fileUrl);
 
+            memberRepository.save(member);
+
+            return fileUrl;
+    }
+
+    public void deleteProfileImage (Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+
+        member.setProfileImageUrl(null);
+
+        memberRepository.save(member);
+    }
+
+    public void countJoin () {
+
+    }
+
+    public boolean checkPassword(Long memberId, String password) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+        return passwordEncoder.matches(password, member.getPassword());
     }
 
 }

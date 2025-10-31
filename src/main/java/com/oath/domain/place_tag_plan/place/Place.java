@@ -37,6 +37,7 @@ public class Place {
 
     private String imageUrl;
 
+    @Builder.Default
     @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlaceTag> placeTags = new ArrayList<>();
 

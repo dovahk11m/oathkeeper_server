@@ -73,14 +73,6 @@ public class Member {
         this.password = encodedPassword;
     }
 
-    public void changeUsername(String username){
-        this.username = username;
-    }
-
-    public void changeProfileImageUrl(){}
-
-
-
     public void deactivate() {
         this.status = Status.DEACTIVATED;
     }

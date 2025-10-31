@@ -47,4 +47,9 @@ public class MemberResponse {
             }
         }
     }
+
+
+    public static class CountJoin {
+        private Long CountJoin;
+    }
 }

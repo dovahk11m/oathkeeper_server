@@ -8,6 +8,7 @@ import com.oath.domain.members.dto.*;
 import com.oath.domain.members.service.FacebookService;
 import com.oath.domain.members.service.KakaoService;
 import com.oath.domain.members.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/member")
@@ -99,8 +94,26 @@ public class MemberController {
     @DeleteMapping("/{memberId}")
     public ResponseEntity<?> deleteMember(@PathVariable Long memberId) {
         memberService.deleteMember(memberId);
-
         return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
+    }
+
+    /** 로그아웃 */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        memberService.logout(token);
+        return ResponseEntity.ok(CommonResponse.success(null, "로그아웃 성공"));
+    }
+
+    /** 비밀번호 확인 */
+    @PostMapping("/{memberId}/check-password")
+    public ResponseEntity<?> checkPassword(@PathVariable Long memberId, @RequestBody MemberRequest.CheckPassword request) {
+        boolean isPasswordCorrect = memberService.checkPassword(memberId, request.getPassword());
+        if (isPasswordCorrect) {
+            return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 확인 성공"));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error("비밀번호가 일치하지 않습니다."));
+        }
     }
 
 
@@ -114,6 +127,8 @@ public class MemberController {
         if(originalMember == null){
             originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
         }
+
+        memberService.postLogin(originalMember);
 
         String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
@@ -142,15 +157,25 @@ public class MemberController {
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
 
-    @PostMapping("/profile/upload")
-    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile image) {
+    @PostMapping("/profile/upload/{memberId}")
+    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile image, @PathVariable Long memberId) {
 
         try {
-            String imageUrl = memberService.uploadProfileImage(image);
+            String imageUrl = memberService.uploadProfileImage(image, memberId);
             return new ResponseEntity<>(CommonResponse.success(imageUrl), HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @DeleteMapping("/profile/delete/{memberId}")
+    public void deleteProfileImage (@PathVariable Long memberId) {
+        memberService.deleteProfileImage(memberId);
+    }
+
+    @GetMapping("/count-join")
+    public void countJoin () {
+        memberService.countJoin();
     }
 
 }

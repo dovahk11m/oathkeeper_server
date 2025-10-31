@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>방문자 통계</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+          font-family: Pretendard, sans-serif;
+          margin: 40px;
+          background-color: #fafafa;
+        }
+        .chart-container {
+          width: 80%;
+          max-width: 800px;
+          margin: auto;
+        }
+    </style>
+</head>
+<body>
+<h2 style="text-align:center;">📊 일별 방문자 통계</h2>
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<button id="loadChart">조회</button>
+
+<div class="chart-container">
+    <canvas id="visitorChart"></canvas>
+</div>
+
+<script>
+    document.getElementById('loadChart').addEventListener('click', () => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+    // --- (1) 방문자 데이터 가져오기 (API 호출) ---
+    fetch(`/api/visitor/period?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`)  // 스프링부트에서 이 경로로 데이터 내려줌
+      .then(response => response.json())
+      .then(data => {
+        // --- (2) 데이터 가공 ---
+        const labels = data.map(d => d.date);
+        const values = data.map(d => d.visitors);
+
+        // --- (3) Chart.js로 그래프 그리기 ---
+        const ctx = document.getElementById('visitorChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line', // bar, line, pie 등 변경 가능
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '방문자 수',
+              data: values,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { stepSize: 50 }
+              }
+            },
+            plugins: {
+              legend: { display: true },
+              tooltip: { enabled: true }
+            }
+          }
+        });
+      });
+    });
+</script>
+</body>
+</html>
