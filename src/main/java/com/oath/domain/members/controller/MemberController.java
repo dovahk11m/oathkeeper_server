@@ -105,6 +105,17 @@ public class MemberController {
         return ResponseEntity.ok(CommonResponse.success(null, "로그아웃 성공"));
     }
 
+    /** 비밀번호 확인 */
+    @PostMapping("/{memberId}/check-password")
+    public ResponseEntity<?> checkPassword(@PathVariable Long memberId, @RequestBody MemberRequest.CheckPassword request) {
+        boolean isPasswordCorrect = memberService.checkPassword(memberId, request.getPassword());
+        if (isPasswordCorrect) {
+            return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 확인 성공"));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error("비밀번호가 일치하지 않습니다."));
+        }
+    }
+
 
     @PostMapping("/kakao/doLogin")
     public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto) {
