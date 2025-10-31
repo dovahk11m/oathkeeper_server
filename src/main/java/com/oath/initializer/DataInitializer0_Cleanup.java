@@ -21,8 +21,8 @@ public class DataInitializer0_Cleanup implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        log.info("[PG] Supabase의 기존 PlanEmbedding 데이터를 먼저 삭제합니다...");
+        log.info("👷‍♂️ [PG] Supabase의 기존 PlanEmbedding 데이터 삭제 시작");
         planEmbeddingRepository.deleteAllInBatch(); // (싹 비우기)
-        log.info("✅ [PG] PlanEmbedding 데이터 삭제 완료!");
+        log.info("👷‍♂️ [PG] PlanEmbedding 데이터 삭제 완료");
     }
 }

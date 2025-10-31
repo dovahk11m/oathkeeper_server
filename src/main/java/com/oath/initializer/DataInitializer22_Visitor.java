@@ -15,14 +15,14 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(10)
-public class DataInitializer10_Visitor implements CommandLineRunner {
+@Order(22)
+public class DataInitializer22_Visitor implements CommandLineRunner {
 
     private final VisitorRepository visitorRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("샘플 방문자 데이터를 생성합니다...");
+        log.info("👷‍♂️ 샘플 방문자 데이터 생성 시작");
 
         createVisitor("127.0.0.1", "Mozilla/5.", "2025-10-01");
         createVisitor("127.0.0.2", "Mozilla/5.", "2025-10-03");
@@ -35,7 +35,7 @@ public class DataInitializer10_Visitor implements CommandLineRunner {
         createVisitor("127.0.0.9", "Mozilla/5.", "2025-10-25");
         createVisitor("127.0.0.10", "Mozilla/5.", "2025-10-30");
 
-        log.info("샘플 방문자 데이터 생성이 완료되었습니다.");
+        log.info("👷‍♂️ 샘플 방문자 데이터 생성 완료");
     }
 
     private Visitor createVisitor(String ipAddress, String userAgent, String visitedDate) {
