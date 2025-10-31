@@ -32,7 +32,7 @@ public class DataInitializer4_Group implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("샘플 그룹 및 채팅 데이터를 생성합니다...");
+        log.info("👷‍♂️ 샘플 그룹 및 채팅 데이터 생성 시작");
 
         Member user1 = memberRepository.findByEmail("user1@test.com").orElseThrow();
         Member user2 = memberRepository.findByEmail("user2@test.com").orElseThrow();
@@ -64,6 +64,6 @@ public class DataInitializer4_Group implements CommandLineRunner {
                 LocalDateTime.now().minusMinutes(4)
         ));
 
-        log.info("샘플 그룹 및 채팅 데이터 생성이 완료되었습니다.");
+        log.info("👷‍♂️ 샘플 그룹 및 채팅 데이터 생성 완료");
     }
 }

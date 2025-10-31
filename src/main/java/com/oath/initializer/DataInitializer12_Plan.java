@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(6)
-public class DataInitializer6_Plan implements CommandLineRunner {
+@Order(12)
+public class DataInitializer12_Plan implements CommandLineRunner {
 
     private final MemberRepository memberRepository;
     private final PlanJpaRepository planJpaRepository;
@@ -29,12 +29,12 @@ public class DataInitializer6_Plan implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("샘플 Plan 데이터를 생성합니다...");
+        log.info("👷‍♂️ 샘플 Plan 데이터 생성 시작");
 
         Member user1 = memberRepository.findByEmail("user1@test.com").orElseThrow();
 
         // 1. [H2 DB] 'Plan' 엔티티 생성 및 저장
-        log.info("[H2] Plan 저장을 시도합니다...");
+        log.info("👷‍♂️ [H2] Plan 저장 시작");
         Plan plan = Plan.builder()
                 .creatorMember(user1)
                 .title("저녁에 치맥하실 분 (테스트)")
@@ -45,11 +45,11 @@ public class DataInitializer6_Plan implements CommandLineRunner {
 
         // ⬇️ H2 DB의 'plan_tb'에 저장!
         Plan savedPlan = planJpaRepository.save(plan);
-        log.info("✅ [H2] Plan 저장 성공! (ID: {})", savedPlan.getId());
+        log.info("👷‍♂️ [H2] Plan 저장 성공 (ID: {})", savedPlan.getId());
 
 
         // 2. [PG DB] 'PlanEmbedding' 엔티티 생성
-        log.info("[PG] PlanEmbedding 저장을 시도합니다...");
+        log.info("👷‍♂️ [PG] PlanEmbedding 저장 시작");
 
         // (임시) AI가 만들어준 가짜 벡터
         float[] fakeEmbedding = new float[768];
@@ -68,8 +68,8 @@ public class DataInitializer6_Plan implements CommandLineRunner {
         // ⬇️ PG DB의 'plan_embeddings'에 저장!
         // (이 시점엔 ddl-auto가 이미 끝나서 테이블이 존재함)
         planEmbeddingRepository.save(embedding);
-        log.info("✅ [PG] PlanEmbedding 저장 성공! (Plan ID: {})", savedPlan.getId());
+        log.info("👷‍♂️ [PG] PlanEmbedding 저장 성공 (Plan ID: {})", savedPlan.getId());
 
-        log.info("샘플 Plan 데이터 생성이 완료되었습니다.");
+        log.info("👷‍♂️ 샘플 Plan 데이터 생성 완료");
     }
 }

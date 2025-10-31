@@ -26,13 +26,16 @@ public class DataInitializer2_Member implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("샘플 사용자 데이터를 생성합니다...");
+        log.info("👷‍♂️ 샘플 사용자 데이터를 생성 시작");
 
-        createMember("user1@test.com", "user1", "1234", Role.USER);
-        createMember("user2@test.com", "user2", "1234", Role.USER);
-        createMember("admin@test.com", "admin", "1234", Role.ADMIN);
+        createMember("user1@test.com", "김철수", "1234", Role.USER);
+        createMember("user2@test.com", "이영희", "1234", Role.USER);
+        createMember("user3@test.com", "박민철", "1234", Role.USER);
+        createMember("user4@test.com", "최상혁", "1234", Role.USER);
+        createMember("user5@test.com", "정민지", "1234", Role.USER);
+        createMember("admin@test.com", "관리자", "1234", Role.ADMIN);
 
-        log.info("샘플 사용자 데이터 생성이 완료되었습니다.");
+        log.info("👷‍♂️ 샘플 사용자 데이터 생성 완료");
     }
 
     private Member createMember(String email, String username, String password, Role role) {
