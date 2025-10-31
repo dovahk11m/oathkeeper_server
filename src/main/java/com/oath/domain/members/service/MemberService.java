@@ -212,4 +212,10 @@ public class MemberService {
 
     }
 
+    public boolean checkPassword(Long memberId, String password) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+        return passwordEncoder.matches(password, member.getPassword());
+    }
+
 }
