@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Profile("local")
 @Order(0)
-public class DataInitializer1_Cleanup implements CommandLineRunner {
+public class DataInitializer0_Cleanup implements CommandLineRunner {
 
     private final PlanEmbeddingRepository planEmbeddingRepository;
 
