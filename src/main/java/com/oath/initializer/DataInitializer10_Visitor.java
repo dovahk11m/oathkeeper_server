@@ -15,8 +15,8 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(3)
-public class DataInitializer4_Visitor implements CommandLineRunner {
+@Order(10)
+public class DataInitializer10_Visitor implements CommandLineRunner {
 
     private final VisitorRepository visitorRepository;
 

@@ -22,8 +22,8 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(2)
-public class DataInitializer3_Group implements CommandLineRunner {
+@Order(4)
+public class DataInitializer4_Group implements CommandLineRunner {
 
     private final MemberRepository memberRepository;
     private final GroupService groupService;

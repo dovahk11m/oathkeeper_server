@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(1)
+@Order(2)
 public class DataInitializer2_Member implements CommandLineRunner {
 
     private final MemberRepository memberRepository;

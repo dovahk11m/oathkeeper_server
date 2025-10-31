@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(4)
-public class DataInitializer5_Plan implements CommandLineRunner {
+@Order(6)
+public class DataInitializer6_Plan implements CommandLineRunner {
 
     private final MemberRepository memberRepository;
     private final PlanJpaRepository planJpaRepository;
