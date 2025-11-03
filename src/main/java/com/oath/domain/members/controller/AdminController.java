@@ -79,10 +79,11 @@ public class AdminController {
     }
 
     @GetMapping("/popular-plan-tag")
-    public String getPopularPlanTag(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+    @ResponseBody
+    public List<AdminResponse.popularPlanTag> getPopularPlanTag(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         List<AdminResponse.popularPlanTag> popularPlanTags = adminService.getPopularPlanTag(startDate, endDate);
 
-        return "popularPlanTag";
+        return popularPlanTags;
     }
 
 }

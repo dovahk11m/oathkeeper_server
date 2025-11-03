@@ -34,7 +34,7 @@
         const endDate = document.getElementById('endDate').value;
 
     // --- (1) 방문자 데이터 가져오기 (API 호출) ---
-    fetch(`/api/admin/popular-plan-tag/period?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`)  // 스프링부트에서 이 경로로 데이터 내려줌
+    fetch(`/api/admin/popular-plan-tag?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`)  // 스프링부트에서 이 경로로 데이터 내려줌
       .then(response => response.json())
       .then(data => {
         // --- (2) 테이블 생성 ---

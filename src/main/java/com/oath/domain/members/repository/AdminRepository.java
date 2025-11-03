@@ -20,7 +20,7 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             JOIN p.participants pp
             JOIN p.planTags pt
             JOIN pt.tag t
-            WHERE p.createdAt BETWEEN :startDate AND :endDate
+            WHERE DATE(p.createdAt) BETWEEN :startDate AND :endDate
             GROUP BY t.id, t.name
             ORDER BY count(pp) DESC, count(p) DESC
             """)
