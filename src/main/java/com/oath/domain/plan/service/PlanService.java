@@ -5,7 +5,9 @@ import com.oath.common.exception.Exception403;
 import com.oath.common.exception.Exception404;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
-import com.oath.domain.plan.*;
+import com.oath.domain.plan.ArrivalStatus;
+import com.oath.domain.plan.ParticipantStatus;
+import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.event.AlarmType;
@@ -14,6 +16,7 @@ import com.oath.domain.plan.event.DepartureEvent;
 import com.oath.domain.plan.event.LateEvent;
 import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
+import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.geo.Point;
@@ -296,5 +299,31 @@ public class PlanService {
         return planJpaRepository.save(plan);
     }
 
+    @Transactional
+    public Plan confirmFinalPlan(Long planId, Long requesterId) {
 
+        validatePlanCreator(planId, requesterId);
+
+        Plan plan = getPlanById(planId);
+
+        if (plan.getStatus() == Status.CONFIRMED || plan.getStatus() == Status.COMPLETED) {
+            throw new Exception400("이미 확정되거나 완료된 약속입니다.");
+        }
+
+        if (plan.getPlaceName() == null || plan.getPlaceLatitude() == null) {
+            throw new Exception400("장소가 아직 확정되지 않았습니다.");
+        }
+
+        List<Participant> participants = participantRepository.findByPlanId(planId);
+        if (participants.isEmpty()) {
+            throw new Exception400("참여자가 한 명도 없는 약속은 확정할 수 없습니다.");
+        }
+
+        plan.update(plan.getTitle(), plan.getPlanDatetime(), Status.CONFIRMED);
+        Plan savedPlan = planJpaRepository.save(plan);
+
+        eventPublisher.publishEvent(new PlanConfirmedEvent(savedPlan.getId())); //
+
+        return savedPlan;
+    }
 }

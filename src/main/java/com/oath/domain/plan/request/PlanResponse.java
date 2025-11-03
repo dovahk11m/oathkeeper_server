@@ -1,10 +1,10 @@
 package com.oath.domain.plan.request;
 
-import org.springframework.data.geo.Point;
 import com.oath.domain.plan.domain.Plan;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.data.geo.Point;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +16,7 @@ public class PlanResponse {
     @NoArgsConstructor
     @ToString(exclude = "participants")
     public static class CreatePlan {
+        private Long id;
         private String date;
         private String time;
         private String title;

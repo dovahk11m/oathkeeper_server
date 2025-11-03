@@ -119,10 +119,8 @@ naver:
   map:
     client-secret: ${CLIENT_SECRET:FAKE_KEY}
 
-sentry:
-  dsn: https://8cd62baf4cae02d8992acb41a7781b68@o4509670363365377.ingest.us.sentry.io/4510298223280128
-  environment: "local"
-  release: "1.0.0"
-  traces-sample-rate: 1.0   # 1.0은 100% 추적 (운영에서는 0.2~0.5 권장)
-  enable-tracing: true
-  send-default-pii: true
+ai:
+  gemini:
+    embedding-endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
+    embedding-model: "models/gemini-embedding-001"
+    api-key: ${GEMINI_API_KEY:FAKE_AI_KEY}
