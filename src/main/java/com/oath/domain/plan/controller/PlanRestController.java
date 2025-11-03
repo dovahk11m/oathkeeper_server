@@ -8,6 +8,7 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.plan.ParticipantStatus;
 import com.oath.domain.plan.Status;
+import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.facade.ParticipantFacade;
 import com.oath.domain.plan.facade.PlanFacade;
 import com.oath.domain.plan.request.ParticipantResponse;
@@ -16,9 +17,9 @@ import com.oath.domain.plan.request.PlanResponse;
 import com.oath.domain.plan.service.PlanService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.geo.Point;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -42,7 +43,6 @@ public class PlanRestController {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception401("사용자를 찾을 수 없습니다."));
     }
-
 
 
     // 플랜 목록조회
@@ -96,8 +96,8 @@ public class PlanRestController {
     @Auth
     @PutMapping("/{id}")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> updatePlan(@PathVariable("id") Long id,
-                                                           @RequestBody PlanRequest.UpdatePlanRequest req,
-                                                           HttpServletRequest request) {
+                                                                              @RequestBody PlanRequest.UpdatePlanRequest req,
+                                                                              HttpServletRequest request) {
         Member currentMember = getCurrentMember(request);
         planService.validatePlanCreator(id, currentMember.getId());
         LocalDateTime dt = parseDateTimeOrThrow(req.planDatetime);
@@ -212,8 +212,8 @@ public class PlanRestController {
     @Auth
     @PostMapping("/{planId}/confirm-place")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(@PathVariable Long planId,
-                                                                                 @RequestBody PlanRequest.ConfirmPlaceRequest req,
-                                                                                 HttpServletRequest request) {
+                                                                                @RequestBody PlanRequest.ConfirmPlaceRequest req,
+                                                                                HttpServletRequest request) {
         Member currentMember = getCurrentMember(request);
         planService.validatePlanCreator(planId, currentMember.getId());
         Point loc = (req.longitude != null && req.latitude != null) ? new Point(req.longitude, req.latitude) : null;
@@ -221,5 +221,17 @@ public class PlanRestController {
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
+    // 최종 확정
+    // TODO 나중에 수정 필요
+    @PostMapping("/{planId}/confirm")
+    public ResponseEntity<?> confirmPlan(@PathVariable Long planId) {
+
+        // TODO 생성자 ID 주입
+        Long creatorMemberId = 1L;
+
+        Plan confirmedPlan = planService.confirmFinalPlan(planId, creatorMemberId);
+
+        return ResponseEntity.ok(CommonResponse.success("약속이 최종 확정되었습니다."));
+    }
 }
 

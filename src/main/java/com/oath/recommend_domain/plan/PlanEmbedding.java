@@ -2,7 +2,6 @@ package com.oath.recommend_domain.plan;
 
 import com.oath.common.util.DateUtil;
 import com.oath.domain.plan.Status;
-import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.recommend_domain.plan.constants.DateMessage;
 import jakarta.persistence.*;
@@ -54,21 +53,16 @@ public class PlanEmbedding {
     }
 
     // 각 필드를 의미 있는 자연어로 바꾸는 메서드
-    public static String getnaturalLanguage(PlanEmbedding planEmbedding, Plan plan, List<Participant> participants) throws IllegalAccessException {
+    public static String getNaturalLanguage(PlanEmbedding planEmbedding, Plan plan) throws IllegalAccessException {
 
-        // 요일 + 날짜를 DateMessage 클래스에서 한번에 처리
-        // 요일을 자연어로 처리
         String naturalLanguage = "";
-
-
-        // 날짜를 자연어로 처리
         String[] splitDate = planEmbedding.getTime().split("/");
-        naturalLanguage = naturalLanguage.concat(DateMessage.buildDateNaturalLanguage(planEmbedding.getWeekend(), splitDate[1], splitDate[2]) + "에 ");
+        naturalLanguage = naturalLanguage.concat(DateMessage.buildDateNaturalLanguage(planEmbedding.getWeekend(), splitDate[1], splitDate[2]));
 
         // 장소를 자연어로 처리
         naturalLanguage = naturalLanguage.concat(plan.getPlaceName() + "에서 ");
 
-        List<String> memberNames = participants.stream()
+        List<String> memberNames = plan.getParticipants().stream()
                 .map((participant) -> participant.getMember().getUsername())
                 .toList();
 
@@ -88,6 +82,7 @@ public class PlanEmbedding {
             naturalLanguage = naturalLanguage.concat("와 만났다.");
         }
 
+        System.out.println(naturalLanguage);
         return naturalLanguage;
     }
 
