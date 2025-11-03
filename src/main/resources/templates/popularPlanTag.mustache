@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 목록 (관리자)</title>
+</head>
+<body>
+<h2>회원 목록</h2>
+<table id="memberTable" border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>이름</th>
+        <th>참여자수</th>
+        <th>플랜수</th>
+
+    </tr>
+    </thead>
+    <tbody>
+    {{#members}}
+    <tr>
+        <td>{{id}}</td>
+        <td>{{username}}</td>
+        <td>{{email}}</td>
+        <td>{{role}}</td>
+    </tr>
+    {{/members}}
+    </tbody>
+</table>
+
+</body>
+</html>

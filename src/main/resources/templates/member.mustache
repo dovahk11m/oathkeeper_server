@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 목록 (관리자)</title>
+    <style>
+        .pagination {
+          margin-top: 10px;
+        }
+        .pagination button {
+          margin: 0 3px;
+          padding: 4px 8px;
+        }
+    </style>
+</head>
+<body>
+<h2>회원 목록</h2>
+<table id="memberTable" border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>이름</th>
+        <th>이메일</th>
+        <th>권한</th>
+        <th>권한 선택</th>
+        <th>소셜 타입</th>
+        <th>상태</th>
+        <th>소셜 아이디</th>
+        <th>마지막 로그인 날짜</th>
+        <th>금지 만료 기간</th>
+        <th>금지 기간 설정</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#members}}
+    <tr>
+        <td>{{id}}</td>
+        <td>{{username}}</td>
+        <td>{{email}}</td>
+        <td>{{role}}</td>
+        <td>
+            <form action="//localhost:8080/api/admin/update-role" method="post">
+                <input type="hidden" name="id" value="{{id}}">
+                <label>
+                    <input type="radio" name="role" value="USER" checked> 회원
+                </label>
+                <label>
+                    <input type="radio" name="role" value="ADMIN"> 관리자
+                </label>
+                <button type="submit">저장</button>
+            </form>
+        </td>
+        <td>{{socialType}}</td>
+        <td>{{status}}</td>
+        <td>{{socialId}}</td>
+        <td>{{lastLogin}}</td>
+        <td>{{bannedUntil}}</td>
+        <td>
+            <form action="//localhost:8080/api/admin/ban-member" method="post">
+                <input type="hidden" name="id" value="{{id}}">
+                <label>
+                    일수 : <input type="text" name="days">
+                </label>
+                <button type="submit">저장</button>
+            </form>
+        </td>
+    </tr>
+    {{/members}}
+    </tbody>
+</table>
+
+<div class="pagination">
+    {{#pages}}
+        {{#isCurrent}}
+            <span>
+                {{number}}
+            </span>
+        {{/isCurrent}}
+        {{^isCurrent}}
+            <a href="/api/admin/members?page={{pageIndex}}">
+                {{number}}
+            </a>
+        {{/isCurrent}}
+    {{/pages}}
+
+
+</div>
+
+
+</body>
+</html>
