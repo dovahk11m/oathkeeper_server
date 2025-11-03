@@ -54,12 +54,4 @@ public class DateMessage {
         }
         return false;
     }
-
-    public static void main(String[] args) {
-        try {
-            System.out.println(buildDateNaturalLanguage("월요일", "12", "23"));
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

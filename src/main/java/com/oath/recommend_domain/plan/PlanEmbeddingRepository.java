@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PlanEmbeddingRepository extends JpaRepository<PlanEmbedding, Long> {
     /**
@@ -18,4 +19,8 @@ public interface PlanEmbeddingRepository extends JpaRepository<PlanEmbedding, Lo
     List<PlanEmbedding> findTop5SimilarPlans(
             @Param("queryVector") float[] queryVector
     );
+
+
+    @Query("SELECT p FROM PlanEmbedding p WHERE p.planId = :planId")
+    Optional<PlanEmbedding> findByPlanId(@Param("planId") Long planId);
 }
