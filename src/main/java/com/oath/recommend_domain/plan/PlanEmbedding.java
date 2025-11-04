@@ -13,7 +13,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "plan_embeddings", schema = "oath")
@@ -55,6 +54,7 @@ public class PlanEmbedding {
     // 각 필드를 의미 있는 자연어로 바꾸는 메서드
     public static String getNaturalLanguage(PlanEmbedding planEmbedding, Plan plan) throws IllegalAccessException {
 
+        // 날짜 자연어 처리
         String naturalLanguage = "";
         String[] splitDate = planEmbedding.getTime().split("/");
         naturalLanguage = naturalLanguage.concat(DateMessage.buildDateNaturalLanguage(planEmbedding.getWeekend(), splitDate[1], splitDate[2]));
@@ -62,10 +62,7 @@ public class PlanEmbedding {
         // 장소를 자연어로 처리
         naturalLanguage = naturalLanguage.concat(plan.getPlaceName() + "에서 ");
 
-        List<String> memberNames = plan.getParticipants().stream()
-                .map((participant) -> participant.getMember().getUsername())
-                .toList();
-
+        // 인원 자연어 처리
         naturalLanguage = naturalLanguage.concat(plan.getParticipants().size() + "명과 만났다.");
 
         System.out.println(naturalLanguage);
