@@ -102,6 +102,23 @@ public class MyExceptionHandler {
         );
     }
 
+    //409 Conflict
+    @ExceptionHandler(Exception409.class)
+    public ResponseEntity<CommonResponse<?>> ex409(
+            Exception409 e,
+            HttpServletRequest request
+    ) {
+        logErrorDetails(
+                e,
+                request,
+                "409 Conflict"
+        );
+        return new ResponseEntity<>(
+                CommonResponse.error(e.getMessage()),
+                HttpStatus.CONFLICT
+        );
+    }
+
     //500 Internal Server Error
     @ExceptionHandler(Exception500.class)
     public ResponseEntity<CommonResponse<?>> ex500(
