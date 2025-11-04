@@ -24,7 +24,7 @@ public record EmbeddingRequest(
         EmbeddingRequest.Content content = new EmbeddingRequest.Content(List.of(part));
 
         // 3. 최종 Request 객체 생성 및 return
-        return new EmbeddingRequest(embeddingModel, content, 768, TaskType.SEMANTIC_SIMILARITY);
+        return new EmbeddingRequest(embeddingModel, content, 768, TaskType.SEMANTIC_SIMILARITY.name());
     }
 
     public record Content(
