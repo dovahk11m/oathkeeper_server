@@ -12,6 +12,7 @@ import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.terms.TermService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +37,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final CacheManager cacheManager;
+    private final TermService termService;
 
     public Member create(MemberCreateDto memberCreateDto){
         if (memberRepository.findByEmail(memberCreateDto.getEmail()).isPresent()) {
@@ -51,8 +53,12 @@ public class MemberService {
                 .lastLogin(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();
-        memberRepository.save(member);
-        return member;
+        Member savedMember = memberRepository.save(member);
+
+        // 약관 동의 처리
+        termService.agreeTerms(memberCreateDto.getAgreedTermIds(), savedMember);
+
+        return savedMember;
     }
 
     public Member login(MemberLoginDto memberLoginDto){
