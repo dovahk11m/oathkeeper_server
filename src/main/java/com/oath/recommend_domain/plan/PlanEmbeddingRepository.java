@@ -14,10 +14,11 @@ public interface PlanEmbeddingRepository extends JpaRepository<PlanEmbedding, Lo
      * @2. '<->' 연산자는 pgvector에서 "코사인 거리"를 계산하는 연산자
      * (유사도가 높을수록 거리는 0에 가까워짐)
      */
-    @Query(value = "SELECT * FROM plan_embeddings ORDER BY embedding <-> CAST(:queryVector AS vector) LIMIT 1",
+    @Query(value = "SELECT * FROM plan_embeddings ORDER BY embedding <-> CAST(:queryVector AS vector) LIMIT :limit",
             nativeQuery = true)
-    List<PlanEmbedding> findTop5SimilarPlans(
-            @Param("queryVector") float[] queryVector
+    List<PlanEmbedding> findTopSimilarPlans(
+            @Param("queryVector") float[] queryVector,
+            @Param("limit") Long limit
     );
 
 
