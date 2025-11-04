@@ -1,4 +1,4 @@
-package com.oath.domain.naver.map.dto;
+package com.oath.domain.map.naver.dto;
 
 import java.util.List;
 

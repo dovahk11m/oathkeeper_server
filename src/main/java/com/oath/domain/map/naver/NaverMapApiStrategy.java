@@ -1,23 +1,24 @@
-package com.oath.domain.naver.map;
+package com.oath.domain.map.naver;
 
+import com.oath.common.Position;
 import com.oath.common.exception.Exception400;
-import com.oath.domain.naver.map.dto.NaverMapGeocodingResponse;
-import com.oath.domain.naver.map.dto.NaverMapReverseGeocodingResponse;
-import lombok.extern.slf4j.Slf4j;
+import com.oath.domain.map.common.SocialMapApiStrategy;
+import com.oath.domain.map.common.SocialMapType;
+import com.oath.domain.map.naver.dao.NaverMapDao;
+import com.oath.domain.map.naver.dto.NaverMapGeocodingResponse;
+import com.oath.domain.map.naver.dto.NaverMapReverseGeocodingResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.geo.Point;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.StringJoiner;
 
-@Slf4j
-@Service
-public class NaverMapService {
+@Component
+public class NaverMapApiStrategy implements SocialMapApiStrategy {
 
     private final RestTemplate restTemplate;
     private final String clientSecret;
@@ -26,7 +27,7 @@ public class NaverMapService {
      * @param restTemplate
      * @param clientSecret
      */
-    private NaverMapService(RestTemplate restTemplate, @Value("${naver.map.client-secret}") String clientSecret) {
+    private NaverMapApiStrategy(RestTemplate restTemplate, @Value("${naver.map.client-secret}") String clientSecret) {
         // 1. RestTemplate 주입
         this.restTemplate = restTemplate;
 
@@ -38,25 +39,42 @@ public class NaverMapService {
                     "================================\n");
     }
 
-    /**
-     * @param latitude
-     * @param longitude
-     * @param clientId
-     * @return String
-     */
-    public String getAddress(Double latitude, Double longitude, String clientId) {
+    @Override
+    public <T> Position toGeocoding(T requestData) {
+        if (!(requestData instanceof NaverMapDao.Geocoding geocoding)) throw new Exception400("잘못된 Request 형식입니다.");
+
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-NCP-APIGW-API-KEY-ID", clientId);
+        headers.set("X-NCP-APIGW-API-KEY-ID", geocoding.getClientId());
+        headers.set("X-NCP-APIGW-API-KEY", clientSecret);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        String url = "https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query=" + geocoding.getAddress();
+
+        ResponseEntity<NaverMapGeocodingResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, NaverMapGeocodingResponse.class);
+        return extractPos(response.getBody());
+    }
+
+    @Override
+    public <T> String toReverseGeocoding(T requestData) {
+        if (!(requestData instanceof NaverMapDao.ReverseGeocoding reverseGeocodingData)) throw new Exception400("잘못된 Request 형식입니다.");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-NCP-APIGW-API-KEY-ID", reverseGeocodingData.getClientId());
         headers.set("X-NCP-APIGW-API-KEY", clientSecret);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         String url = "https://maps.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=" +
-                longitude + "," + latitude +
+                reverseGeocodingData.getLongitude() + "," + reverseGeocodingData.getLatitude() +
                 "&output=json";
 
         ResponseEntity<NaverMapReverseGeocodingResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, NaverMapReverseGeocodingResponse.class);
         return extractAddress(response.getBody());
+    }
+
+    @Override
+    public boolean match(SocialMapType type) {
+        return SocialMapType.NAVER.equals(type);
     }
 
     /**
@@ -89,32 +107,15 @@ public class NaverMapService {
     }
 
     /**
-     * @param address
-     * @param clientId
-     * @return Point
-     */
-    public Point getPos(String address, String clientId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-NCP-APIGW-API-KEY-ID", clientId);
-        headers.set("X-NCP-APIGW-API-KEY", clientSecret);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        String url = "https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query=" + address;
-
-        ResponseEntity<NaverMapGeocodingResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, NaverMapGeocodingResponse.class);
-        return extractPos(response.getBody());
-    }
-
-    /**
      * @param response
      * @return Point
      */
-    private Point extractPos(NaverMapGeocodingResponse response) {
+    private Position extractPos(NaverMapGeocodingResponse response) {
         if (response == null || response.addresses() == null || response.addresses().isEmpty()) {
             throw new Exception400("주소를 제대로 입력해주세요.");
         }
 
         var address = response.addresses().get(0);
-        return new Point(address.x(), address.y());
+        return new Position(address.x(), address.y());
     }
 }
