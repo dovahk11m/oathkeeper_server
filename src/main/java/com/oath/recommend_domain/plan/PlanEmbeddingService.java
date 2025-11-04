@@ -112,6 +112,12 @@ public class PlanEmbeddingService {
         return response.getBody().getValues();
     }
 
+//    public void findSimilarEmbedding(Long limit) {
+//
+//        String naturalLanguage = PlanEmbedding.getNaturalLanguage(, );
+//        planEmbeddingRepository.findTopSimilarPlans(getVector(naturalLanguage), limit);
+//    }
+
     // 임시로 넣어놓은 메서드 -> 모두 날려서 Supabase 최적화
     public void deleteAllInBatch() {
         planEmbeddingRepository.deleteAllInBatch();
