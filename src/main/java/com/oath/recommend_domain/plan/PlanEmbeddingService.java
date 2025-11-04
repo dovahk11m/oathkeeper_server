@@ -122,13 +122,12 @@ public class PlanEmbeddingService {
                     .orElseThrow(() -> new Exception404("해당하는 플랜 임베딩을 찾을 수 없습니다."));
 
             String naturalLanguage = PlanEmbedding.getNaturalLanguage(planEmbedding, plan);
-            List<Long> planIds = planEmbeddingRepository.findTopSimilarPlanEmbeddings(getVector(naturalLanguage), limit).stream()
+            List<Long> planIds = planEmbeddingRepository.findTopSimilarPlanEmbeddings(getVector(naturalLanguage), limit)
+                    .stream()
                     .map((foundPlanEmbedding) -> foundPlanEmbedding.getPlanId())
                     .toList();
 
-            return planIds.stream()
-                    .map((pId) -> planJpaRepository.findByIdWithParticipants(pId).get())
-                    .toList();
+            return planJpaRepository.findAllByIdInWithParticipants(planIds);
         } catch (IllegalAccessException e) {
             throw new Exception500("서버 내부 오류가 발생했습니다. / 원인: " + e.getMessage());
         }
