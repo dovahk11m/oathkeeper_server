@@ -61,15 +61,15 @@ public class TermService {
         }
 
         // 3. 동의 내역 저장
-        List<MemberAgreedTerm> agreedTermToSave = agreedTermIds.stream()
-                .map(termId -> {
-                    Term term = termRepository.findById(termId)
-                            .orElseThrow(() -> new Exception400("존재하지 않는 약관입니다: " + termId));
-                    return MemberAgreedTerm.builder()
-                            .member(member)
-                            .term(term)
-                            .build();
-                })
+        List<Term> terms = termRepository.findAllById(agreedTermIds);
+        if (terms.size() != agreedTermIds.size()) {
+            throw new Exception400("존재하지 않는 약관 ID가 포함되어 있습니다.");
+        }
+        List<MemberAgreedTerm> agreedTermToSave = terms.stream()
+                .map(term -> MemberAgreedTerm.builder()
+                        .member(member)
+                        .term(term)
+                        .build())
                 .collect(Collectors.toList());
 
         memberAgreedTermRepository.saveAll(agreedTermToSave);
