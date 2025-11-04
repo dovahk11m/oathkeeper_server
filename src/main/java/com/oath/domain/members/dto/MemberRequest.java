@@ -33,7 +33,6 @@ public class MemberRequest {
 
     @Data
     public static class FindPassword {
-        private String username;
         private String email;
 
     }

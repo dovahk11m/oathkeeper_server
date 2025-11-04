@@ -26,6 +26,7 @@ public class PlanResponse {
         private List<ParticipantResponse> participants;
 
         public CreatePlan(Plan plan) {
+            this.id = plan != null ? plan.getId() : null;
             if (plan != null && plan.getPlanDatetime() != null) {
                 this.date = plan.getPlanDatetime().toLocalDate().toString();
                 this.time = plan.getPlanDatetime().toLocalTime().toString();

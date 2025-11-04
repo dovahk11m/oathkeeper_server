@@ -2,6 +2,7 @@ package com.oath.domain.members.controller;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.JwtTokenProvider;
+import com.oath.common.auth.Auth;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.dto.*;
@@ -30,9 +31,9 @@ public class MemberController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/create")
-    public ResponseEntity<?> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
+    public ResponseEntity<CommonResponse<?>> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
         Member member = memberService.create(memberCreateDto);
-        return new ResponseEntity<>(member.getId(), HttpStatus.CREATED);
+        return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공"), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
@@ -106,6 +107,7 @@ public class MemberController {
     }
 
     /** 비밀번호 확인 */
+    @Auth
     @PostMapping("/{memberId}/check-password")
     public ResponseEntity<?> checkPassword(@PathVariable Long memberId, @RequestBody MemberRequest.CheckPassword request) {
         boolean isPasswordCorrect = memberService.checkPassword(memberId, request.getPassword());
