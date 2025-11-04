@@ -1,10 +1,13 @@
 package com.oath.domain.members.domain;
 
 import com.oath.domain.members.OathkeeperRank;
+import com.oath.domain.terms.MemberAgreedTerm;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "members_tb")
@@ -62,6 +65,10 @@ public class Member {
     private LocalDateTime lastLogin;
 
     private LocalDateTime bannedUntil;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<MemberAgreedTerm> agreedTerms = new ArrayList<>();
 
     public void updateInfo(String username, String profileImageUrl, String defaultAddress) {
         this.username = username;
