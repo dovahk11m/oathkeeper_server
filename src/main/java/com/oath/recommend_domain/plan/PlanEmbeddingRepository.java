@@ -16,7 +16,7 @@ public interface PlanEmbeddingRepository extends JpaRepository<PlanEmbedding, Lo
      */
     @Query(value = "SELECT * FROM plan_embeddings ORDER BY embedding <-> CAST(:queryVector AS vector) LIMIT :limit",
             nativeQuery = true)
-    List<PlanEmbedding> findTopSimilarPlans(
+    List<PlanEmbedding> findTopSimilarPlanEmbeddings(
             @Param("queryVector") float[] queryVector,
             @Param("limit") Long limit
     );
