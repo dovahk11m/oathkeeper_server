@@ -13,7 +13,7 @@ public interface PlanJpaRepository extends JpaRepository<Plan, Long> {
     @Query("select distinct p from Plan p left join fetch p.participants pm left join fetch pm.member where p.id = :id")
     Optional<Plan> findByIdWithParticipants(@Param("id") Long id);
 
-    @Query("select p from Plan p left join fetch p.participants pm left join fetch pm.member where p.id in :ids")
+    @Query("select distinct p from Plan p left join fetch p.participants pm left join fetch pm.member where p.id in :ids")
     List<Plan> findAllByIdInWithParticipants(@Param("ids") List<Long> ids);
 
     @Query("select distinct p from Plan p left join fetch p.participants pm left join fetch pm.member")
