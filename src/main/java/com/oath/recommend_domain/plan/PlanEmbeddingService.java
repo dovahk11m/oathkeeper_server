@@ -1,6 +1,7 @@
 package com.oath.recommend_domain.plan;
 
 import com.oath.common.exception.Exception404;
+import com.oath.common.exception.Exception500;
 import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.ParticipantRepository;
@@ -112,11 +113,26 @@ public class PlanEmbeddingService {
         return response.getBody().getValues();
     }
 
-//    public void findSimilarEmbedding(Long limit) {
-//
-//        String naturalLanguage = PlanEmbedding.getNaturalLanguage(, );
-//        planEmbeddingRepository.findTopSimilarPlans(getVector(naturalLanguage), limit);
-//    }
+    public List<Plan> findSimilarEmbeddings(Long planId, Long limit) {
+        try {
+            Plan plan = planJpaRepository.findByIdWithParticipants(planId)
+                    .orElseThrow(() -> new Exception404("해당하는 플랜을 찾을 수 없습니다."));
+
+            PlanEmbedding planEmbedding = planEmbeddingRepository.findByPlanId(plan.getId())
+                    .orElseThrow(() -> new Exception404("해당하는 플랜 임베딩을 찾을 수 없습니다."));
+
+            String naturalLanguage = PlanEmbedding.getNaturalLanguage(planEmbedding, plan);
+            List<Long> planIds = planEmbeddingRepository.findTopSimilarPlanEmbeddings(getVector(naturalLanguage), limit).stream()
+                    .map((foundPlanEmbedding) -> foundPlanEmbedding.getPlanId())
+                    .toList();
+
+            return planIds.stream()
+                    .map((pId) -> planJpaRepository.findByIdWithParticipants(pId).get())
+                    .toList();
+        } catch (IllegalAccessException e) {
+            throw new Exception500("서버 내부 오류가 발생했습니다. / 원인: " + e.getMessage());
+        }
+    }
 
     // 임시로 넣어놓은 메서드 -> 모두 날려서 Supabase 최적화
     public void deleteAllInBatch() {

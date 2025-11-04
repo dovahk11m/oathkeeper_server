@@ -54,6 +54,16 @@ public class PlanRestController {
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
+    // 추천 플랜 목록 조회
+    @Auth
+    @GetMapping("recommend")
+    public ResponseEntity<CommonResponse<List<PlanResponse.CreatePlan>>> listRecommendPlans(@RequestParam("currentPlanId") Long currentPlanId,
+                                                                                            @RequestParam("limit") Long limit) {
+
+        List<PlanResponse.CreatePlan> plans = planFacade.listRecommendPlans(currentPlanId, limit);
+        return ResponseEntity.ok(CommonResponse.success(plans, plans.size() + "개의 플랜이 추천 검색되었습니다."));
+    }
+
     // 플랜 조회
     @Auth
     @GetMapping("/{id}")
@@ -222,16 +232,10 @@ public class PlanRestController {
     }
 
     // 최종 확정
-    // TODO 나중에 수정 필요
     @PostMapping("/{planId}/confirm")
-    public ResponseEntity<?> confirmPlan(@PathVariable Long planId) {
-
-        // TODO 생성자 ID 주입
-        Long creatorMemberId = 1L;
-
-        Plan confirmedPlan = planService.confirmFinalPlan(planId, creatorMemberId);
-
-        return ResponseEntity.ok(CommonResponse.success("약속이 최종 확정되었습니다."));
+    public ResponseEntity<?> confirmPlan(@PathVariable Long planId, HttpServletRequest request) {
+        Plan confirmedPlan = planService.confirmFinalPlan(planId, getCurrentMember(request).getId());
+        return ResponseEntity.ok(CommonResponse.success(confirmedPlan, "약속이 최종 확정되었습니다."));
     }
 }
 

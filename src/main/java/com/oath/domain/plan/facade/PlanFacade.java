@@ -9,6 +9,7 @@ import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.plan.request.PlanResponse;
 import com.oath.domain.plan.service.PlanService;
+import com.oath.recommend_domain.plan.PlanEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ public class PlanFacade {
     private final PlanJpaRepository planJpaRepository;
     private final TagRepository tagRepository;
     private final PlanTagRepository planTagRepository;
+    private final PlanEmbeddingService planEmbeddingService;
 
     @Transactional(readOnly = true)
     public List<PlanResponse.CreatePlan> listPlans(Long memberId) {
@@ -35,6 +37,14 @@ public class PlanFacade {
         return plans.stream()
                 .map(plan -> PlanResponse.CreatePlan.of(plan))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlanResponse.CreatePlan> listRecommendPlans(Long currentPlanId, Long limit) {
+        List<Plan> plans = planEmbeddingService.findSimilarEmbeddings(currentPlanId, limit);
+        return plans.stream()
+                .map((plan) -> PlanResponse.CreatePlan.of(plan))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +108,7 @@ public class PlanFacade {
             plan.getPlanTags()
                     .stream()
                     .filter(planTag -> !newTagNames.contains(planTag.getTag()
-                                                                     .getName()))
+                            .getName()))
                     .forEach(planTagRepository::delete);
 
             // 4. 추가할 태그 식별 및 연결
@@ -108,9 +118,9 @@ public class PlanFacade {
                         // 태그를 찾거나 새로 생성
                         Tag tag = tagRepository.findByName(tagName)
                                 .orElseGet(() -> tagRepository.save(Tag.builder()
-                                                                            .name(tagName)
-                                                                            .createdAt(LocalDateTime.now())
-                                                                            .build()));
+                                        .name(tagName)
+                                        .createdAt(LocalDateTime.now())
+                                        .build()));
 
                         // PlanTag 생성 및 저장
                         PlanTag planTag = PlanTag.builder()
