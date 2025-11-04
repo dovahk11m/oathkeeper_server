@@ -1,6 +1,8 @@
 package com.oath.domain.members.service;
 
 import com.oath.common.JwtTokenProvider;
+import com.oath.common.exception.Exception404;
+import com.oath.common.exception.Exception409;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -36,11 +38,17 @@ public class MemberService {
     private final CacheManager cacheManager;
 
     public Member create(MemberCreateDto memberCreateDto){
+        if (memberRepository.findByEmail(memberCreateDto.getEmail()).isPresent()) {
+            throw new Exception409("이미 사용 중인 이메일입니다.");
+        }
+
         Member member = Member.builder()
                 .username(memberCreateDto.getUsername())
                 .email(memberCreateDto.getEmail())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
                 .role(Role.USER)
+                .status(Status.ACTIVE)
+                .lastLogin(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();
         memberRepository.save(member);
@@ -102,6 +110,8 @@ public class MemberService {
                 .email(email)
                 .socialType(socialType)
                 .socialId(socialId)
+                .status(Status.ACTIVE)
+                .lastLogin(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();
         memberRepository.save(member);
@@ -153,7 +163,7 @@ public class MemberService {
     }
 
     public void sendTemporaryPassword(MemberRequest.FindPassword request) {
-        memberRepository.findByUsernameAndEmail(request.getUsername(), request.getEmail())
+        memberRepository.findByEmail(request.getEmail())
                 .ifPresentOrElse(
                         m -> {
                             String tempPassword = generateTempPassword();
@@ -169,7 +179,7 @@ public class MemberService {
                                             "로그인 후 반드시 비밀번호를 변경해주세요."
                             );
                         },
-                        () -> { throw new IllegalArgumentException("일치하는 회원이 없습니다."); }
+                        () -> { throw new Exception404("일치하는 회원이 없습니다."); }
                 );
     }
 
