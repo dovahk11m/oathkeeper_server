@@ -38,12 +38,14 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<CommonResponse<?>> login(@RequestBody MemberLoginDto memberLoginDto){
-        Member member = memberService.login(memberLoginDto);
-
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
-
-        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
-        return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
+        try {
+            Member member = memberService.login(memberLoginDto);
+            String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
+            MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
+            return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
     }
 
     /** 회원 정보 조회 */
@@ -94,8 +96,12 @@ public class MemberController {
     /** 회원 탈퇴 */
     @DeleteMapping("/{memberId}")
     public ResponseEntity<CommonResponse<?>> deleteMember(@PathVariable Long memberId) {
-        memberService.deleteMember(memberId);
-        return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
+        try {
+            memberService.deleteMember(memberId);
+            return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
+        }
     }
 
     /** 로그아웃 */
