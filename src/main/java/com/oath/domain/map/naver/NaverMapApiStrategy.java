@@ -86,7 +86,7 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy,
      */
     private String extractAddress(NaverMapReverseGeocodingResponse response) {
         if (response == null || response.results() == null || response.results().isEmpty()) {
-            throw new Exception400("좌표를 제대로 입력해주세요.");
+            throw new Exception400("해당 좌표의 주소가 우리나라 주소가 아닙니다.");
         }
 
         var region = response.results().get(0).region();
@@ -115,7 +115,7 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy,
      */
     private Position extractPos(NaverMapGeocodingResponse response) {
         if (response == null || response.addresses() == null || response.addresses().isEmpty()) {
-            throw new Exception400("주소를 제대로 입력해주세요.");
+            throw new Exception400("해당 주소는 우리나라 주소가 아닙니다.");
         }
 
         var address = response.addresses().get(0);
