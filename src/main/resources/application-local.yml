@@ -122,10 +122,13 @@ notification:
 
 map:
   google:
+    matrix-endpoint: "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
     api-key: ${GOOGLE_MAP_API_KEY:FAKE_MAP_KEY}
     # 아래는 무슨 값을 응답받을 건지 선택하는 옵션(고정값)
     field-mask: "originIndex,destinationIndex,duration,distanceMeters,status,condition"
   naver:
+    geocoding-endpoint: "https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query="
+    reverse-geocoding-endpoint: "https://maps.apigw.ntruss.com/map-reversegeocode/v2/gc?coords="
     client-secret: ${CLIENT_SECRET:FAKE_KEY}
 
 ai:
