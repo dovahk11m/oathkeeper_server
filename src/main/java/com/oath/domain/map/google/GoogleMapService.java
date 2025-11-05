@@ -16,6 +16,6 @@ public class GoogleMapService {
 
     public GoogleMapResponse getMatrix(GoogleMapRequest googleMapRequest) {
         SocialMapApiStrategy socialMapApiStrategy = socialMapApiFactory.find(SocialMapType.GOOGLE);
-        return (GoogleMapResponse) socialMapApiStrategy.getMatrix(googleMapRequest);
+        return socialMapApiStrategy.getMatrix(googleMapRequest);
     }
 }

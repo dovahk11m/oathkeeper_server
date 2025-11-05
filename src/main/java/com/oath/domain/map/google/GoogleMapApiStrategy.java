@@ -1,6 +1,6 @@
 package com.oath.domain.map.google;
 
-import com.oath.common.exception.Exception400;
+import com.oath.domain.map.common.MatrixStrategy;
 import com.oath.domain.map.common.SocialMapApiStrategy;
 import com.oath.domain.map.common.SocialMapType;
 import com.oath.domain.map.google.dto.GoogleMapRequest;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class GoogleMapApiStrategy implements SocialMapApiStrategy {
+public class GoogleMapApiStrategy implements SocialMapApiStrategy, MatrixStrategy<GoogleMapRequest, GoogleMapResponse> {
 
     private final RestTemplate restTemplate;
     private final String apiKey;
@@ -43,9 +43,7 @@ public class GoogleMapApiStrategy implements SocialMapApiStrategy {
     }
 
     @Override
-    public <T> GoogleMapResponse getMatrix(T requestData) {
-        if (!(requestData instanceof GoogleMapRequest googleMapRequest))
-            throw new Exception400("잘못된 Request 형식입니다.");
+    public GoogleMapResponse getMatrix(GoogleMapRequest googleMapRequest) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

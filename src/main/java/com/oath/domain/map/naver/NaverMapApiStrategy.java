@@ -2,6 +2,8 @@ package com.oath.domain.map.naver;
 
 import com.oath.common.Position;
 import com.oath.common.exception.Exception400;
+import com.oath.domain.map.common.GeocodingStrategy;
+import com.oath.domain.map.common.ReverseGeocodingStrategy;
 import com.oath.domain.map.common.SocialMapApiStrategy;
 import com.oath.domain.map.common.SocialMapType;
 import com.oath.domain.map.naver.dao.NaverMapDao;
@@ -17,7 +19,9 @@ import java.util.StringJoiner;
 
 @Component
 @Slf4j
-public class NaverMapApiStrategy implements SocialMapApiStrategy {
+public class NaverMapApiStrategy implements SocialMapApiStrategy,
+        GeocodingStrategy<NaverMapDao.Geocoding, Position>,
+        ReverseGeocodingStrategy<NaverMapDao.ReverseGeocoding, String> {
 
     private final RestTemplate restTemplate;
     private final String clientSecret;
@@ -39,8 +43,7 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy {
     }
 
     @Override
-    public <T> Position toGeocoding(T requestData) {
-        if (!(requestData instanceof NaverMapDao.Geocoding geocoding)) throw new Exception400("잘못된 Request 형식입니다.");
+    public Position toGeocoding(NaverMapDao.Geocoding geocoding) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -55,9 +58,7 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy {
     }
 
     @Override
-    public <T> String toReverseGeocoding(T requestData) {
-        if (!(requestData instanceof NaverMapDao.ReverseGeocoding reverseGeocodingData))
-            throw new Exception400("잘못된 Request 형식입니다.");
+    public String toReverseGeocoding(NaverMapDao.ReverseGeocoding reverseGeocodingData) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

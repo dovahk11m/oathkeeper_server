@@ -5,6 +5,7 @@ import com.oath.common.exception.Exception500;
 import com.oath.common.util.DateUtil;
 import com.oath.domain.map.google.*;
 
+import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -42,8 +43,8 @@ public record GoogleMapRequest(
             OffsetDateTime.parse(arrivalTime);
         } catch (DateTimeParseException e) {
             arrivalTime = DateUtil.matrixTimeFormatter(arrivalTime);
-        } catch (RuntimeException e) {
-            throw new Exception500("도착 시간 형식 변환 중 서버 내부 오류가 발생했습니다.");
+        } catch (DateTimeException e) {
+            throw new Exception500("유효하지 않은 시간 형식입니다: " + arrivalTime);
         }
 
         // 4. units가 null이면 기본값 세팅
