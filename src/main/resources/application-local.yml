@@ -115,8 +115,12 @@ notification:
     # on-departure: COMPOSITE
     # on-late: EMAIL
 
-naver:
-  map:
+map:
+  google:
+    api-key: ${GOOGLE_MAP_API_KEY:FAKE_MAP_KEY}
+    # 아래는 무슨 값을 응답받을 건지 선택하는 옵션(고정값)
+    field-mask: "originIndex,destinationIndex,duration,distanceMeters,status,condition"
+  naver:
     client-secret: ${CLIENT_SECRET:FAKE_KEY}
 
 ai:
