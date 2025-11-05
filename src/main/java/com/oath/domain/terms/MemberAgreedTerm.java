@@ -1,5 +1,6 @@
 package com.oath.domain.terms;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class MemberAgreedTerm {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
+    @JsonBackReference // 순환 참조 자식(직렬화 무시)
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
