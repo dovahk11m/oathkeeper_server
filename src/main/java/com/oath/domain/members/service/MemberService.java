@@ -83,12 +83,12 @@ public class MemberService {
     public Member login(MemberLoginDto memberLoginDto){
         Optional<Member> optMember = memberRepository.findByEmail(memberLoginDto.getEmail());
         if(!optMember.isPresent()){
-            throw new IllegalArgumentException("email이 존재하지 않습니다.");
+            throw new Exception404("email이 존재하지 않습니다.");
         }
 
         Member member = optMember.get();
         if(!passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
-            throw new IllegalArgumentException("password가 일치하지 않습니다.");
+            throw new Exception400("password가 일치하지 않습니다.");
         }
 
         postLogin(member);
@@ -99,7 +99,7 @@ public class MemberService {
     //로그아웃
     public void logout(String token) {
         if (!jwtTokenProvider.validateToken(token)) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+            throw new Exception400("유효하지 않은 토큰입니다.");
         }
 
         long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
@@ -109,16 +109,16 @@ public class MemberService {
 
     public Member postLogin(Member member) {
         if(member.getStatus() == Status.INACTIVE) {
-            throw new IllegalArgumentException("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
+            throw new Exception400("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
         }
         if(member.getStatus() != Status.ACTIVE) {
-            throw new IllegalArgumentException("비활성화된 계정입니다.");
+            throw new Exception400("비활성화된 계정입니다.");
         }
 
         if(member.getLastLogin().isBefore(LocalDateTime.now().minusYears(1))) {
             member.setStatus(Status.INACTIVE);
             memberRepository.save(member);
-            throw new IllegalArgumentException("휴면계정입니다.");
+            throw new Exception400("휴면계정입니다.");
         }
 
         member.setLastLogin(LocalDateTime.now());
@@ -149,14 +149,14 @@ public class MemberService {
     @Transactional(readOnly = true)
     public MemberResponse.DTO getMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         return new MemberResponse.DTO(member);
     }
 
 
     public MemberResponse.DTO updateMember(Long memberId, MemberRequest.Update request) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         member.updateInfo(request.getUsername(), request.getProfileImageUrl(), request.getDefaultAddress());
         return new MemberResponse.DTO(member);
     }
@@ -164,10 +164,10 @@ public class MemberService {
 
     public void updatePassword(Long memberId, MemberRequest.PasswordUpdate request) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
         }
 
         member.updatePassword(passwordEncoder.encode(request.getNewPassword()));
@@ -176,13 +176,13 @@ public class MemberService {
 
     public String findId(MemberRequest.FindId request) {
          Member member = memberRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         return member.getUsername();
     }
 
     public void deleteMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         member.deactivate();
     }
 
@@ -206,7 +206,7 @@ public class MemberService {
 
     public String uploadProfileImage (MultipartFile image, Long memberId) throws IOException {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
 
         String oldImageUrl = member.getProfileImageUrl();
         if (oldImageUrl != null) {
@@ -232,7 +232,7 @@ public class MemberService {
 
     public void deleteProfileImage (Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
 
         member.setProfileImageUrl(null);
 
@@ -245,7 +245,7 @@ public class MemberService {
 
     public boolean checkPassword(Long memberId, String password) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         return passwordEncoder.matches(password, member.getPassword());
     }
 
