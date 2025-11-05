@@ -9,6 +9,9 @@ import com.oath.domain.members.dto.*;
 import com.oath.domain.members.service.FacebookService;
 import com.oath.domain.members.service.KakaoService;
 import com.oath.domain.members.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+@Tag(name = "Member API", description = "회원 관련 API") // 컨트롤러 전체에 대한 설명
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor
@@ -31,157 +35,296 @@ public class MemberController {
 
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Operation(summary = "회원가입", description = "새로운 회원을 등록하고 이메일 인증을 요청합니다.")
     @PostMapping("/create")
-    public ResponseEntity<CommonResponse<?>> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
+    public ResponseEntity<CommonResponse<?>> memberCreate(
+            @Parameter(description = "회원가입 요청 정보", required = true) @RequestBody MemberCreateDto memberCreateDto
+    ) {
         Member member = memberService.create(memberCreateDto);
-        return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공. 이메일 인증을 완료해주세요."), HttpStatus.CREATED);
+        return new ResponseEntity<>(
+                CommonResponse.success(
+                        member.getId(),
+                        "회원가입 성공. 이메일 인증을 완료해주세요."
+                ),
+                HttpStatus.CREATED
+        );
     }
 
+    @Operation(summary = "이메일 인증", description = "회원가입 후 발송된 이메일의 링크를 통해 계정을 인증합니다.")
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+    public ResponseEntity<String> verifyEmail(
+            @Parameter(description = "이메일 인증 토큰", required = true) @RequestParam("token") String token
+    ) {
         memberService.verifyEmail(token);
         String htmlResponse = "<html><body style='text-align:center; padding-top:50px; font-family:sans-serif;'>"
                 + "<h1>인증 완료</h1>"
                 + "<p>이메일 인증이 성공적으로 완료되었습니다.</p>"
                 + "<p>이제 앱으로 돌아가 로그인을 진행해주세요.</p>"
                 + "</body></html>";
-        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(htmlResponse);
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(htmlResponse);
     }
 
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 JWT 토큰을 발급받습니다.")
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse<?>> login(@RequestBody MemberLoginDto memberLoginDto){
+    public ResponseEntity<CommonResponse<?>> login(
+            @Parameter(description = "로그인 요청 정보", required = true) @RequestBody MemberLoginDto memberLoginDto
+    ) {
         Member member = memberService.login(memberLoginDto);
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
-        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
-        return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
+        String jwtToken = jwtTokenProvider.createToken(
+                member.getEmail(),
+                member.getRole(),
+                member.getId()
+        );
+        MemberResponse.Login loginInfo = new MemberResponse.Login(
+                jwtToken,
+                member
+        );
+        return new ResponseEntity<>(
+                CommonResponse.success(
+                        loginInfo,
+                        "로그인 성공"
+                ),
+                HttpStatus.OK
+        );
     }
 
-    /** 회원 정보 조회 */
+    @Operation(summary = "회원 정보 조회", description = "특정 회원의 상세 정보를 조회합니다.")
     @GetMapping("/{memberId}")
-    public ResponseEntity<CommonResponse<MemberResponse.DTO>> getMember(@PathVariable Long memberId) {
+    public ResponseEntity<CommonResponse<MemberResponse.DTO>> getMember(
+            @Parameter(description = "조회할 회원의 ID", required = true) @PathVariable Long memberId
+    ) {
         MemberResponse.DTO dto = memberService.getMember(memberId);
-        return ResponseEntity.ok(CommonResponse.success(dto, "회원 조회 성공"));
+        return ResponseEntity.ok(CommonResponse.success(
+                dto,
+                "회원 조회 성공"
+        ));
     }
 
-    /** 회원 정보 수정 (이름, 이메일 등) */
+    @Operation(summary = "회원 정보 수정", description = "회원의 이름, 이메일 등의 정보를 수정합니다.")
     @PutMapping("/{memberId}")
     public ResponseEntity<CommonResponse<MemberResponse.DTO>> updateMember(
-            @PathVariable Long memberId,
-            @RequestBody MemberRequest.Update request) {
-        MemberResponse.DTO dto = memberService.updateMember(memberId, request);
-        return ResponseEntity.ok(CommonResponse.success(dto, "회원정보 수정 성공"));
+            @Parameter(description = "수정할 회원의 ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "회원 정보 수정 요청", required = true) @RequestBody MemberRequest.Update request
+    ) {
+        MemberResponse.DTO dto = memberService.updateMember(
+                memberId,
+                request
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                dto,
+                "회원정보 수정 성공"
+        ));
     }
 
-    /** 비밀번호 수정 */
+    @Operation(summary = "비밀번호 수정", description = "회원의 비밀번호를 수정합니다.")
     @PatchMapping("/{memberId}/password")
     public ResponseEntity<CommonResponse<?>> updatePassword(
-            @PathVariable Long memberId,
-            @RequestBody MemberRequest.PasswordUpdate request) {
-        memberService.updatePassword(memberId, request);
-        return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 수정 성공"));
+            @Parameter(description = "비밀번호를 수정할 회원의 ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "비밀번호 수정 요청 정보", required = true) @RequestBody MemberRequest.PasswordUpdate request
+    ) {
+        memberService.updatePassword(
+                memberId,
+                request
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                "비밀번호 수정 성공"
+        ));
     }
 
-    /** 아이디 찾기 */
+    @Operation(summary = "아이디 찾기", description = "이메일 정보를 통해 회원 아이디를 찾습니다.")
     @PostMapping("/find-id")
-    public ResponseEntity<CommonResponse<?>> findId(@RequestBody MemberRequest.FindId request) {
+    public ResponseEntity<CommonResponse<?>> findId(
+            @Parameter(description = "아이디 찾기 요청 정보", required = true) @RequestBody MemberRequest.FindId request
+    ) {
         String foundId = memberService.findId(request);
-        return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
+        return ResponseEntity.ok(CommonResponse.success(
+                foundId,
+                "아이디 찾기 성공"
+        ));
     }
 
-    /** 비밀번호 찾기 (임시 비밀번호 발급) */
+    @Operation(summary = "비밀번호 찾기", description = "등록된 이메일로 임시 비밀번호를 발송합니다.")
     @PostMapping("/find-password")
-    public ResponseEntity<CommonResponse<?>> findPassword(@RequestBody MemberRequest.FindPassword request) {
+    public ResponseEntity<CommonResponse<?>> findPassword(
+            @Parameter(description = "비밀번호 찾기 요청 정보", required = true) @RequestBody MemberRequest.FindPassword request
+    ) {
         memberService.sendTemporaryPassword(request);
-        return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 찾기용 메일 보내기 성공"));
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                "비밀번호 찾기용 메일 보내기 성공"
+        ));
     }
 
-    /** 회원 탈퇴 */
+    @Operation(summary = "회원 탈퇴", description = "회원 계정을 삭제합니다.")
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<CommonResponse<?>> deleteMember(@PathVariable Long memberId) {
+    public ResponseEntity<CommonResponse<?>> deleteMember(
+            @Parameter(description = "탈퇴할 회원의 ID", required = true) @PathVariable Long memberId
+    ) {
         memberService.deleteMember(memberId);
-        return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                "회원 탈퇴 성공"
+        ));
     }
 
-    /** 로그아웃 */
+    @Operation(summary = "로그아웃", description = "현재 로그인된 세션을 종료합니다.")
     @PostMapping("/logout")
     public ResponseEntity<CommonResponse<?>> logout(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         memberService.logout(token);
-        return ResponseEntity.ok(CommonResponse.success(null, "로그아웃 성공"));
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                "로그아웃 성공"
+        ));
     }
 
-    /** 비밀번호 확인 */
     @Auth
+    @Operation(summary = "비밀번호 확인", description = "회원의 현재 비밀번호가 일치하는지 확인합니다.")
     @PostMapping("/{memberId}/check-password")
-    public ResponseEntity<CommonResponse<?>> checkPassword(@PathVariable Long memberId, @RequestBody MemberRequest.CheckPassword request) {
-        boolean isPasswordCorrect = memberService.checkPassword(memberId, request.getPassword());
+    public ResponseEntity<CommonResponse<?>> checkPassword(
+            @Parameter(description = "비밀번호를 확인할 회원의 ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "비밀번호 확인 요청 정보", required = true) @RequestBody MemberRequest.CheckPassword request
+    ) {
+        boolean isPasswordCorrect = memberService.checkPassword(
+                memberId,
+                request.getPassword()
+        );
         if (isPasswordCorrect) {
-            return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 확인 성공"));
+            return ResponseEntity.ok(CommonResponse.success(
+                    null,
+                    "비밀번호 확인 성공"
+            ));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error("비밀번호가 일치하지 않습니다."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.error("비밀번호가 일치하지 않습니다."));
         }
     }
 
-
+    @Operation(summary = "카카오 로그인", description = "카카오 OAuth를 통한 로그인 또는 회원가입을 처리합니다.")
     @PostMapping("/kakao/doLogin")
-    public ResponseEntity<CommonResponse<?>> kakaoLogin(@RequestBody RedirectDto redirectDto) {
+    public ResponseEntity<CommonResponse<?>> kakaoLogin(
+            @Parameter(description = "카카오 인증 코드", required = true) @RequestBody RedirectDto redirectDto
+    ) {
         AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
         KakaoProfileDto kakaoProfileDto =
                 kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
 
         Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
-        if(originalMember == null){
-            originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO, kakaoProfileDto.getKakao_account().getProfile().getNickname());
+        if (originalMember == null) {
+            originalMember = memberService.createOauth(
+                    kakaoProfileDto.getId(),
+                    kakaoProfileDto.getKakao_account()
+                            .getEmail(),
+                    SocialType.KAKAO,
+                    kakaoProfileDto.getKakao_account()
+                            .getProfile()
+                            .getNickname()
+            );
         }
 
         memberService.postLogin(originalMember);
 
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
+        String jwtToken = jwtTokenProvider.createToken(
+                originalMember.getEmail(),
+                originalMember.getRole(),
+                originalMember.getId()
+        );
 
-        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
+        MemberResponse.Login loginInfo = new MemberResponse.Login(
+                jwtToken,
+                originalMember
+        );
 
-        return new ResponseEntity<>(CommonResponse.success(loginInfo, "카카오 로그인 성공"), HttpStatus.OK);
+        return new ResponseEntity<>(
+                CommonResponse.success(
+                        loginInfo,
+                        "카카오 로그인 성공"
+                ),
+                HttpStatus.OK
+        );
     }
 
+    @Operation(summary = "페이스북 로그인", description = "페이스북 OAuth를 통한 로그인 또는 회원가입을 처리합니다.")
     @PostMapping("/facebook/doLogin")
-    public ResponseEntity<CommonResponse<?>> facebookLogin(@RequestBody RedirectDto redirectDto) {
+    public ResponseEntity<CommonResponse<?>> facebookLogin(
+            @Parameter(description = "페이스북 인증 코드", required = true) @RequestBody RedirectDto redirectDto
+    ) {
         AccessTokenDto accessTokenDto =
                 facebookService.getAccessToken(redirectDto.getCode());
         FacebookProfileDto facebookProfileDto =
                 facebookService.getFacebookProfile(accessTokenDto.getAccess_token());
 
         Member originalMember = memberService.getMemberBySocialId(facebookProfileDto.getId());
-        if(originalMember == null){
-            originalMember = memberService.createOauth(facebookProfileDto.getId(), facebookProfileDto.getEmail(), SocialType.FACEBOOK, facebookProfileDto.getName());
+        if (originalMember == null) {
+            originalMember = memberService.createOauth(
+                    facebookProfileDto.getId(),
+                    facebookProfileDto.getEmail(),
+                    SocialType.FACEBOOK,
+                    facebookProfileDto.getName()
+            );
         }
 
         memberService.postLogin(originalMember);
 
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
+        String jwtToken = jwtTokenProvider.createToken(
+                originalMember.getEmail(),
+                originalMember.getRole(),
+                originalMember.getId()
+        );
 
-        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
-        return new ResponseEntity<>(CommonResponse.success(loginInfo, "페이스북 로그인 성공"), HttpStatus.OK);
+        MemberResponse.Login loginInfo = new MemberResponse.Login(
+                jwtToken,
+                originalMember
+        );
+        return new ResponseEntity<>(
+                CommonResponse.success(
+                        loginInfo,
+                        "페이스북 로그인 성공"
+                ),
+                HttpStatus.OK
+        );
     }
 
+    @Operation(summary = "프로필 이미지 업로드", description = "회원의 프로필 이미지를 업로드합니다.")
     @PostMapping("/profile/upload/{memberId}")
-    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile image, @PathVariable Long memberId) {
+    public ResponseEntity<?> uploadProfileImage(
+            @Parameter(description = "업로드할 프로필 이미지 파일", required = true) @RequestParam("image") MultipartFile image,
+            @Parameter(description = "이미지를 업로드할 회원의 ID", required = true) @PathVariable Long memberId
+    ) {
 
         try {
-            String imageUrl = memberService.uploadProfileImage(image, memberId);
-            return new ResponseEntity<>(CommonResponse.success(imageUrl), HttpStatus.OK);
+            String imageUrl = memberService.uploadProfileImage(
+                    image,
+                    memberId
+            );
+            return new ResponseEntity<>(
+                    CommonResponse.success(imageUrl),
+                    HttpStatus.OK
+            );
         } catch (IOException e) {
-            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(
+                    CommonResponse.error(e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
+    @Operation(summary = "프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")
     @DeleteMapping("/profile/delete/{memberId}")
-    public void deleteProfileImage (@PathVariable Long memberId) {
+    public void deleteProfileImage(
+            @Parameter(description = "이미지를 삭제할 회원의 ID", required = true) @PathVariable Long memberId
+    ) {
         memberService.deleteProfileImage(memberId);
     }
 
+    @Operation(summary = "회원 가입 수 카운트", description = "현재까지 가입된 회원 수를 카운트합니다. (관리자용 또는 테스트용)")
     @GetMapping("/count-join")
-    public void countJoin () {
+    public void countJoin() {
         memberService.countJoin();
     }
 
 }
+
