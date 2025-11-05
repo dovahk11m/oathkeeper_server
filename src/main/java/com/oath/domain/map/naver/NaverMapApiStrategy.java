@@ -24,17 +24,26 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy,
         ReverseGeocodingStrategy<NaverMapDao.ReverseGeocoding, String> {
 
     private final RestTemplate restTemplate;
+    private final String geocodingEndpoint;
+    private final String reverseGeocodingEndpoint;
     private final String clientSecret;
 
     /**
      * @param restTemplate
      * @param clientSecret
      */
-    private NaverMapApiStrategy(RestTemplate restTemplate, @Value("${map.naver.client-secret}") String clientSecret) {
+    private NaverMapApiStrategy(RestTemplate restTemplate,
+                                @Value("${map.naver.geocoding-endpoint}") String geocodingEndpoint,
+                                @Value("${map.naver.reverse-geocoding-endpoint}") String reverseGeocodingEndpoint,
+                                @Value("${map.naver.client-secret}") String clientSecret) {
         // 1. RestTemplate 주입
         this.restTemplate = restTemplate;
 
-        // 2. 시크릿 키 주입
+        // 2. url 주입
+        this.geocodingEndpoint = geocodingEndpoint;
+        this.reverseGeocodingEndpoint = reverseGeocodingEndpoint;
+
+        // 3. 시크릿 키 주입
         this.clientSecret = clientSecret;
         if ("FAKE_KEY".equalsIgnoreCase(this.clientSecret))
             log.warn("\n\n================================\n\n" +
@@ -51,7 +60,7 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy,
         headers.set("X-NCP-APIGW-API-KEY", clientSecret);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        String url = "https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query=" + geocoding.getAddress();
+        String url = geocodingEndpoint + geocoding.getAddress();
 
         ResponseEntity<NaverMapGeocodingResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, NaverMapGeocodingResponse.class);
         return extractPos(response.getBody());
@@ -67,7 +76,7 @@ public class NaverMapApiStrategy implements SocialMapApiStrategy,
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        String url = "https://maps.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=" +
+        String url = reverseGeocodingEndpoint +
                 reverseGeocodingData.getLongitude() + "," + reverseGeocodingData.getLatitude() +
                 "&output=json";
 

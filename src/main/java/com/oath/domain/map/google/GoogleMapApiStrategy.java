@@ -19,13 +19,16 @@ import java.util.List;
 public class GoogleMapApiStrategy implements SocialMapApiStrategy, MatrixStrategy<GoogleMapRequest, GoogleMapResponse> {
 
     private final RestTemplate restTemplate;
+    private final String endpoint;
     private final String apiKey;
     private final String fieldMask;
 
     private GoogleMapApiStrategy(RestTemplate restTemplate,
+                                 @Value("${map.google.matrix-endpoint}") String endpoint,
                                  @Value("${map.google.api-key}") String apiKey,
                                  @Value("${map.google.field-mask}") String fieldMask) {
         this.restTemplate = restTemplate;
+        this.endpoint = endpoint;
         this.apiKey = apiKey;
 
         // apiKey 확인
@@ -52,10 +55,8 @@ public class GoogleMapApiStrategy implements SocialMapApiStrategy, MatrixStrateg
 
         HttpEntity<GoogleMapRequest> entity = new HttpEntity<>(googleMapRequest, headers);
 
-        String url = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix";
-
         ResponseEntity<List<GoogleMapResponse.GoogleMapRouteMatrixElement>> response = restTemplate.exchange(
-                url,
+                endpoint,
                 HttpMethod.POST,
                 entity,
                 new ParameterizedTypeReference<List<GoogleMapResponse.GoogleMapRouteMatrixElement>>() {
