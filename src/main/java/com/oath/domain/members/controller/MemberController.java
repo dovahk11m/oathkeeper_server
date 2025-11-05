@@ -12,6 +12,7 @@ import com.oath.domain.members.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,9 +38,15 @@ public class MemberController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<CommonResponse<?>> verifyEmail(@RequestParam("token") String token) {
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
         memberService.verifyEmail(token);
-        return ResponseEntity.ok(CommonResponse.success(null, "이메일 인증이 성공적으로 완료되었습니다."));
+        //todo 딥링크 만들기
+        String htmlResponse = "<html><body style='text-align:center; padding-top:50px; font-family:sans-serif;'>"
+                + "<h1>인증 완료</h1>"
+                + "<p>이메일 인증이 성공적으로 완료되었습니다.</p>"
+                + "<p>이제 앱으로 돌아가 로그인을 진행해주세요.</p>"
+                + "</body></html>";
+        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(htmlResponse);
     }
 
     @PostMapping("/login")
