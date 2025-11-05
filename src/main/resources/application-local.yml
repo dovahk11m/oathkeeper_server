@@ -111,6 +111,7 @@ notification:
     # 기본 알림 방식을 COMPOSITE(WebSocket + DB저장)로 설정
     default: COMPOSITE
     # 특정 이벤트별로 다른 방식 지정 가능
+    on-signup: EMAIL
     # on-arrival: WEBSOCKET
     # on-departure: COMPOSITE
     # on-late: EMAIL

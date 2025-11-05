@@ -12,6 +12,7 @@ import com.oath.domain.members.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,17 +34,31 @@ public class MemberController {
     @PostMapping("/create")
     public ResponseEntity<CommonResponse<?>> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
         Member member = memberService.create(memberCreateDto);
-        return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공"), HttpStatus.CREATED);
+        return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공. 이메일 인증을 완료해주세요."), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        memberService.verifyEmail(token);
+        //todo 딥링크 만들기
+        String htmlResponse = "<html><body style='text-align:center; padding-top:50px; font-family:sans-serif;'>"
+                + "<h1>인증 완료</h1>"
+                + "<p>이메일 인증이 성공적으로 완료되었습니다.</p>"
+                + "<p>이제 앱으로 돌아가 로그인을 진행해주세요.</p>"
+                + "</body></html>";
+        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(htmlResponse);
     }
 
     @PostMapping("/login")
     public ResponseEntity<CommonResponse<?>> login(@RequestBody MemberLoginDto memberLoginDto){
-        Member member = memberService.login(memberLoginDto);
-
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
-
-        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
-        return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
+        try {
+            Member member = memberService.login(memberLoginDto);
+            String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
+            MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
+            return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
     }
 
     /** 회원 정보 조회 */
@@ -94,8 +109,12 @@ public class MemberController {
     /** 회원 탈퇴 */
     @DeleteMapping("/{memberId}")
     public ResponseEntity<CommonResponse<?>> deleteMember(@PathVariable Long memberId) {
-        memberService.deleteMember(memberId);
-        return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
+        try {
+            memberService.deleteMember(memberId);
+            return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
+        }
     }
 
     /** 로그아웃 */
