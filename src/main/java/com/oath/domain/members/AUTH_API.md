@@ -111,20 +111,13 @@ This document outlines the API specifications for member authentication.
         "message": "로그인 성공"
     }
     ```
--   **Error Responses (400 Bad Request)**:
-    -   If email or password does not match:
+-   **Error Responses (401 Unauthorized)**:
+    -   If email not found or password does not match:
         ```json
         {
             "success": false,
             "data": null,
-            "message": "email이 존재하지 않습니다." 
-        }
-        ```
-        ```json
-        {
-            "success": false,
-            "data": null,
-            "message": "password가 일치하지 않습니다."
+            "message": "이메일 또는 비밀번호가 일치하지 않습니다."
         }
         ```
     -   If the account is not verified:
@@ -133,6 +126,22 @@ This document outlines the API specifications for member authentication.
             "success": false,
             "data": null,
             "message": "이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요."
+        }
+        ```
+    -   If the account is deactivated or suspended:
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "사용이 중지된 계정입니다."
+        }
+        ```
+    -   If the account is dormant:
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "휴면계정입니다. 다시 로그인하여 활성화해주세요."
         }
         ```
 

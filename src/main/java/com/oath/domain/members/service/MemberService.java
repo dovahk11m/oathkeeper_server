@@ -2,6 +2,7 @@ package com.oath.domain.members.service;
 
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.exception.Exception400;
+import com.oath.common.exception.Exception401;
 import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception409;
 import com.oath.domain.members.domain.Member;
@@ -81,14 +82,11 @@ public class MemberService {
     }
 
     public Member login(MemberLoginDto memberLoginDto){
-        Optional<Member> optMember = memberRepository.findByEmail(memberLoginDto.getEmail());
-        if(!optMember.isPresent()){
-            throw new Exception404("email이 존재하지 않습니다.");
-        }
+        Member member = memberRepository.findByEmail(memberLoginDto.getEmail())
+                .orElseThrow(() -> new Exception401("이메일 또는 비밀번호가 일치하지 않습니다."));
 
-        Member member = optMember.get();
         if(!passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
-            throw new Exception400("password가 일치하지 않습니다.");
+            throw new Exception401("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
 
         postLogin(member);
@@ -109,16 +107,16 @@ public class MemberService {
 
     public Member postLogin(Member member) {
         if(member.getStatus() == Status.INACTIVE) {
-            throw new Exception400("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
+            throw new Exception401("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
         }
         if(member.getStatus() != Status.ACTIVE) {
-            throw new Exception400("비활성화된 계정입니다.");
+            throw new Exception401("사용이 중지된 계정입니다.");
         }
 
         if(member.getLastLogin().isBefore(LocalDateTime.now().minusYears(1))) {
             member.setStatus(Status.INACTIVE);
             memberRepository.save(member);
-            throw new Exception400("휴면계정입니다.");
+            throw new Exception401("휴면계정입니다. 다시 로그인하여 활성화해주세요.");
         }
 
         member.setLastLogin(LocalDateTime.now());

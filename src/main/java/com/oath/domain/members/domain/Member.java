@@ -1,5 +1,6 @@
 package com.oath.domain.members.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oath.domain.members.OathkeeperRank;
 import com.oath.domain.terms.MemberAgreedTerm;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "agreedTerms") // 순환 참조 방지
 @Builder
 public class Member {
 
@@ -72,6 +73,7 @@ public class Member {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonManagedReference // 순환 참조 부모(정상 직렬화)
     private List<MemberAgreedTerm> agreedTerms = new ArrayList<>();
 
     public void updateInfo(String username, String profileImageUrl, String defaultAddress) {

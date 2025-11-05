@@ -32,7 +32,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/member/create",
                         "/api/member/login",
                         "/api/member/kakao/**",
-                        "/api/member/facebook/**"
+                        "/api/member/facebook/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
                 );
     }
 }
