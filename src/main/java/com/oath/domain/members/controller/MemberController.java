@@ -3,7 +3,9 @@ package com.oath.domain.members.controller;
 import com.oath.common.CommonResponse;
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.auth.Auth;
+import com.oath.common.exception.Exception401;
 import com.oath.domain.members.domain.Member;
+import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.dto.*;
 import com.oath.domain.members.service.FacebookService;
@@ -198,8 +200,7 @@ public class MemberController {
                     "비밀번호 확인 성공"
             ));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.error("비밀번호가 일치하지 않습니다."));
+            throw new Exception401("비밀번호가 일치하지 않습니다.");
         }
     }
 
@@ -314,17 +315,19 @@ public class MemberController {
 
     @Operation(summary = "프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")
     @DeleteMapping("/profile/delete/{memberId}")
-    public void deleteProfileImage(
+    public ResponseEntity<CommonResponse<?>> deleteProfileImage(
             @Parameter(description = "이미지를 삭제할 회원의 ID", required = true) @PathVariable Long memberId
     ) {
         memberService.deleteProfileImage(memberId);
+        return ResponseEntity.ok(CommonResponse.success(null, "프로필 이미지 삭제 성공"));
     }
 
+    @Auth(roles = Role.ADMIN)
     @Operation(summary = "회원 가입 수 카운트", description = "현재까지 가입된 회원 수를 카운트합니다. (관리자용 또는 테스트용)")
     @GetMapping("/count-join")
-    public void countJoin() {
+    public ResponseEntity<CommonResponse<?>> countJoin() {
         memberService.countJoin();
+        return ResponseEntity.ok(CommonResponse.success(null, "회원 가입 수 카운트 성공"));
     }
 
 }
-
