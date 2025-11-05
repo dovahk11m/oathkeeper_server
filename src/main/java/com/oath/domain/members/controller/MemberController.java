@@ -37,13 +37,13 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody MemberLoginDto memberLoginDto){
+    public ResponseEntity<CommonResponse<?>> login(@RequestBody MemberLoginDto memberLoginDto){
         Member member = memberService.login(memberLoginDto);
 
         String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
 
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
-        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
     }
 
     /** 회원 정보 조회 */
@@ -64,7 +64,7 @@ public class MemberController {
 
     /** 비밀번호 수정 */
     @PatchMapping("/{memberId}/password")
-    public ResponseEntity<?> updatePassword(
+    public ResponseEntity<CommonResponse<?>> updatePassword(
             @PathVariable Long memberId,
             @RequestBody MemberRequest.PasswordUpdate request) {
         memberService.updatePassword(memberId, request);
@@ -73,7 +73,7 @@ public class MemberController {
 
     /** 아이디 찾기 */
     @PostMapping("/find-id")
-    public ResponseEntity<?> findId(@RequestBody MemberRequest.FindId request) {
+    public ResponseEntity<CommonResponse<?>> findId(@RequestBody MemberRequest.FindId request) {
         try {
             String foundId = memberService.findId(request);
             return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
@@ -86,21 +86,21 @@ public class MemberController {
 
     /** 비밀번호 찾기 (임시 비밀번호 발급) */
     @PostMapping("/find-password")
-    public ResponseEntity<?> findPassword(@RequestBody MemberRequest.FindPassword request) {
+    public ResponseEntity<CommonResponse<?>> findPassword(@RequestBody MemberRequest.FindPassword request) {
         memberService.sendTemporaryPassword(request);
         return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 찾기용 메일 보내기 성공"));
     }
 
     /** 회원 탈퇴 */
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<?> deleteMember(@PathVariable Long memberId) {
+    public ResponseEntity<CommonResponse<?>> deleteMember(@PathVariable Long memberId) {
         memberService.deleteMember(memberId);
         return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
     }
 
     /** 로그아웃 */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<?>> logout(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         memberService.logout(token);
         return ResponseEntity.ok(CommonResponse.success(null, "로그아웃 성공"));
@@ -109,7 +109,7 @@ public class MemberController {
     /** 비밀번호 확인 */
     @Auth
     @PostMapping("/{memberId}/check-password")
-    public ResponseEntity<?> checkPassword(@PathVariable Long memberId, @RequestBody MemberRequest.CheckPassword request) {
+    public ResponseEntity<CommonResponse<?>> checkPassword(@PathVariable Long memberId, @RequestBody MemberRequest.CheckPassword request) {
         boolean isPasswordCorrect = memberService.checkPassword(memberId, request.getPassword());
         if (isPasswordCorrect) {
             return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 확인 성공"));
@@ -120,7 +120,7 @@ public class MemberController {
 
 
     @PostMapping("/kakao/doLogin")
-    public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto) {
+    public ResponseEntity<CommonResponse<?>> kakaoLogin(@RequestBody RedirectDto redirectDto) {
         AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
         KakaoProfileDto kakaoProfileDto =
                 kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
@@ -136,11 +136,11 @@ public class MemberController {
 
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
 
-        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(loginInfo, "카카오 로그인 성공"), HttpStatus.OK);
     }
 
     @PostMapping("/facebook/doLogin")
-    public ResponseEntity<?> facebookLogin(@RequestBody RedirectDto redirectDto) {
+    public ResponseEntity<CommonResponse<?>> facebookLogin(@RequestBody RedirectDto redirectDto) {
         AccessTokenDto accessTokenDto =
                 facebookService.getAccessToken(redirectDto.getCode());
         FacebookProfileDto facebookProfileDto =
@@ -156,7 +156,7 @@ public class MemberController {
         String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
 
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
-        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(loginInfo, "페이스북 로그인 성공"), HttpStatus.OK);
     }
 
     @PostMapping("/profile/upload/{memberId}")

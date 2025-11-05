@@ -15,7 +15,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "member_agreed_terms_tb")
+@Table(name = "member_agreed_terms_tb",
+       uniqueConstraints = {
+           @UniqueConstraint(
+               name = "member_term_unique",
+               columnNames = {"member_id", "term_id"}
+           )
+       })
 public class MemberAgreedTerm {
 
     @Id
