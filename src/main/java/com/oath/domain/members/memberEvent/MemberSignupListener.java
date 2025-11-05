@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @RequiredArgsConstructor
@@ -37,7 +38,12 @@ public class MemberSignupListener {
         );
 
         String subject = "[Oath] 회원가입 인증을 완료해주세요.";
-        String verificationLink = baseUrl + "/api/member/verify?token=" + event.getVerificationToken();
+        
+        String verificationLink = UriComponentsBuilder.fromUriString(baseUrl)
+                .path("/api/member/verify")
+                .queryParam("token", event.getVerificationToken())
+                .build().toUriString();
+
         String content = String.format(
                 "안녕하세요, %s님!\n\n가입을 완료하려면 아래 링크를 클릭하세요:\n%s\n\n만약 이 요청을 직접 하지 않으셨다면 이 이메일을 무시해주세요.",
                 event.getUsername(),
