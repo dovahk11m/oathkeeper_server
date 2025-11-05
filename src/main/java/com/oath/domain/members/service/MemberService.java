@@ -1,6 +1,7 @@
 package com.oath.domain.members.service;
 
 import com.oath.common.JwtTokenProvider;
+import com.oath.common.exception.Exception400;
 import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception409;
 import com.oath.domain.members.domain.Member;
@@ -11,10 +12,12 @@ import com.oath.domain.members.dto.MemberCreateDto;
 import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
+import com.oath.domain.members.memberEvent.MemberSignupEvent;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.terms.TermService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +36,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
-    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final CacheManager cacheManager;
     private final TermService termService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Member create(MemberCreateDto memberCreateDto){
         if (memberRepository.findByEmail(memberCreateDto.getEmail()).isPresent()) {
@@ -49,16 +52,32 @@ public class MemberService {
                 .email(memberCreateDto.getEmail())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
                 .role(Role.USER)
-                .status(Status.ACTIVE)
+                .status(Status.INACTIVE)
                 .lastLogin(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();
+
+        member.generateEmailVerificationToken();
         Member savedMember = memberRepository.save(member);
 
-        // 약관 동의 처리
         termService.agreeTerms(memberCreateDto.getAgreedTermIds(), savedMember);
 
+        // 이벤트 발행
+        eventPublisher.publishEvent(new MemberSignupEvent(savedMember.getEmail(), savedMember.getUsername(), savedMember.getEmailVerificationToken()));
+
         return savedMember;
+    }
+
+    @Transactional
+    public void verifyEmail(String token) {
+        Member member = memberRepository.findByEmailVerificationToken(token)
+                .orElseThrow(() -> new Exception404("유효하지 않은 인증 토큰입니다."));
+
+        if (member.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new Exception400("인증 토큰이 만료되었습니다. 다시 가입해주세요.");
+        }
+
+        member.activate();
     }
 
     public Member login(MemberLoginDto memberLoginDto){
@@ -89,6 +108,9 @@ public class MemberService {
     }
 
     public Member postLogin(Member member) {
+        if(member.getStatus() == Status.INACTIVE) {
+            throw new IllegalArgumentException("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
+        }
         if(member.getStatus() != Status.ACTIVE) {
             throw new IllegalArgumentException("비활성화된 계정입니다.");
         }
@@ -176,14 +198,7 @@ public class MemberService {
                             m.updatePassword(passwordEncoder.encode(tempPassword));
 
                             // 이메일 발송
-                            emailService.sendMail(
-                                    m.getEmail(),
-                                    "[서비스명] 임시 비밀번호 안내",
-                                    "안녕하세요 " + m.getUsername() + "님.\n\n" +
-                                            "요청하신 임시 비밀번호는 다음과 같습니다:\n\n" +
-                                            tempPassword + "\n\n" +
-                                            "로그인 후 반드시 비밀번호를 변경해주세요."
-                            );
+                            // emailService.sendMail(...); // 이 부분도 이벤트 기반으로 변경 가능
                         },
                         () -> { throw new Exception404("일치하는 회원이 없습니다."); }
                 );

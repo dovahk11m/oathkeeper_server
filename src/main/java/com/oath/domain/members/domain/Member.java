@@ -8,6 +8,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "members_tb")
@@ -66,6 +67,9 @@ public class Member {
 
     private LocalDateTime bannedUntil;
 
+    private String emailVerificationToken;
+    private LocalDateTime emailVerificationTokenExpiry;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MemberAgreedTerm> agreedTerms = new ArrayList<>();
@@ -90,6 +94,8 @@ public class Member {
 
     public void activate() {
         this.status = Status.ACTIVE;
+        this.emailVerificationToken = null; // 인증 완료 후 토큰은 제거
+        this.emailVerificationTokenExpiry = null;
     }
 
     public void suspend() {
@@ -98,5 +104,10 @@ public class Member {
 
     public boolean isActive() {
         return this.status == Status.ACTIVE;
+    }
+
+    public void generateEmailVerificationToken() {
+        this.emailVerificationToken = UUID.randomUUID().toString();
+        this.emailVerificationTokenExpiry = LocalDateTime.now().plusHours(24); // 토큰 유효기간 24시간
     }
 }

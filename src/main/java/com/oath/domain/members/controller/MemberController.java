@@ -33,7 +33,13 @@ public class MemberController {
     @PostMapping("/create")
     public ResponseEntity<CommonResponse<?>> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
         Member member = memberService.create(memberCreateDto);
-        return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공"), HttpStatus.CREATED);
+        return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공. 이메일 인증을 완료해주세요."), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<CommonResponse<?>> verifyEmail(@RequestParam("token") String token) {
+        memberService.verifyEmail(token);
+        return ResponseEntity.ok(CommonResponse.success(null, "이메일 인증이 성공적으로 완료되었습니다."));
     }
 
     @PostMapping("/login")
