@@ -40,7 +40,6 @@ public class MemberController {
     @GetMapping("/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
         memberService.verifyEmail(token);
-        //todo 딥링크 만들기
         String htmlResponse = "<html><body style='text-align:center; padding-top:50px; font-family:sans-serif;'>"
                 + "<h1>인증 완료</h1>"
                 + "<p>이메일 인증이 성공적으로 완료되었습니다.</p>"
@@ -51,14 +50,10 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<CommonResponse<?>> login(@RequestBody MemberLoginDto memberLoginDto){
-        try {
-            Member member = memberService.login(memberLoginDto);
-            String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
-            MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
-            return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
+        Member member = memberService.login(memberLoginDto);
+        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
+        MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
+        return new ResponseEntity<>(CommonResponse.success(loginInfo, "로그인 성공"), HttpStatus.OK);
     }
 
     /** 회원 정보 조회 */
@@ -89,14 +84,8 @@ public class MemberController {
     /** 아이디 찾기 */
     @PostMapping("/find-id")
     public ResponseEntity<CommonResponse<?>> findId(@RequestBody MemberRequest.FindId request) {
-        try {
-            String foundId = memberService.findId(request);
-            return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(CommonResponse.success(null, e.getMessage()));
-        }
+        String foundId = memberService.findId(request);
+        return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
     }
 
     /** 비밀번호 찾기 (임시 비밀번호 발급) */
@@ -109,12 +98,8 @@ public class MemberController {
     /** 회원 탈퇴 */
     @DeleteMapping("/{memberId}")
     public ResponseEntity<CommonResponse<?>> deleteMember(@PathVariable Long memberId) {
-        try {
-            memberService.deleteMember(memberId);
-            return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(CommonResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
-        }
+        memberService.deleteMember(memberId);
+        return ResponseEntity.ok(CommonResponse.success(null, "회원 탈퇴 성공"));
     }
 
     /** 로그아웃 */

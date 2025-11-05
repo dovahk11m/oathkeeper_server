@@ -85,6 +85,10 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+# 애플리케이션 관련 전역 설정
+app:
+  base-url: http://localhost:8080
+
 # 이미지 저장 시 파일 저장 위치
 upload:
   root-dir: ./uploads/

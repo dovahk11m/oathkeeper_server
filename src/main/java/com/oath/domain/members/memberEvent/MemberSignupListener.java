@@ -19,6 +19,9 @@ public class MemberSignupListener {
 
     private final AlarmFactory alarmFactory;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
     @Value("${notification.policy.on-signup:EMAIL}") // 기본값을 EMAIL로 설정
     private String notificationType;
 
@@ -34,7 +37,7 @@ public class MemberSignupListener {
         );
 
         String subject = "[Oath] 회원가입 인증을 완료해주세요.";
-        String verificationLink = "http://localhost:8080/api/member/verify?token=" + event.getVerificationToken();
+        String verificationLink = baseUrl + "/api/member/verify?token=" + event.getVerificationToken();
         String content = String.format(
                 "안녕하세요, %s님!\n\n가입을 완료하려면 아래 링크를 클릭하세요:\n%s\n\n만약 이 요청을 직접 하지 않으셨다면 이 이메일을 무시해주세요.",
                 event.getUsername(),
