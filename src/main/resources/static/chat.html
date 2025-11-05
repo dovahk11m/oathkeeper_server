@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AdminLTE 채팅 화면 예제</title>
+
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- AdminLTE -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+
+    <style>
+        body { font-family: 'Source Sans Pro', sans-serif; }
+        .chat-rooms { max-height: 70vh; overflow-y: auto; }
+        .direct-chat-messages { max-height: 60vh; overflow-y: auto; }
+    </style>
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Left navbar links -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="#" class="nav-link">홈</a>
+            </li>
+        </ul>
+
+        <!-- Right navbar links -->
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a href="#" class="brand-link">
+            <span class="brand-text font-weight-light">AdminLTE Chat</span>
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (optional) -->
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="info">
+                    <a href="#" class="d-block">관리자</a>
+                </div>
+            </div>
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <i class="nav-icon fas fa-comments"></i>
+                            <p>채팅</p>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">채팅 대시보드</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- 좌측: 방 목록 -->
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">방 목록</h3>
+                            </div>
+                            <div class="card-body chat-rooms p-0">
+                                <ul class="nav nav-pills flex-column">
+                                    <li class="nav-item">
+                                        <a href="#" class="nav-link room-link active" data-room-id="1"># 일반문의 <span class="float-right text-muted small">3</span></a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="#" class="nav-link room-link" data-room-id="2"># 기술문의 <span class="float-right text-muted small">1</span></a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="#" class="nav-link room-link" data-room-id="3"># 피드백 <span class="float-right text-muted small">0</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 우측: 채팅 영역 -->
+                    <div class="col-md-9">
+                        <div class="card direct-chat direct-chat-primary">
+                            <div class="card-header">
+                                <h3 class="card-title"># 일반문의</h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <!-- Conversations are loaded here -->
+                                <div class="direct-chat-messages" id="messages">
+                                    <!-- Message. Default to the left -->
+                                    <div class="direct-chat-msg">
+                                        <div class="direct-chat-infos clearfix">
+                                            <span class="direct-chat-name float-left">사용자</span>
+                                            <span class="direct-chat-timestamp float-right">12:00</span>
+                                        </div>
+                                        <img class="direct-chat-img" src="https://via.placeholder.com/128" alt="user image">
+                                        <div class="direct-chat-text">안녕하세요. 주문 취소하려면 어떻게 하나요?</div>
+                                    </div>
+
+                                    <!-- Message to the right -->
+                                    <div class="direct-chat-msg right">
+                                        <div class="direct-chat-infos clearfix">
+                                            <span class="direct-chat-name float-right">관리자</span>
+                                            <span class="direct-chat-timestamp float-left">12:01</span>
+                                        </div>
+                                        <img class="direct-chat-img" src="https://via.placeholder.com/128" alt="admin image">
+                                        <div class="direct-chat-text">안내드릴게요 — 주문번호 알려주세요.</div>
+                                    </div>
+                                </div>
+                                <!--/.direct-chat-messages-->
+
+                            </div>
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+                                <form id="chat-form">
+                                    <div class="input-group">
+                                        <input type="text" id="message-input" name="message" placeholder="메시지 입력..." class="form-control">
+                                        <span class="input-group-append">
+                      <button type="submit" class="btn btn-primary">전송</button>
+                    </span>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- /.card-footer-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Control Sidebar (optional) -->
+    <aside class="control-sidebar control-sidebar-dark">
+    </aside>
+    <!-- /.control-sidebar -->
+</div>
+
+<!-- REQUIRED SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+
+<script>
+    // 간단한 메시지 전송 예제 (프론트엔드 시뮬레이션)
+    $(function(){
+      $('#chat-form').on('submit', function(e){
+        e.preventDefault();
+        const text = $('#message-input').val().trim();
+        if(!text) return;
+
+        const time = new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'});
+
+        const $msg = $(
+          '<div class="direct-chat-msg right">' +
+            '<div class="direct-chat-infos clearfix">' +
+              '<span class="direct-chat-name float-right">관리자</span>' +
+              '<span class="direct-chat-timestamp float-left">'+time+'</span>' +
+            '</div>' +
+            '<img class="direct-chat-img" src="https://via.placeholder.com/128" alt="admin image">' +
+            '<div class="direct-chat-text"></div>' +
+          '</div>'
+        );
+        $msg.find('.direct-chat-text').text(text);
+        $('#messages').append($msg);
+        $('#message-input').val('');
+        $('#messages').scrollTop($('#messages')[0].scrollHeight);
+      });
+
+      // 방 변경 예제: 클릭하면 타이틀 변경 (실제 소켓 연동 시 여기에 재연결 로직 삽입)
+      $('.room-link').on('click', function(e){
+        e.preventDefault();
+        $('.room-link').removeClass('active');
+        $(this).addClass('active');
+        const title = $(this).text().trim();
+        $('.card-title').first().text(title);
+        $('#messages').html(''); // 방 변경 시 메시지 초기화 (예시)
+      });
+    });
+</script>
+</body>
+</html>

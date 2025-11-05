@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>요일 × 시간대 히트맵</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.2.0/dist/chartjs-chart-matrix.min.js"></script>
+</head>
+<body>
+<canvas id="heatmap" width="800" height="400"></canvas>
+
+<script>
+
+    // --- (1) 방문자 데이터 가져오기 (API 호출) ---
+    fetch(`/api/admin/active-chart`)  // 스프링부트에서 이 경로로 데이터 내려줌
+  .then(response => response.json())
+  .then(data => {
+  const dataMatrix = data;
+  const hours = Array.from({length: 24}, (_, i) => i);
+  const days = ['월', '화', '수', '목', '금', '토', '일'];
+  const ctx = document.getElementById('heatmap').getContext('2d');
+
+new Chart(ctx, {
+  type: 'matrix',
+  data: {
+    datasets: [{
+      label: '요일 × 시간대 활동량',
+      data: dataMatrix,
+      backgroundColor: function(ctx) {
+        const value = ctx.dataset.data[ctx.dataIndex].v;
+        // 값이 클수록 붉은색, 작을수록 노란색
+        const alpha = value / 100;
+        return `rgba(255, 99, 132, ${alpha})`;
+      },
+      width: ({chart}) => (chart.chartArea || {}).width / hours.length - 2,
+      height: ({chart}) => (chart.chartArea || {}).height / days.length - 2,
+    }]
+  },
+  options: {
+    scales: {
+      x: {
+        type: 'linear',
+        ticks: {
+          stepSize: 1,
+          callback: (val) => hours[val] + '시'
+        },
+        grid: {
+          offset: false
+        }
+      },
+      y: {
+        type: 'linear',
+        ticks: {
+          stepSize: 1,
+          callback: (val) => days[val]
+        },
+        grid: {
+          offset: false
+        }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            return `${days[ctx.raw.y]} ${hours[ctx.raw.x]}시: ${ctx.raw.v}`;
+          }
+        }
+      }
+    }
+  }
+});
+    });
+</script>
+</body>
+</html>

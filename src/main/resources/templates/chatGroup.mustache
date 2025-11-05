@@ -14,26 +14,10 @@
     <!-- AdminLTE -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
 
-    <!-- iCheck Bootstrap -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/icheck-bootstrap@3.0.1/icheck-bootstrap.min.css">
-
-
     <style>
         body { font-family: 'Source Sans Pro', sans-serif; }
         .chat-rooms { max-height: 70vh; overflow-y: auto; }
         .direct-chat-messages { max-height: 60vh; overflow-y: auto; }
-
-
-.icheck-success label::before {
-  transform: scale(0.8);
-  transform-origin: center;
-}
-.icheck-danger label::before {
-  transform: scale(0.8);
-  transform-origin: center;
-}
-
-    </style>
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -111,7 +95,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <!-- 좌측: 방 목록 -->
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">방 목록</h3>
@@ -133,109 +117,45 @@
                     </div>
 
                     <!-- 우측: 채팅 영역 -->
-                    <div class="col-md-10">
-                        <div class="card card-outline card-primary">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h3 class="card-title">회원 관리</h3>
+                    <div class="col-md-9">
+                        <div class="card direct-chat direct-chat-primary">
+                            <div class="card-header">
+                                <h3 class="card-title"># 일반문의</h3>
                                 <div class="card-tools">
-                                    <div class="input-group input-group-sm" style="width: 200px;">
-                                        <input type="text" name="table_search" class="form-control float-right" placeholder="검색">
-                                        <div class="input-group-append">
-                                            <button type="submit" class="btn btn-default">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                                 </div>
                             </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <!-- Conversations are loaded here -->
 
-                            <div class="card-body table-responsive p-0">
-                                <table class="table table-hover text-center mb-0">
-                                    <thead class="table-primary">
+                                <table id="memberTable" border="1">
+                                    <thead>
                                     <tr>
-
-                                        <th>ID</th>
-                                        <th>이름</th>
-                                        <th>이메일</th>
-                                        <th>권한</th>
-                                        <th>권한 선택</th>
-                                        <th>소셜 타입</th>
-                                        <th>상태</th>
-                                        <th>소셜 아이디</th>
-                                        <th>마지막 로그인 날짜</th>
-                                        <th>금지 만료 기간</th>
-                                        <th>금지 기간 설정</th>
-
+                                        <th>그룹ID</th>
+                                        <th>그룹이름</th>
+                                        <th>설명</th>
+                                        <th>생성일자</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {{#members}}
+                                    {{#groups}}
                                         <tr>
                                             <td>{{id}}</td>
-                                            <td>{{username}}</td>
-                                            <td>{{email}}</td>
-                                            <td>{{role}}</td>
-                                            <td>
-                                                <form action="//localhost:8080/api/admin/update-role" method="post" class="d-flex">
-                                                    <input type="hidden" name="id" value="{{id}}">
-
-
-                                                    <div>
-                                                        <div class="icheck-success d-inline ml-3">
-                                                            <input type="radio" id="radioSuccess-{{id}}" name="role" value="USER">
-                                                            <label for="radioSuccess-{{id}}" >회원</label>
-                                                        </div>
-                                                        <div class="icheck-danger d-inline ml-3">
-                                                            <input type="radio" id="radioDanger-{{id}}" name="role" value="ADMIN">
-                                                            <label for="radioDanger-{{id}}">관리자</label>
-                                                        </div>
-                                                    </div>
-
-                                                    <button class="btn btn-primary ml-3 btn-sm" type="submit"><i class="fa-solid fa-check"></i></button>
-                                                </form>
-                                            </td>
-                                            <td>{{socialType}}</td>
-                                            <td>{{status}}</td>
-                                            <td>{{socialId}}</td>
-                                            <td>{{lastLogin}}</td>
-                                            <td>{{bannedUntil}}</td>
-                                            <td>
-                                                <form class="d-flex" style="align-items:center;">
-                                                    <input type="text" class="mr-2" style="width:70px; padding:5px;" placeholder="검색">
-                                                    <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-check"></i></button>
-                                                </form>
-                                            </td>
+                                            <td>{{name}}</td>
+                                            <td>{{description}}</td>
+                                            <td>{{createdAt}}</td>
                                         </tr>
-                                    {{/members}}
+                                    {{/groups}}
                                     </tbody>
                                 </table>
-                            </div>
-
-                            <div class="card-footer d-flex justify-content-between align-items-center">
-                                <span>총 2명</span>
-                                <button class="btn btn-sm btn-primary">+ 신규등록</button>
-                                <div class="pagination">
-                                    {{#pages}}
-                                        {{#isCurrent}}
-                                            <span>
-                                                {{number}}
-                                            </span>
-                                        {{/isCurrent}}
-                                        {{^isCurrent}}
-                                            <a href="/api/admin/members?page={{pageIndex}}">
-                                            {{number}}
-                                            </a>
-                                        {{/isCurrent}}
-                                    {{/pages}}
-
-
-                                </div>
+                            <!-- /.card-body -->
+                            <div class="card-footer">
 
                             </div>
+                            <!-- /.card-footer-->
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </section>

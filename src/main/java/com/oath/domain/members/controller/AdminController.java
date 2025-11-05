@@ -1,7 +1,7 @@
 package com.oath.domain.members.controller;
 
 
-import io.sentry.Sentry;
+import com.oath.domain.members.dto.ActiveChartDto;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -81,9 +82,29 @@ public class AdminController {
     @GetMapping("/popular-plan-tag")
     @ResponseBody
     public List<AdminResponse.popularPlanTag> getPopularPlanTag(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        List<AdminResponse.popularPlanTag> popularPlanTags = adminService.getPopularPlanTag(startDate, endDate);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1);
+
+        List<AdminResponse.popularPlanTag> popularPlanTags = adminService.getPopularPlanTag(startDateTime, endDateTime);
 
         return popularPlanTags;
+    }
+
+    @GetMapping("/group-list")
+    public String getGroupList(Model model) {
+        List<AdminResponse.groupListDto> groups = adminService.getGroupList();
+        model.addAttribute("groups", groups);
+        return "chatGrouptest";
+    }
+
+    @GetMapping("/active-chart")
+    @ResponseBody
+    public List<ActiveChartDto> getActiveChart() {
+        List<ActiveChartDto> activeChart = adminService.activeCharts();
+        activeChart.add(new ActiveChartDto(9,0,12L));
+        activeChart.add(new ActiveChartDto(10,0,7L));
+        activeChart.add(new ActiveChartDto(14,1,10L));
+        return activeChart;
     }
 
 }

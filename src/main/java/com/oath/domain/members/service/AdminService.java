@@ -1,14 +1,18 @@
 package com.oath.domain.members.service;
 
+import com.oath.domain.groups.Group;
+import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.Status;
+import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.AdminResponse;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,8 @@ public class AdminService {
     private final AdminRepository adminRepository;
 
     private final MemberRepository memberRepository;
+
+    private final GroupRepository groupRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -63,8 +69,22 @@ public class AdminService {
         memberRepository.save(member);
     }
 
-    public List<AdminResponse.popularPlanTag> getPopularPlanTag(LocalDate startDate, LocalDate endDate) {
-        List<AdminResponse.popularPlanTag> popularPlanTags = adminRepository.populrPlanTag(startDate, endDate);
+    public List<AdminResponse.popularPlanTag> getPopularPlanTag(LocalDateTime startDate, LocalDateTime endDate) {
+        PageRequest topTen = PageRequest.of(0, 10);
+        List<AdminResponse.popularPlanTag> popularPlanTags = adminRepository.populrPlanTag(startDate, endDate, topTen);
         return popularPlanTags;
+    }
+
+    public List<AdminResponse.groupListDto> getGroupList() {
+        List<AdminResponse.groupListDto> groups = groupRepository.findAll()
+                .stream()
+                .map(g -> new AdminResponse.groupListDto(g))
+                .collect(Collectors.toList());
+        return groups;
+    }
+
+    public List<ActiveChartDto> activeCharts() {
+        List<ActiveChartDto> activeChart = adminRepository.activeChart();
+        return activeChart;
     }
 }

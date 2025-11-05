@@ -1,5 +1,7 @@
 package com.oath.domain.members.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -10,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Data
 public class AdminResponse {
 
     @Data
@@ -101,4 +104,26 @@ public class AdminResponse {
             this.placeCount = placeCount;
         }
     }
+
+    @Data
+    public static class groupListDto {
+        private Long id;
+        private String name;
+        private String description;
+        private LocalDateTime createdAt;
+
+        public groupListDto(Group group) {
+            this.id = group.getId();
+            this.name = group.getName();
+            this.description = group.getDescription() != null ? group.getDescription() : "설명없음";
+            this.createdAt = group.getCreatedAt();
+        }
+
+        public static groupListDto from(Group group) {
+            return new groupListDto(group);
+        }
+
+    }
+
+
 }

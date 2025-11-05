@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-<h2 style="text-align:center;">📊 일별 방문자 통계</h2>
+<h2 style="text-align:center;">📊 주간 인기 태그 통계</h2>
 <input type="date" id="startDate">
 <input type="date" id="endDate">
 <button id="loadChart">조회</button>
@@ -40,17 +40,21 @@
         // --- (2) 테이블 생성 ---
         let tableHTML = `<table>
                             <thead>
-                              <tr>
-                                <th>날짜</th>
-                                <th>방문자 수</th>
-                              </tr>
+                                <tr>
+                                    <th>태그ID</th>
+                                    <th>태그이름</th>
+                                    <th>참여자수</th>
+                                    <th>플랜수</th>
+                                </tr>
                             </thead>
                             <tbody>`;
 
         data.forEach(d => {
           tableHTML += `<tr>
-                            <td>${d.date}</td>
-                            <td>${d.visitors}</td>
+                                    <td>${d.tagId}</td>
+                                    <td>${d.tagName}</td>
+                                    <td>${d.participantCount}</td>
+                                    <td>${d.planCount}</td>
                           </tr>`;
         });
 
