@@ -1,7 +1,7 @@
-package com.oath.recommend_domain.plan.request;
+package com.oath.recommend_domain._common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.oath.recommend_domain.plan.constants.TaskType;
+import com.oath.recommend_domain._common.TaskType;
 
 import java.util.List;
 
