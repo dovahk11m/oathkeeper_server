@@ -106,7 +106,7 @@ jwt:
 oauth:
   kakao:
     client-id: 1b3011acfb9ddd1a3f7f2fcb1d22e2c6
-    redirect-uri: http://localhost:3000/oauth/kakao/redirect
+    redirect-uri: kakao9c1ddd56216285f8f6a6e015073981bd://oath
   facebook:
     client-id: 689815444162329
     client-secret: 91300c17719891f842dabc2d15acae66
