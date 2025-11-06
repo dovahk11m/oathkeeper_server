@@ -1,7 +1,7 @@
 package com.oath.domain.map.google;
 
 import com.oath.common.CommonResponse;
-import com.oath.document.ApiResponseExamples;
+import com.oath.document.MapApiResponseExamples;
 import com.oath.domain.map.google.dto.GoogleMapRequest;
 import com.oath.domain.map.google.dto.GoogleMapResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,50 +35,40 @@ public class GoogleMapController {
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     name = "정상 응답",
-                                    value = ApiResponseExamples.GoogleMap.MATRIX_SUCCESS_200
+                                    value = MapApiResponseExamples.GoogleMap.MATRIX_SUCCESS_200
                             )
                     )
             ),
 
-//            // TODO 400 Bad Request (형식이 잘못된 경우)
-//            @ApiResponse(responseCode = "400", description = "",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = CommonResponse.class),
-//                            examples = {
-//                                    @ExampleObject(
-//                                            name = "",
-//                                            value = """
-//                                                    {
-//                                                      "success": false,
-//                                                      "data": null,
-//                                                      "message": "해당 좌표는 우리나라 주소가 아닙니다."
-//                                                    }
-//                                                    """
-//                                    ),
-//                                    @ExampleObject(
-//                                            name = "",
-//                                            value = """
-//                                                    {
-//                                                      "success": false,
-//                                                      "data": null,
-//                                                      "message": "좌표는 Double 값으로만 입력해주세요."
-//                                                    }
-//                                                    """
-//                                    ),
-//                                    @ExampleObject(
-//                                            name = "",
-//                                            value = """
-//                                                    {
-//                                                      "success": false,
-//                                                      "data": null,
-//                                                      "message": "좌표가 입력되지 않았습니다."
-//                                                    }
-//                                                    """
-//                                    )
-//                            }
-//                    )
-//            )
+            // 400 Bad Request (형식이 잘못된 경우)
+            @ApiResponse(responseCode = "400", description = "거리, 소요 시간 계산에 실패한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "유효하지 않은 위도값",
+                                            value = MapApiResponseExamples.GoogleMap.MATRIX_INVALID_LAT_RANGE
+                                    ),
+                                    @ExampleObject(
+                                            name = "유효하지 않은 경도값",
+                                            value = MapApiResponseExamples.GoogleMap.MATRIX_INVALID_LNG_RANGE
+                                    ),
+                                    @ExampleObject(
+                                            name = "좌표값 누락",
+                                            value = MapApiResponseExamples.GoogleMap.MATRIX_MISSING_POSITION
+                                    ),
+                                    @ExampleObject(
+                                            name = "부적절한 좌표값",
+                                            value = MapApiResponseExamples.GoogleMap.MATRIX_INVALID_POSITION_FORMAT
+                                    ),
+                                    @ExampleObject(
+                                            name = "도착 시간 형식 불일치",
+                                            value = MapApiResponseExamples.GoogleMap.MATRIX_INVALID_ARRIVAL_TIME_FORMAT
+                                    )
+                            }
+                    )
+            )
     })
     @PostMapping("/matrix")
     public ResponseEntity<?> getPos(@RequestBody(description = "Matrix API를 응답받기 위한 requestBody입니다.",

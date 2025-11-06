@@ -122,7 +122,7 @@ public record GoogleMapRequest(
     }
 
     public record TransitPreferences(
-            @Schema(description = "경로 계산 시 허용할 대중교통을 받는 필드이며, List<enum> 으로 받을 수 있습니다.", defaultValue = "SUBWAY, BUS")
+            @Schema(description = "경로 계산 시 허용할 대중교통을 받는 필드이며, List<enum> 으로 받을 수 있습니다.", defaultValue = "[\"SUBWAY\", \"BUS\"]")
             List<TransitTravelMode> allowedTravelModes,
 
             @Schema(description = "경로 계산 시 어떤 부담 요소를 제한할지 선택하는 필드이며, enum 으로 받을 수 있습니다.", defaultValue = "LESS_WALKING")
