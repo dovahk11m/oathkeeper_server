@@ -251,10 +251,8 @@ public class MemberController {
     @Operation(summary = "페이스북 로그인", description = "페이스북 OAuth를 통한 로그인 또는 회원가입을 처리합니다.")
     @PostMapping("/facebook/doLogin")
     public ResponseEntity<CommonResponse<?>> facebookLogin(
-            @Parameter(description = "페이스북 인증 코드", required = true) @RequestBody RedirectDto redirectDto
+            @Parameter(description = "페이스북 액세스 토큰", required = true) @RequestBody AccessTokenDto accessTokenDto
     ) {
-        AccessTokenDto accessTokenDto =
-                facebookService.getAccessToken(redirectDto.getCode());
         FacebookProfileDto facebookProfileDto =
                 facebookService.getFacebookProfile(accessTokenDto.getAccess_token());
 
