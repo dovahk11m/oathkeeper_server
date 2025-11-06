@@ -4,7 +4,7 @@ import com.oath.common.CommonResponse;
 import com.oath.common.Position;
 import com.oath.common.exception.Exception400;
 import com.oath.common.exception.Exception401;
-import com.oath.document.ApiResponseExamples;
+import com.oath.document.MapApiResponseExamples;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,24 +34,24 @@ public class NaverMapController {
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     name = "정상 응답",
-                                    value = ApiResponseExamples.NaverMap.GEOCODING_SUCCESS_200
+                                    value = MapApiResponseExamples.NaverMap.GEOCODING_SUCCESS_200
                             )
                     )
             ),
 
             // 400 Bad Request (실패 - 주소 형식이 잘못된 경우)
-            @ApiResponse(responseCode = "400", description = "주소 입력이 잘못된 경우",
+            @ApiResponse(responseCode = "400", description = "좌표 변환이 실패한 경우",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = {
                                     @ExampleObject(
                                             name = "주소 형식 오류",
-                                            value = ApiResponseExamples.NaverMap.GEOCODING_MISMATCH_ADDRESS_400
+                                            value = MapApiResponseExamples.NaverMap.GEOCODING_MISMATCH_ADDRESS_400
                                     ),
                                     @ExampleObject(
                                             name = "주소 누락",
-                                            value = ApiResponseExamples.NaverMap.GEOCODING_MISSING_ADDRESS_400
+                                            value = MapApiResponseExamples.NaverMap.GEOCODING_MISSING_ADDRESS_400
                                     )
                             }
                     )
@@ -80,28 +80,28 @@ public class NaverMapController {
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     name = "정상 응답",
-                                    value = ApiResponseExamples.NaverMap.REVERSE_GEOCODING_SUCCESS_200
+                                    value = MapApiResponseExamples.NaverMap.REVERSE_GEOCODING_SUCCESS_200
                             )
                     )
             ),
 
             // 400 Bad Request (실패 - 좌표 형식이 잘못된 경우)
-            @ApiResponse(responseCode = "400", description = "좌표 입력이 잘못된 경우",
+            @ApiResponse(responseCode = "400", description = "주소 변환이 실패한 경우",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = {
                                     @ExampleObject(
                                             name = "지정된 좌표와 우리나라 주소 불일치",
-                                            value = ApiResponseExamples.NaverMap.REVERSE_GEOCODING_MISMATCH_POSITION_400
+                                            value = MapApiResponseExamples.NaverMap.REVERSE_GEOCODING_MISMATCH_POSITION_400
                                     ),
                                     @ExampleObject(
                                             name = "좌표가 Double 값이 아닌 경우",
-                                            value = ApiResponseExamples.NaverMap.REVERSE_GEOCODING_INVALID_POSITION_FORMAT_400
+                                            value = MapApiResponseExamples.NaverMap.REVERSE_GEOCODING_INVALID_POSITION_FORMAT_400
                                     ),
                                     @ExampleObject(
                                             name = "좌표 누락",
-                                            value = ApiResponseExamples.NaverMap.REVERSE_GEOCODING_MISSING_POSITION_400
+                                            value = MapApiResponseExamples.NaverMap.REVERSE_GEOCODING_MISSING_POSITION_400
                                     )
                             }
                     )
