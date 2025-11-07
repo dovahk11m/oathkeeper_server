@@ -58,6 +58,8 @@ public class AdminService {
     public Page<AdminResponse.MemberDto> getMembers(Pageable pageable) {
         Page<AdminResponse.MemberDto> members = memberRepository.findAll(pageable)
                 .map(m -> new AdminResponse.MemberDto(m));
+
+
         return members;
     }
 
@@ -75,11 +77,15 @@ public class AdminService {
         return popularPlanTags;
     }
 
-    public List<AdminResponse.groupListDto> getGroupList() {
-        List<AdminResponse.groupListDto> groups = groupRepository.findAll()
-                .stream()
-                .map(g -> new AdminResponse.groupListDto(g))
-                .collect(Collectors.toList());
+    public List<AdminResponse.PlanTagPie> PlanTagPie(LocalDateTime startDate, LocalDateTime endDate) {
+        PageRequest topTen = PageRequest.of(0, 10);
+        List<AdminResponse.PlanTagPie> PlanTagsPie = adminRepository.PlanTagPie(startDate, endDate, topTen);
+        return PlanTagsPie;
+    }
+
+    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {
+        Page<AdminResponse.groupListDto> groups = groupRepository.findAll(pageable)
+                .map(g -> new AdminResponse.groupListDto(g));
         return groups;
     }
 

@@ -26,6 +26,7 @@ public class AdminResponse {
         private String socialId;
         private String lastLogin;
         private String bannedUntil;
+        private Boolean isAdmin;
 
         public MemberDto(Member member) {
             this.id = member.getId();
@@ -41,6 +42,7 @@ public class AdminResponse {
             this.bannedUntil = member.getBannedUntil() != null
                     ? member.getBannedUntil().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                     : "해당 없음";
+            this.isAdmin = member.getRole() == Role.ADMIN;
         }
 
         public static MemberDto from(Member member) {
@@ -93,6 +95,17 @@ public class AdminResponse {
     }
 
     @Data
+    public static class PlanTagPie {
+        private String tagName;
+        private Long planCount;
+
+        public PlanTagPie(String tagName, Long planCount) {
+            this.tagName = tagName;
+            this.planCount = planCount;
+        }
+    }
+
+    @Data
     public static class popularPlaceTag {
         private Long tagId;
         private String tagName;
@@ -122,7 +135,6 @@ public class AdminResponse {
         public static groupListDto from(Group group) {
             return new groupListDto(group);
         }
-
     }
 
 

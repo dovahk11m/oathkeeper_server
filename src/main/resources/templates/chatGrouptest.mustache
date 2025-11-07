@@ -14,10 +14,37 @@
     <!-- AdminLTE -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
 
+    <!-- iCheck Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/icheck-bootstrap@3.0.1/icheck-bootstrap.min.css">
+
+    <link
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+            rel="stylesheet"
+    >
+
+
+
     <style>
         body { font-family: 'Source Sans Pro', sans-serif; }
         .chat-rooms { max-height: 70vh; overflow-y: auto; }
         .direct-chat-messages { max-height: 60vh; overflow-y: auto; }
+
+
+.icheck-success label::before {
+  transform: scale(0.8);
+  transform-origin: center;
+}
+.icheck-danger label::before {
+  transform: scale(0.8);
+  transform-origin: center;
+}
+
+.table td, .table th {
+    vertical-align: middle !important;
+}
+
+
+    </style>
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -95,7 +122,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <!-- 좌측: 방 목록 -->
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">방 목록</h3>
@@ -117,63 +144,70 @@
                     </div>
 
                     <!-- 우측: 채팅 영역 -->
-                    <div class="card card-outline card-primary">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3 class="card-title">회원 관리</h3>
-                            <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 200px;">
-                                    <input type="text" name="table_search" class="form-control float-right" placeholder="검색">
-                                    <div class="input-group-append">
-                                        <button type="submit" class="btn btn-default">
-                                            <i class="fas fa-search"></i>
-                                        </button>
+                    <div class="col-md-10">
+                        <div class="card card-outline card-primary">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="card-title">회원 관리</h3>
+                                <div class="card-tools">
+                                    <div class="input-group input-group-sm" style="width: 200px;">
+                                        <input type="text" name="table_search" class="form-control float-right" placeholder="검색">
+                                        <div class="input-group-append">
+                                            <button type="submit" class="btn btn-default">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-center mb-0">
-                                <thead class="table-primary">
-                                <tr>
-                                    <th style="width: 60px;">번호</th>
-                                    <th>이름</th>
-                                    <th>이메일</th>
-                                    <th>권한</th>
-                                    <th>가입일</th>
-                                    <th style="width: 120px;">관리</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>홍길동</td>
-                                    <td>hong@test.com</td>
-                                    <td><span class="badge badge-success">관리자</span></td>
-                                    <td>2025-11-01</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash-alt"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>김철수</td>
-                                    <td>kim@test.com</td>
-                                    <td><span class="badge badge-secondary">일반회원</span></td>
-                                    <td>2025-10-30</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash-alt"></i></button>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                            <div class="card-body table-responsive p-0">
+                                <table class="table table-hover text-center mb-0">
+                                    <thead class="table-primary">
+                                    <tr>
 
-                        <div class="card-footer d-flex justify-content-between align-items-center">
-                            <span>총 2명</span>
-                            <button class="btn btn-sm btn-primary">+ 신규등록</button>
+                                        <th>ID</th>
+                                        <th>그룹이름</th>
+                                        <th>그룹설명</th>
+                                        <th>생성일자</th>
+                                        <th>입장하기</th>
+
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#groups}}
+                                        <tr>
+                                            <td>{{id}}</td>
+                                            <td>{{name}}</td>
+                                            <td>{{description}}</td>
+                                            <td>{{createdAt}}</td>
+                                            <td><button class="btn btn-primary btn-sm" type="submit">입장하기</button></td>
+                                        </tr>
+                                    {{/groups}}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="card-footer d-flex justify-content-between align-items-center">
+                                <span>총 2명</span>
+                                <button class="btn btn-sm btn-primary">+ 신규등록</button>
+                                <div class="pagination">
+                                    {{#pages}}
+                                        {{#isCurrent}}
+                                            <span>
+                                                {{number}}
+                                            </span>
+                                        {{/isCurrent}}
+                                        {{^isCurrent}}
+                                            <a href="/api/admin/members?page={{pageIndex}}">
+                                            {{number}}
+                                            </a>
+                                        {{/isCurrent}}
+                                    {{/pages}}
+
+
+                                </div>
+
+                            </div>
                         </div>
                     </div>
 

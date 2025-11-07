@@ -33,6 +33,21 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             Pageable pageable
     );
 
+    @Query("""
+            SELECT new com.oath.domain.members.dto.AdminResponse$PlanTagPie (t.name, count(p))
+            FROM Plan p
+            LEFT JOIN p.planTags pt
+            LEFT JOIN pt.tag t
+            WHERE p.createdAt BETWEEN :startDate AND :endDate
+            GROUP BY t.name
+            ORDER BY count(p) DESC
+            """)
+    List<AdminResponse.PlanTagPie> PlanTagPie(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable
+    );
+
 //    @Query("""
 //            SELECT new com.oath.domain.members.dto.AdminResponse$popularPlaceTag (t.id, t.name, count())
 //            FROM Tag t

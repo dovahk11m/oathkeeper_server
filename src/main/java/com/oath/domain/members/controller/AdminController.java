@@ -42,11 +42,11 @@ public class AdminController {
 //    }
 
     @PostMapping("/ban-member")
-    public String banMember(Long id, int days){
+    public String banMember(@RequestParam Long id, @RequestParam int days, @RequestParam int page){
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
         adminService.banMember(member, days);
-        return "redirect:/api/admin/members";
+        return "redirect:/api/admin/members?page=" + page;
     }
 
 //    @GetMapping("/members")
@@ -56,9 +56,9 @@ public class AdminController {
 //    }
 
     @PostMapping("/update-role")
-    public String updateRole(@RequestParam Long id, @RequestParam String role) {
+    public String updateRole(@RequestParam Long id, @RequestParam String role, @RequestParam int page) {
             adminService.updateRole(id, role);
-            return "redirect:/api/admin/members";
+            return "redirect:/api/admin/members?page=" + page;
     }
 
     @GetMapping("/members")
@@ -69,6 +69,7 @@ public class AdminController {
                 //memberRepository.findAll(pageable).map(member -> new AdminResponse.MemberDto(member));
 
         model.addAttribute("members", memberPage.getContent());
+        model.addAttribute("currentPage", page);
 
         List<AdminResponse.PageDto> pages = IntStream.range(0, memberPage.getTotalPages())
                 .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
@@ -91,9 +92,18 @@ public class AdminController {
     }
 
     @GetMapping("/group-list")
-    public String getGroupList(Model model) {
-        List<AdminResponse.groupListDto> groups = adminService.getGroupList();
-        model.addAttribute("groups", groups);
+    public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        Page<AdminResponse.groupListDto> groupPage = adminService.getGroupList(pageable);
+
+        model.addAttribute("groups", groupPage.getContent());
+        model.addAttribute("currentPage", page);
+
+        List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())
+                .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
+                .collect(Collectors.toList());
+
+        model.addAttribute("pages", pages);
         return "chatGrouptest";
     }
 
@@ -106,5 +116,21 @@ public class AdminController {
         activeChart.add(new ActiveChartDto(14,1,10L));
         return activeChart;
     }
+
+    @GetMapping("/plan-tag-pie")
+    @ResponseBody
+    public List<AdminResponse.PlanTagPie> PlanTagPie(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        if (startDate == null) startDate = LocalDate.now().minusDays(7);
+        if (endDate == null) endDate = LocalDate.now();
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1);
+
+        List<AdminResponse.PlanTagPie> PlanTagsPie = adminService.PlanTagPie(startDateTime, endDateTime);
+
+        return PlanTagsPie;
+    }
+
+
 
 }
