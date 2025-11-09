@@ -118,3 +118,7 @@ notification:
 naver:
   map:
     client-secret: ${CLIENT_SECRET:FAKE_KEY}
+
+logging:
+  file:
+    path: ./docker/loki-data/logs
