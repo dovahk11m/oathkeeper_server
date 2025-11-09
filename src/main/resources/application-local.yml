@@ -119,6 +119,9 @@ naver:
   map:
     client-secret: ${CLIENT_SECRET:FAKE_KEY}
 
-logging:
-  file:
-    path: ./docker/loki-data/logs
+ai:
+  gemini:
+    embedding-endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
+    embedding-model: "models/gemini-embedding-001"
+    api-key: ${GEMINI_API_KEY:FAKE_AI_KEY}
+

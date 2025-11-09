@@ -1,5 +1,7 @@
 package com.oath.domain.members.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -7,8 +9,10 @@ import com.oath.domain.members.domain.Status;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Data
 public class AdminResponse {
 
     @Data
@@ -20,8 +24,9 @@ public class AdminResponse {
         private SocialType socialType;
         private Status status;
         private String socialId;
-        private LocalDateTime lastLogin;
-        private LocalDateTime bannedUntil;
+        private String lastLogin;
+        private String bannedUntil;
+        private Boolean isAdmin;
 
         public MemberDto(Member member) {
             this.id = member.getId();
@@ -31,8 +36,17 @@ public class AdminResponse {
             this.socialType = member.getSocialType();
             this.status = member.getStatus();
             this.socialId = member.getSocialId();
-            this.lastLogin = member.getLastLogin();
-            this.bannedUntil = member.getBannedUntil();
+            this.lastLogin = member.getLastLogin() != null
+                    ? member.getLastLogin().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                    : "기록 없음";
+            this.bannedUntil = member.getBannedUntil() != null
+                    ? member.getBannedUntil().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                    : "해당 없음";
+            this.isAdmin = member.getRole() == Role.ADMIN;
+        }
+
+        public static MemberDto from(Member member) {
+            return new MemberDto(member);
         }
     }
 
@@ -40,4 +54,88 @@ public class AdminResponse {
     public static class ListDto {
         private List<MemberDto> members;
     }
+
+    @Data
+    public static class PageDto {
+        private int number; // 화면에 표시될 페이지 번호 (1, 2, 3, ...)
+        private int pageIndex; // URL에 사용될 페이지 인덱스 (0, 1, 2, ...)
+        private boolean isCurrent;
+
+        public PageDto(int number, int pageIndex, boolean isCurrent) {
+            this.number = number;
+            this.pageIndex = pageIndex;
+            this.isCurrent = isCurrent;
+        }
+    }
+
+//    @Data
+//    public static class MemberIndexDto {
+//        private int index;
+//        private Member member;
+//
+//        public MemberIndexDto(int index, Member member) {
+//            this.index = index;
+//            this.member = member;
+//        }
+//    }
+
+    @Data
+    public static class popularPlanTag {
+        private Long tagId;
+        private String tagName;
+        private Long participantCount;
+        private Long planCount;
+
+        public popularPlanTag(Long tagId, String tagName, Long participantCount, Long planCount) {
+            this.tagId = tagId;
+            this.tagName = tagName;
+            this.participantCount = participantCount;
+            this.planCount = planCount;
+        }
+    }
+
+    @Data
+    public static class PlanTagPie {
+        private String tagName;
+        private Long planCount;
+
+        public PlanTagPie(String tagName, Long planCount) {
+            this.tagName = tagName;
+            this.planCount = planCount;
+        }
+    }
+
+    @Data
+    public static class popularPlaceTag {
+        private Long tagId;
+        private String tagName;
+        private Long placeCount;
+
+        public popularPlaceTag(Long tagId, String tagName, Long placeCount) {
+            this.tagId = tagId;
+            this.tagName = tagName;
+            this.placeCount = placeCount;
+        }
+    }
+
+    @Data
+    public static class groupListDto {
+        private Long id;
+        private String name;
+        private String description;
+        private LocalDateTime createdAt;
+
+        public groupListDto(Group group) {
+            this.id = group.getId();
+            this.name = group.getName();
+            this.description = group.getDescription() != null ? group.getDescription() : "설명없음";
+            this.createdAt = group.getCreatedAt();
+        }
+
+        public static groupListDto from(Group group) {
+            return new groupListDto(group);
+        }
+    }
+
+
 }

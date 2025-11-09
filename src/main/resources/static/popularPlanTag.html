@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>방문자 통계</title>
+    <style>
+        body {
+          font-family: Pretendard, sans-serif;
+          margin: 40px;
+          background-color: #fafafa;
+        }
+        table {
+          width: 80%;
+          max-width: 800px;
+          margin: auto;
+        }
+        th, td {
+          padding: 8px;
+          text-align: left;
+        }
+    </style>
+</head>
+<body>
+<h2 style="text-align:center;">📊 주간 인기 태그 통계</h2>
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<button id="loadChart">조회</button>
+
+<div id="tableContainer"></div>
+
+<script>
+    document.getElementById('loadChart').addEventListener('click', () => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+    // --- (1) 방문자 데이터 가져오기 (API 호출) ---
+    fetch(`/api/admin/popular-plan-tag?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`)  // 스프링부트에서 이 경로로 데이터 내려줌
+      .then(response => response.json())
+      .then(data => {
+        // --- (2) 테이블 생성 ---
+        let tableHTML = `<table>
+                            <thead>
+                                <tr>
+                                    <th>태그ID</th>
+                                    <th>태그이름</th>
+                                    <th>참여자수</th>
+                                    <th>플랜수</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+        data.forEach(d => {
+          tableHTML += `<tr>
+                                    <td>${d.tagId}</td>
+                                    <td>${d.tagName}</td>
+                                    <td>${d.participantCount}</td>
+                                    <td>${d.planCount}</td>
+                          </tr>`;
+        });
+
+        tableHTML += `</tbody>
+                      </table>`;
+
+        document.getElementById('tableContainer').innerHTML = tableHTML;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('tableContainer').innerHTML = '데이터를 가져오는 중 오류가 발생했습니다.';
+
+      });
+    });
+</script>
+</body>
+</html>

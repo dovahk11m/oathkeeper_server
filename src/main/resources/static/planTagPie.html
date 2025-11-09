@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>서버 데이터 파이차트</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h2 style="text-align:center;">📊 일별 방문자 통계</h2>
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<button id="loadChart">조회</button>
+
+<canvas id="myPieChart" width="400" height="400"></canvas>
+
+<script>
+    let myChart;
+
+    async function loadChartData(startDate, endDate) {
+      const response = await fetch(`/api/admin/plan-tag-pie?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`);
+      const chartData = await response.json();
+      console.log('서버 응답:', chartData);
+
+      const ctx = document.getElementById('myPieChart').getContext('2d');
+      if (myChart) myChart.destroy();
+
+      // ✅ 배열 데이터를 labels, data로 변환
+      const labels = chartData.map(item => item.tagName);
+      const data = chartData.map(item => item.planCount);
+
+      myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+              'rgba(255, 159, 64, 0.6)',
+              'rgba(199, 199, 199, 0.6)',
+              'rgba(255, 99, 71, 0.6)',
+              'rgba(60, 179, 113, 0.6)',
+              'rgba(30, 144, 255, 0.6)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: '플랜 태그별 비율' }
+          }
+        }
+      });
+    }
+
+    document.getElementById('loadChart').addEventListener('click', async () => {
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      console.log('조회 버튼 클릭됨');
+      await loadChartData(startDate, endDate);
+    });
+
+    window.addEventListener('load', () => {
+      const today = new Date();
+      const endDate = today.toISOString().split('T')[0];
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 7);
+      const startStr = startDate.toISOString().split('T')[0];
+      loadChartData(startStr, endDate);
+    });
+</script>
+
+</body>
+</html>
