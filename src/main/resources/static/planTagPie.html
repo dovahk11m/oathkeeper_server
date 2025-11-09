@@ -4,6 +4,29 @@
     <meta charset="UTF-8">
     <title>서버 데이터 파이차트</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #legend-container {
+          flex: 0 0 250px;
+          max-height: 400px;
+          overflow-y: auto;
+          border: 1px solid #eee;
+          padding: 5px;
+        }
+        #legend-container div {
+          display: flex;
+          align-items: center;
+          margin-bottom: 5px;
+          cursor: pointer;
+        }
+        #legend-container div span {
+          margin-left: 5px;
+        }
+        #total-count {
+          font-weight: bold;
+          margin-bottom: 10px;
+          display: block;
+        }
+    </style>
 </head>
 <body>
 <h2 style="text-align:center;">📊 일별 방문자 통계</h2>
@@ -11,61 +34,111 @@
 <input type="date" id="endDate">
 <button id="loadChart">조회</button>
 
-<canvas id="myPieChart" width="400" height="400"></canvas>
+<div style="display:flex; align-items:flex-start; gap:20px;">
+    <div style="flex:1; max-width:400px; height:400px;">
+        <canvas id="myPieChart"></canvas>
+    </div>
+    <div id="legend-container"></div>
+</div>
 
 <script>
     let myChart;
 
+    // 예시: 전일 데이터 가져오기 (실제 서버 API 호출로 변경 가능)
+    async function fetchPreviousData(startDate, endDate) {
+      const response = await fetch(`/api/admin/plan-tag-pie-previous?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`);
+      const previousData = await response.json();
+      // { tagName: count } 형태로 변환
+      const map = {};
+      previousData.forEach(item => map[item.tagName] = item.planCount);
+      return map;
+    }
+
     async function loadChartData(startDate, endDate) {
       const response = await fetch(`/api/admin/plan-tag-pie?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`);
       const chartData = await response.json();
-      console.log('서버 응답:', chartData);
+
+      const labels = chartData.map(item => item.tagName);
+      const data = chartData.map(item => item.planCount);
+
+      // 총합
+      const total = data.reduce((sum, val) => sum + val, 0);
+
+      // 최다 항목 인덱스
+      const maxIndex = data.indexOf(Math.max(...data));
+
+      // 전일 데이터
+      const previousMap = await fetchPreviousData(startDate, endDate);
+
+      const colors = [
+        'rgba(255, 99, 132, 0.6)',
+        'rgba(54, 162, 235, 0.6)',
+        'rgba(255, 206, 86, 0.6)',
+        'rgba(75, 192, 192, 0.6)',
+        'rgba(153, 102, 255, 0.6)',
+        'rgba(255, 159, 64, 0.6)',
+        'rgba(199, 199, 199, 0.6)',
+        'rgba(255, 99, 71, 0.6)',
+        'rgba(60, 179, 113, 0.6)',
+        'rgba(30, 144, 255, 0.6)'
+      ];
 
       const ctx = document.getElementById('myPieChart').getContext('2d');
       if (myChart) myChart.destroy();
 
-      // ✅ 배열 데이터를 labels, data로 변환
-      const labels = chartData.map(item => item.tagName);
-      const data = chartData.map(item => item.planCount);
-
       myChart = new Chart(ctx, {
         type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.6)',
-              'rgba(54, 162, 235, 0.6)',
-              'rgba(255, 206, 86, 0.6)',
-              'rgba(75, 192, 192, 0.6)',
-              'rgba(153, 102, 255, 0.6)',
-              'rgba(255, 159, 64, 0.6)',
-              'rgba(199, 199, 199, 0.6)',
-              'rgba(255, 99, 71, 0.6)',
-              'rgba(60, 179, 113, 0.6)',
-              'rgba(30, 144, 255, 0.6)'
-            ],
-            borderWidth: 1
-          }]
-        },
+        data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 1 }] },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom' },
+            legend: { display: false },
             title: { display: true, text: '플랜 태그별 비율' }
           }
         }
       });
+
+      createLegend(labels, data, colors, maxIndex, previousMap, total);
     }
 
-    document.getElementById('loadChart').addEventListener('click', async () => {
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      console.log('조회 버튼 클릭됨');
-      await loadChartData(startDate, endDate);
-    });
+    // 범례 생성
+    function createLegend(labels, data, colors, maxIndex, previousMap, total) {
+      const legendContainer = document.getElementById('legend-container');
+      legendContainer.innerHTML = `<span id="total-count">총 방문자 수: ${total}</span>`;
 
+      labels.forEach((label, i) => {
+        const item = document.createElement('div');
+        const colorBox = document.createElement('div');
+        colorBox.style.width = '20px';
+        colorBox.style.height = '20px';
+        colorBox.style.backgroundColor = colors[i];
+        colorBox.style.border = '1px solid #ccc';
+
+        const percent = ((data[i]/total)*100).toFixed(1);
+        const previousCount = previousMap[label] || 0;
+        const diff = data[i] - previousCount;
+        const diffText = diff === 0 ? '' : (diff > 0 ? `▲${diff}` : `▼${-diff}`);
+
+        const text = document.createElement('span');
+        text.textContent = `${label} (${data[i]}, ${percent}%) ${diffText}`;
+        if (i === maxIndex) text.style.fontWeight = 'bold';
+
+        item.appendChild(colorBox);
+        item.appendChild(text);
+        legendContainer.appendChild(item);
+
+        // 클릭 토글
+        item.addEventListener('click', () => {
+          const meta = myChart.getDatasetMeta(0);
+          meta.data[i].hidden = !meta.data[i].hidden;
+          myChart.update();
+          colorBox.style.opacity = meta.data[i].hidden ? 0.3 : 1;
+        });
+      });
+    }
+
+    // 초기 로드
     window.addEventListener('load', () => {
       const today = new Date();
       const endDate = today.toISOString().split('T')[0];
@@ -74,7 +147,13 @@
       const startStr = startDate.toISOString().split('T')[0];
       loadChartData(startStr, endDate);
     });
-</script>
 
+    // 버튼 클릭
+    document.getElementById('loadChart').addEventListener('click', async () => {
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      await loadChartData(startDate, endDate);
+    });
+</script>
 </body>
 </html>
