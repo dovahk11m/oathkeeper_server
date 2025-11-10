@@ -1,4 +1,4 @@
-package com.oath.recommend_domain.plan.constants;
+package com.oath.recommend_domain._common;
 
 public enum TaskType {
     /**

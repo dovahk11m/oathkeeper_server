@@ -1,4 +1,4 @@
-package com.oath.recommend_domain.plan.request;
+package com.oath.recommend_domain._common.dto;
 
 import java.util.Arrays;
 
