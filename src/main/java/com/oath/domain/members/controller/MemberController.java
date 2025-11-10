@@ -3,6 +3,7 @@ package com.oath.domain.members.controller;
 import com.oath.common.CommonResponse;
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.auth.Auth;
+import com.oath.common.exception.Exception400;
 import com.oath.common.exception.Exception401;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
@@ -186,31 +187,55 @@ public class MemberController {
         }
     }
 
-    @Operation(summary = "카카오 로그인", description = "카카오 OAuth를 통한 로그인 또는 회원가입을 처리합니다.")
+    @Operation(summary = "카카오 로그인 (SDK용)", description = "모바일 SDK에서 발급받은 카카오 액세스 토큰으로 로그인 또는 회원가입을 처리합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "카카오 로그인 성공"),
-            @ApiResponse(responseCode = "400", description = "유효하지 않은 카카오 인가 코드"),
+            @ApiResponse(responseCode = "400", description = "유효하지 않은 카카오 액세스 토큰 또는 이메일 동의 필요"),
             @ApiResponse(responseCode = "401", description = "계정 상태에 따른 로그인 제한"),
             @ApiResponse(responseCode = "500", description = "카카오 서버 연동 오류")
     })
-    @PostMapping("/kakao/doLogin")
-    public ResponseEntity<CommonResponse<?>> kakaoLogin(
-            @Parameter(description = "카카오 인증 코드", required = true) @RequestBody RedirectDto redirectDto) {
-        AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
+    @PostMapping("/kakao/token")
+    public ResponseEntity<CommonResponse<?>> kakaoLoginWithToken(
+            @Parameter(description = "카카오 SDK에서 발급받은 액세스 토큰", required = true)
+            @RequestBody AccessTokenDto accessTokenDto) {
+
+        if (accessTokenDto.getAccess_token() == null || accessTokenDto.getAccess_token().isBlank()) {
+            throw new Exception400("access_token이 필요합니다.");
+        }
+
         KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
+
+        if (kakaoProfileDto.getKakao_account() == null || kakaoProfileDto.getKakao_account().getEmail() == null) {
+            throw new Exception400("필수 정보인 이메일이 누락되었습니다. 카카오 로그인 시 '카카오계정(이메일)' 제공에 동의해주세요.");
+        }
+
         Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
+
         if (originalMember == null) {
+            String nickname = "사용자";
+            if (kakaoProfileDto.getKakao_account().getProfile() != null && kakaoProfileDto.getKakao_account().getProfile().getNickname() != null) {
+                nickname = kakaoProfileDto.getKakao_account().getProfile().getNickname();
+            }
+
             originalMember = memberService.createOauth(
                     kakaoProfileDto.getId(),
                     kakaoProfileDto.getKakao_account().getEmail(),
                     SocialType.KAKAO,
-                    kakaoProfileDto.getKakao_account().getProfile().getNickname()
+                    nickname
             );
         }
+
         memberService.postLogin(originalMember);
-        String jwtToken = jwtTokenProvider.createToken(originalMember.getEmail(), originalMember.getRole(), originalMember.getId());
+
+        String jwtToken = jwtTokenProvider.createToken(
+                originalMember.getEmail(),
+                originalMember.getRole(),
+                originalMember.getId()
+        );
+
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, originalMember);
-        return new ResponseEntity<>(CommonResponse.success(loginInfo, "카카오 로그인 성공"), HttpStatus.OK);
+
+        return ResponseEntity.ok(CommonResponse.success(loginInfo, "카카오 로그인 성공"));
     }
 
     @Operation(summary = "페이스북 로그인", description = "페이스북 OAuth를 통한 로그인 또는 회원가입을 처리합니다.")
