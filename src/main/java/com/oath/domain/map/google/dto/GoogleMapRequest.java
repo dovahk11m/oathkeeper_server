@@ -31,7 +31,7 @@ public record GoogleMapRequest(
         @Schema(description = "거리를 어떤 단위로 보여줄지 정하는 타입이며, enum 으로 받을 수 있습니다.", nullable = true, defaultValue = "METRIC")
         Units units,
 
-        @Schema(description = "대중교통 이용시 설정할 Json 객체입니다.", nullable = false)
+        @Schema(description = "대중교통 이용시 설정할 Json 객체입니다.", nullable = true)
         TransitPreferences transitPreferences
 ) {
     public GoogleMapRequest {
@@ -122,10 +122,10 @@ public record GoogleMapRequest(
     }
 
     public record TransitPreferences(
-            @Schema(description = "경로 계산 시 허용할 대중교통을 받는 필드이며, List<enum> 으로 받을 수 있습니다.", defaultValue = "[\"SUBWAY\", \"BUS\"]")
+            @Schema(description = "경로 계산 시 허용할 대중교통을 받는 필드이며, List<enum> 으로 받을 수 있습니다.", defaultValue = "[\"SUBWAY\", \"BUS\"]", nullable = true)
             List<TransitTravelMode> allowedTravelModes,
 
-            @Schema(description = "경로 계산 시 어떤 부담 요소를 제한할지 선택하는 필드이며, enum 으로 받을 수 있습니다.", defaultValue = "LESS_WALKING")
+            @Schema(description = "경로 계산 시 어떤 부담 요소를 제한할지 선택하는 필드이며, enum 으로 받을 수 있습니다.", defaultValue = "LESS_WALKING", nullable = true)
             TransitRoutingPreference routingPreference
     ) {
         public TransitPreferences {
