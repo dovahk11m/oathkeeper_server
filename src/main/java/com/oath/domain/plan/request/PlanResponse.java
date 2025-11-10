@@ -26,19 +26,26 @@ public class PlanResponse {
         private List<ParticipantResponse> participants;
 
         public CreatePlan(Plan plan) {
-            this.id = plan != null ? plan.getId() : null;
-            if (plan != null && plan.getPlanDatetime() != null) {
+            if (plan == null) return;
+
+            this.id = plan.getId();
+            this.title = plan.getTitle();
+            this.location = plan.getPlaceName();
+
+            if (plan.getPlanDatetime() != null) {
                 this.date = plan.getPlanDatetime().toLocalDate().toString();
                 this.time = plan.getPlanDatetime().toLocalTime().toString();
             }
-            this.title = plan != null ? plan.getTitle() : null;
-            this.location = plan != null ? plan.getPlaceName() : null;
-            Point lp = plan != null ? plan.getPlaceLocation() : null;
+
+            Point lp = plan.getPlaceLocation();
             if (lp != null) {
                 this.placeLatitude = lp.getY();
                 this.placeLongitude = lp.getX();
             }
-            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
+
+            this.participants = plan.getParticipants().stream()
+                    .map(ParticipantResponse::of)
+                    .collect(Collectors.toList());
         }
 
         public static CreatePlan of(Plan plan) {
@@ -59,18 +66,25 @@ public class PlanResponse {
         private List<ParticipantResponse> participants;
 
         public UpdatePlan(Plan plan) {
-            if (plan != null && plan.getPlanDatetime() != null) {
+            if (plan == null) return;
+
+            this.title = plan.getTitle();
+            this.location = plan.getPlaceName();
+
+            if (plan.getPlanDatetime() != null) {
                 this.date = plan.getPlanDatetime().toLocalDate().toString();
                 this.time = plan.getPlanDatetime().toLocalTime().toString();
             }
-            this.title = plan != null ? plan.getTitle() : null;
-            this.location = plan != null ? plan.getPlaceName() : null;
-            Point lp = plan != null ? plan.getPlaceLocation() : null;
+
+            Point lp = plan.getPlaceLocation();
             if (lp != null) {
                 this.placeLatitude = lp.getY();
                 this.placeLongitude = lp.getX();
             }
-            this.participants = plan != null ? plan.getParticipants().stream().map(pm -> ParticipantResponse.of(pm)).collect(Collectors.toList()) : null;
+
+            this.participants = plan.getParticipants().stream()
+                    .map(ParticipantResponse::of)
+                    .collect(Collectors.toList());
         }
 
 
