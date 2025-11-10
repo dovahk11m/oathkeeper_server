@@ -104,9 +104,15 @@ jwt:
   expiration-in-ms: 3600000 # 1??
 
 oauth:
+  # 카카오
   kakao:
+    # A루트
     client-id: 1b3011acfb9ddd1a3f7f2fcb1d22e2c6
-    redirect-uri: kakao9c1ddd56216285f8f6a6e015073981bd://oath
+    redirect-uri: kakao9c1ddd56216285f8f6a6e015073981bd://oauth
+    # B 루트
+    # client-id: 265575d5bd1ece8a9da3afcdc8cd21b8
+    # redirect-uri: kakao8afa85c4f0d93c3f4b173e745a4e67c9://oauth
+  # 페이스북
   facebook:
     client-id: 689815444162329
     client-secret: 91300c17719891f842dabc2d15acae66
