@@ -48,7 +48,10 @@ public class Member {
 
     private String socialId;
 
-    private String defaultAddress;
+
+    private String defaultAddress; // 기본 주소
+    private Double defaultLat; // 기본 위도
+    private Double defaultLng; // 기본 경도
 
     @Enumerated(EnumType.STRING)
     private OathkeeperRank oathkeeperRank;
@@ -77,9 +80,9 @@ public class Member {
     private List<MemberAgreedTerm> agreedTerms = new ArrayList<>();
 
     public void updateInfo(String username, String profileImageUrl, String defaultAddress) {
-        this.username = username;
-        this.profileImageUrl = profileImageUrl;
-        this.defaultAddress = defaultAddress;
+        if (username != null) this.username = username;
+        if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+        if (defaultAddress != null) this.defaultAddress = defaultAddress;
     }
 
     public void updatePassword(String encodedPassword) {
