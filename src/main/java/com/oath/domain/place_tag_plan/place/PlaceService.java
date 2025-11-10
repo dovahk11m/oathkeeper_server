@@ -1,12 +1,14 @@
 package com.oath.domain.place_tag_plan.place;
 
 import com.oath.common.exception.Exception404;
-import com.oath.domain.plan.domain.Plan;
-import com.oath.domain.place_tag_plan.PlaceResponseDto;
+import com.oath.domain.map.google.GoogleMapService;
+import com.oath.domain.map.google.dto.GoogleMapRequest;
+import com.oath.domain.map.google.dto.GoogleMapResponse;
 import com.oath.domain.place_tag_plan.place_tag.PlaceTag;
 import com.oath.domain.place_tag_plan.place_tag.PlaceTagRepository;
 import com.oath.domain.place_tag_plan.tag.Tag;
 import com.oath.domain.place_tag_plan.tag.TagRepository;
+import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class PlaceService {
     private final PlaceTagRepository placeTagRepository;
     private final PlaceRepository placeRepository;
     private final PlanJpaRepository planJpaRepository;
+    private final GoogleMapService googleMapService;
 
     public List<Long> findPlaceIdsByTagName(String tagName) {
         // 1. 태그 이름으로 Tag 엔티티를 찾습니다.
@@ -44,7 +47,7 @@ public class PlaceService {
     }
 
     @Transactional // DTO 변환 시 placeTags를 지연 로딩해야 하므로 readOnly = false로 변경
-    public List<PlaceResponseDto> findRecommendedPlaces(Long planId, List<String> tagNames) {
+    public GoogleMapResponse findRecommendedPlaces(Long planId, List<String> tagNames) {
         log.info("장소 추천 시작: planId={}, tagNames={}", planId, tagNames);
 
         // 1. planId로 Plan을 찾아 참여 인원 수(m)를 파악합니다.
@@ -64,7 +67,8 @@ public class PlaceService {
 
         if (maxPlaceCount == 0) {
             log.warn("최대 장소 개수가 0이므로, 빈 리스트를 반환합니다.");
-            return List.of(); // 100명 이상이면 추천 장소 없음
+//            return List.of(); // 100명 이상이면 추천 장소 없음
+            return null; // 100명 이상이면 추천 장소 없음
         }
 
         // 3. Repository에서 정렬된 장소 목록을 Pageable을 이용해 제한된 개수만큼 가져옵니다.
@@ -75,15 +79,25 @@ public class PlaceService {
             );
             log.info("DB 조회 완료. 추천된 장소 개수: {}", recommendedPlaces.size());
 
+            // 4. 조회된 place 엔티티 목록과 참여자 목록으로 Google Matrix API 호출
+            return matrixHelper(plan, recommendedPlaces);
+
             // 4. 조회된 Place 엔티티 목록을 PlaceResponseDto 목록으로 변환합니다.
             // 이 과정에서 place.getPlaceTags()가 호출되며, 지연 로딩된 데이터가 조회됩니다.
-            return recommendedPlaces.stream()
-                    .map(PlaceResponseDto::new)
-                    .collect(Collectors.toList());
+//            return recommendedPlaces.stream()
+//                    .map(PlaceResponseDto::new)
+//                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("장소 추천 DB 조회 중 예외 발생", e);
             throw e; // 예외를 다시 던져서 MyExceptionHandler가 처리하도록 함
         }
+    }
+
+    private GoogleMapResponse matrixHelper(Plan plan, List<Place> recommendedPlaces) {
+
+        GoogleMapResponse response = googleMapService.getMatrix(GoogleMapRequest.of(plan, recommendedPlaces));
+        System.out.println(response);
+        return response;
     }
 
     public Long findPlaceIdByName(String placeName) {

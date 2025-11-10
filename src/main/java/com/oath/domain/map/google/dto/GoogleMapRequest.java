@@ -4,6 +4,8 @@ import com.oath.common.exception.Exception400;
 import com.oath.common.exception.Exception500;
 import com.oath.common.util.DateUtil;
 import com.oath.domain.map.google.*;
+import com.oath.domain.place_tag_plan.place.Place;
+import com.oath.domain.plan.domain.Plan;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.DateTimeException;
@@ -66,17 +68,48 @@ public record GoogleMapRequest(
         if (units == null) units = Units.METRIC;
 
         // 5. List 필드 NPE 방지
-        if (origins == null) {
-            origins = List.of();
+        if (origins == null || origins.isEmpty()) {
+            throw new Exception400("origins 필드는 1개 이상의 출발지를 포함해야 합니다.");
         }
-        if (destinations == null) {
-            destinations = List.of();
+        if (destinations == null || destinations.isEmpty()) {
+            throw new Exception400("destinations 필드는 1개 이상의 도착지를 포함해야 합니다.");
         }
 
         // 6. TRANSIT 모드일 때만 TransitPreferences 기본값 생성
         if (travelMode == RouteTravelMode.TRANSIT && transitPreferences == null) {
             transitPreferences = new TransitPreferences(null, null);
         }
+    }
+
+    public static GoogleMapRequest of(Plan plan, List<Place> recommendedPlaces) {
+        List<GoogleMapRequest.WayPoint> origins = plan.getParticipants().stream().map(participant -> {
+            return new GoogleMapRequest.WayPoint(
+                    new GoogleMapRequest.WayPoint.WaypointPayload(
+                            new GoogleMapRequest.WayPoint.WaypointPayload.Location(
+                                    new GoogleMapRequest.WayPoint.WaypointPayload.Location.LatLng(participant.getStartLatitude().toString(), participant.getStartLongitude().toString())
+                            ))
+            );
+        }).toList();
+
+        List<GoogleMapRequest.WayPoint> destinations = recommendedPlaces.stream().map(place -> {
+            return new GoogleMapRequest.WayPoint(
+                    new GoogleMapRequest.WayPoint.WaypointPayload(
+                            new GoogleMapRequest.WayPoint.WaypointPayload.Location(
+                                    new GoogleMapRequest.WayPoint.WaypointPayload.Location.LatLng(place.getLat().toString(), place.getLng().toString())
+                            )
+                    )
+            );
+        }).toList();
+
+        String testTime = "2025-11-13 14:00";
+
+        return new GoogleMapRequest(origins,
+                destinations,
+                null,
+                null,
+                testTime,
+                null,
+                null);
     }
 
     public record WayPoint(
