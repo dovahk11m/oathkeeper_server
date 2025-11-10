@@ -209,6 +209,12 @@ This document outlines the API specifications for member authentication.
 
 ## 6. 카카오 로그인 (Kakao Login)
 
+-   **전체 흐름 (Overall Flow)**:
+    1.  클라이언트는 카카오 SDK를 사용하여 카카오 로그인을 요청하고, 그 결과로 **인가 코드(Authorization Code)**를 받습니다.
+    2.  클라이언트는 이 API(`POST /api/member/kakao/doLogin`)에 인가 코드를 담아 요청합니다.
+    3.  서버는 인가 코드를 사용하여 카카오로부터 액세스 토큰과 사용자 정보를 받아옵니다.
+    4.  서버는 해당 사용자를 서비스에 로그인/회원가입 처리하고, 자체 **JWT 토큰**을 클라이언트에 반환합니다.
+
 -   **HTTP Method**: `POST`
 -   **URL**: `/api/member/kakao/doLogin`
 -   **Description**: Logs in or signs up a member using a Kakao authorization code.
@@ -236,20 +242,65 @@ This document outlines the API specifications for member authentication.
         "message": "카카오 로그인 성공"
     }
     ```
--   **Error Response**:
-    -   If the Kakao authorization code is invalid.
+-   **Error Responses**:
+    -   **400 Bad Request**: If the Kakao authorization code is invalid or other client-side issues.
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "유효하지 않은 카카오 인증 코드입니다."
+        }
+        ```
+    -   **401 Unauthorized**: If the member's account status prevents login after social authentication.
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요."
+        }
+        ```
+        // 또는
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "사용이 중지된 계정입니다."
+        }
+        ```
+        // 또는
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "휴면계정입니다. 다시 로그인하여 활성화해주세요."
+        }
+        ```
+    -   **500 Internal Server Error**: If an unexpected error occurs during social login processing or communication with Kakao API.
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "소셜 로그인 서비스 연동 중 서버 오류가 발생했습니다."
+        }
+        ```
 
 ---
 
 ## 7. 페이스북 로그인 (Facebook Login)
 
+-   **전체 흐름 (Overall Flow)**:
+    1.  클라이언트는 페이스북 SDK를 사용하여 페이스북 로그인을 요청하고, 그 결과로 **액세스 토큰(Access Token)**을 받습니다.
+    2.  클라이언트는 이 API(`POST /api/member/facebook/doLogin`)에 액세스 토큰을 담아 요청합니다.
+    3.  서버는 전달받은 액세스 토큰을 사용하여 페이스북으로부터 사용자 정보를 받아옵니다.
+    4.  서버는 해당 사용자를 서비스에 로그인/회원가입 처리하고, 자체 **JWT 토큰**을 클라이언트에 반환합니다.
+
 -   **HTTP Method**: `POST`
 -   **URL**: `/api/member/facebook/doLogin`
--   **Description**: Logs in or signs up a member using a Facebook authorization code.
+-   **Description**: Logs in or signs up a member using a Facebook Access Token.
 -   **Request Body**:
     ```json
     {
-      "code": "facebook_authorization_code"
+      "access_token": "facebook_access_token_from_client_sdk"
     }
     ```
 -   **Success Response (200 OK)**:
@@ -270,5 +321,44 @@ This document outlines the API specifications for member authentication.
         "message": "페이스북 로그인 성공"
     }
     ```
--   **Error Response**:
-    -   If the Facebook authorization code is invalid.
+-   **Error Responses**:
+    -   **400 Bad Request**: If the Facebook Access Token is invalid or other client-side issues.
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "유효하지 않은 페이스북 액세스 토큰입니다."
+        }
+        ```
+    -   **401 Unauthorized**: If the member's account status prevents login after social authentication.
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요."
+        }
+        ```
+        // 또는
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "사용이 중지된 계정입니다."
+        }
+        ```
+        // 또는
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "휴면계정입니다. 다시 로그인하여 활성화해주세요."
+        }
+        ```
+    -   **500 Internal Server Error**: If an unexpected error occurs during social login processing or communication with Facebook API.
+        ```json
+        {
+            "success": false,
+            "data": null,
+            "message": "소셜 로그인 서비스 연동 중 서버 오류가 발생했습니다."
+        }
+        ```
