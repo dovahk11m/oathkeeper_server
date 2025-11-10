@@ -2,6 +2,7 @@ package com.oath.domain.place_tag_plan.place.dto;
 
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.request.ParticipantResponse;
 import lombok.Builder;
 import lombok.Data;
 
@@ -34,10 +35,12 @@ public class PlaceResponse {
     @Data
     @Builder
     public static class RecommendListPlace {
-        private List<RecommendDetailPlace> recommendedPlaces;
+        private List<RecommendDetailPlace> centerAvgPlace;
+        private List<RecommendDetailPlace> equalAvgPlace;
 
-        public RecommendListPlace(List<RecommendDetailPlace> detailPlaces) {
-            this.recommendedPlaces = detailPlaces;
+        public RecommendListPlace(List<RecommendDetailPlace> centerAvgPlace, List<RecommendDetailPlace> equalAvgPlace) {
+            this.centerAvgPlace = centerAvgPlace;
+            this.equalAvgPlace = equalAvgPlace;
         }
     }
 
@@ -45,8 +48,8 @@ public class PlaceResponse {
     @Builder
     public static class RecommendDetailPlace {
 
-        private Participant participant;
-        private Place destination;
+        private ParticipantResponse participant;
+        private DetailPlace destination;
         private Long distance;
         private String duration;
     }

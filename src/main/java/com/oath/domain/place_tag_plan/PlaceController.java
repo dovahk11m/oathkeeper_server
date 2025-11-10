@@ -28,8 +28,8 @@ public class PlaceController {
     @Operation(summary = "태그 기반 추천 장소 거리 계산", description = "여러 태그와 계획(plan) ID를 기반으로 장소를 추천합니다.")
     @GetMapping("/recommend/with-tags")
     public ResponseEntity<CommonResponse<PlaceResponse.RecommendListPlace>> recommendPlaces(
-            @Parameter(description = "장소 추천의 기반이 될 계획(plan)의 ID", required = true) @RequestParam Long planId,
-            @Parameter(description = "추천에 사용할 태그 이름 목록", required = true) @RequestParam List<String> tagNames) {
+            @Parameter(description = "장소 추천의 기반이 될 계획(plan)의 ID", required = true) @RequestParam(name = "planId") Long planId,
+            @Parameter(description = "추천에 사용할 태그 이름 목록", required = true) @RequestParam(name = "tagNames") List<String> tagNames) {
 //        List<PlaceResponseDto> recommendedPlaces = placeService.findRecommendedPlaces(planId, tagNames);
         PlaceResponse.RecommendListPlace places = placeService.findRecommendedPlaces(planId, tagNames);
         return ResponseEntity.ok(CommonResponse.success(places, "장소 추천 성공"));
