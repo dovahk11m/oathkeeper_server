@@ -130,7 +130,7 @@ public class PlanRestController {
     // 참가자 추가
     @Auth
     @PostMapping("/{planId}/participants")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(@PathVariable Long planId,
+    public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(@PathVariable(name = "planId") Long planId,
                                                                               @RequestBody PlanRequest.ParticipantAddRequest req,
                                                                               HttpServletRequest request) {
         Member currentMember = getCurrentMember(request);
