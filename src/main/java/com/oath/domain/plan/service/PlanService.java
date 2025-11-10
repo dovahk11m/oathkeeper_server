@@ -44,8 +44,10 @@ public class PlanService {
     }
 
     // 플랜 접근 권한 검증 (생성자 또는 참가자만 접근 가능)
+    @Transactional(readOnly = true)
     public void validatePlanAccess(Long planId, Long memberId) {
-        Plan plan = getPlanById(planId);
+        Plan plan = planJpaRepository.findByIdWithParticipants(planId)
+                .orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
         boolean isCreator = plan.getCreatorMember().getId().equals(memberId);
         boolean isParticipant = plan.getParticipants().stream()
                 .anyMatch(p -> p.getMember().getId().equals(memberId));
