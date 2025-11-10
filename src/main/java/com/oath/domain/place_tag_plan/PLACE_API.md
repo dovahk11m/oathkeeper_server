@@ -58,7 +58,8 @@ This document outlines the API specifications for places and tags.
                 "lat": 37.504,
                 "lng": 127.048,
                 "description": "...",
-                "imageUrl": "..."
+                "imageUrl": "...",
+                "tags": ["카페", "조용한", "스터디", "콘센트"]
             },
             {
                 "id": 12,
@@ -67,7 +68,8 @@ This document outlines the API specifications for places and tags.
                 "lat": 37.555,
                 "lng": 126.924,
                 "description": "...",
-                "imageUrl": "..."
+                "imageUrl": "...",
+                "tags": ["카페", "책", "조용한"]
             }
         ],
         "message": "장소 추천 성공"

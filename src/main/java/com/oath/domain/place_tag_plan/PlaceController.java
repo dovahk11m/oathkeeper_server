@@ -1,6 +1,8 @@
-package com.oath.domain.place_tag_plan.place;
+package com.oath.domain.place_tag_plan;
 
 import com.oath.common.CommonResponse;
+import com.oath.domain.place_tag_plan.place.Place;
+import com.oath.domain.place_tag_plan.place.PlaceService;
 import com.oath.domain.place_tag_plan.tag.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,10 +35,10 @@ public class PlaceController {
 
     @Operation(summary = "태그 기반 장소 추천", description = "여러 태그와 계획(plan) ID를 기반으로 장소를 추천합니다.")
     @GetMapping("/recommend")
-    public ResponseEntity<CommonResponse<List<Place>>> recommendPlaces(
+    public ResponseEntity<CommonResponse<List<PlaceResponseDto>>> recommendPlaces(
             @Parameter(description = "장소 추천의 기반이 될 계획(plan)의 ID", required = true) @RequestParam Long planId,
             @Parameter(description = "추천에 사용할 태그 이름 목록", required = true) @RequestParam List<String> tagNames) {
-        List<Place> recommendedPlaces = placeService.findRecommendedPlaces(planId, tagNames);
+        List<PlaceResponseDto> recommendedPlaces = placeService.findRecommendedPlaces(planId, tagNames);
         return ResponseEntity.ok(CommonResponse.success(recommendedPlaces, "장소 추천 성공"));
     }
 
