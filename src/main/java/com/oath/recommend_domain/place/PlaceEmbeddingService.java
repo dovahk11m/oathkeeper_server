@@ -5,14 +5,9 @@ import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRepository;
 import com.oath.recommend_domain._common.dto.EmbeddingRequest;
 import com.oath.recommend_domain._common.dto.EmbeddingResponse;
-import com.oath.recommend_domain.place.event_listener.PlaceConfirmedEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -42,46 +37,6 @@ public class PlaceEmbeddingService {
             System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
                     "Gemini API Key가 할당되지 않아, 가짜 키가 주입되었습니다.\n" +
                     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handlePlanConfirmation(PlaceConfirmedEvent event) {
-
-        Long planId = event.getPlaceId();
-
-        try {
-            Place place = placeRepository.findById(planId)
-                    .orElseThrow(() -> new Exception404("이벤트 리스너: 해당하는 장소를 찾을 수 없습니다."));
-
-            PlaceEmbedding placeEmbedding = saveOrUpdateEmbedding(
-                    place, null
-            );
-
-            String naturalLanguage = PlaceEmbedding.getNaturalLanguage(placeEmbedding, place);
-
-            float[] vector = getVector(naturalLanguage);
-
-            saveOrUpdateEmbedding(place, vector);
-
-        } catch (Exception e) {
-            System.err.println("Plan 임베딩 생성 실패 (Plan ID: " + planId + "): " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public PlaceEmbedding saveOrUpdateEmbedding(Place place, float[] vector) {
-
-        PlaceEmbedding placeEmbedding = placeEmbeddingRepository.findByPlaceId(place.getId())
-                .orElse(PlaceEmbedding.builder()
-                        .placeId(place.getId())
-                        .latitude(place.getLat())
-                        .longitude(place.getLng())
-                        .build()
-                );
-
-        placeEmbedding.setEmbedding(vector);
-        return placeEmbeddingRepository.save(placeEmbedding);
     }
 
     // 임베딩 헬퍼 메서드
