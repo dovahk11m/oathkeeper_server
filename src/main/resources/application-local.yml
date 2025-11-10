@@ -25,7 +25,7 @@ spring:
       driver-class-name: org.postgresql.Driver
 
       hikari:
-        maximum-pool-size: 3
+        maximum-pool-size: 2
         minimum-idle: 1
 
   # ===================================================================

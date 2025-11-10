@@ -15,12 +15,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
 @Order(4)
 public class DataInitializer4_Group implements CommandLineRunner {
@@ -31,6 +33,7 @@ public class DataInitializer4_Group implements CommandLineRunner {
     private final ChatRepository chatRepository;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 그룹 및 채팅 데이터 생성 시작");
 

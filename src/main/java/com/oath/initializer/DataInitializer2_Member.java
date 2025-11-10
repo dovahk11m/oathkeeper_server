@@ -11,12 +11,15 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
 @Order(2)
 public class DataInitializer2_Member implements CommandLineRunner {
@@ -25,6 +28,7 @@ public class DataInitializer2_Member implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 사용자 데이터를 생성 시작");
 
@@ -39,9 +43,16 @@ public class DataInitializer2_Member implements CommandLineRunner {
     }
 
     private Member createMember(String email, String username, String password, Role role) {
+        // 회원마다 고유한 seed 생성 (email 기반)
+        String seed = UUID.nameUUIDFromBytes(email.getBytes()).toString();
+
+        // seed 기반 고정 이미지 URL
+        String profileImageUrl = "https://picsum.photos/seed/" + seed + "/200/200";
+
         return memberRepository.save(Member.builder()
                 .email(email)
                 .username(username)
+                .profileImageUrl(profileImageUrl)
                 .password(passwordEncoder.encode(password))
                 .role(role)
                 .status(com.oath.domain.members.domain.Status.ACTIVE)

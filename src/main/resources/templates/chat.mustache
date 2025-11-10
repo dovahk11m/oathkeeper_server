@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AdminLTE 채팅 화면 예제</title>
+
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- AdminLTE -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+
+    <style>
+        body { font-family: 'Source Sans Pro', sans-serif; }
+        .chat-rooms { max-height: 70vh; overflow-y: auto; }
+        .direct-chat-messages { max-height: 60vh; overflow-y: auto; }
+        .content-wrapper { padding-right: 200px; }
+        .chat-member.active {
+    background-color: #e2e6ea;
+    border-left: 4px solid #007bff;
+}
+/* ✅ content 안의 row를 강제로 가로 정렬 */
+.content-wrapper .container-fluid > .row {
+    display: flex;
+    flex-wrap: nowrap; /* 줄바꿈 방지 */
+    gap: 15px; /* 간격 */
+}
+
+/* ✅ 왼쪽 채팅 멤버 */
+.col-md-3 {
+    flex: 0 0 25%; /* 가로폭 고정 (col-md-3 비율 유지) */
+    max-width: 25%;
+}
+
+/* ✅ 오른쪽 채팅 영역 */
+.col-md-9 {
+    flex: 1; /* 남은 공간 전부 차지 */
+}
+
+/* ✅ 카드 높이 고정 */
+.chat-rooms,
+.direct-chat {
+    height: 75vh;
+    overflow-y: auto;
+}
+
+
+    </style>
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Left navbar links -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="#" class="nav-link">홈</a>
+            </li>
+        </ul>
+
+        <!-- Right navbar links -->
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a href="#" class="brand-link">
+            <span class="brand-text font-weight-light">AdminLTE Chat</span>
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (optional) -->
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="info">
+                    <a href="#" class="d-block">관리자</a>
+                </div>
+            </div>
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <i class="nav-icon fas fa-comments"></i>
+                            <p>채팅</p>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">채팅 대시보드</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- 좌측: 방 목록 -->
+                    <div class="col-md-3">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h3 class="card-title">채팅 멤버</h3>
+                            </div>
+
+                            <div class="card-body chat-rooms">
+                                {{#chatMembers}}
+                                    <div class="card mb-2 shadow-sm chat-member" data-member-id="{{id}}" data-group-id="{{groupId}}">
+                                        <div class="card-body p-2 d-flex align-items-center">
+                                            <img src="{{profileImageUrl}}" class="img-circle mr-2" width="45" height="45" alt="프로필">
+                                            <div>
+                                                <strong>{{username}}</strong><br>
+                                                <small class="text-muted">최근 메시지 미리보기...</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {{/chatMembers}}
+                            </div>
+
+
+                        </div>
+                    </div>
+
+
+                    <!-- 우측: 채팅 영역 -->
+                    <div class="col-md-9">
+                        <div class="card direct-chat direct-chat-primary">
+                            <div class="card-header">
+                                <h3 class="card-title">채팅 내용</h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+
+                                <!-- Conversations are loaded here -->
+
+                            <div class="card-body overflow-auto" style="max-height: 60vh;">
+                                <table class="table table-bordered w-100 border-secondary border-opacity-25">
+                                    <thead class="thead-light sticky-top bg-light">
+                                    <tr>
+                                        <th>채팅ID</th>
+                                        <th>보낸사람</th>
+                                        <th>내용</th>
+                                        <th>보낸일자</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#chats}}
+                                        <tr>
+                                            <td>{{id}}</td>
+                                            <td>{{senderName}}</td>
+                                            <td>{{content}}</td>
+                                            <td>{{sentAt}}</td>
+                                        </tr>
+                                    {{/chats}}
+                                    </tbody>
+                                </table>
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+
+                            </div>
+                            <!-- /.card-footer-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Control Sidebar (optional) -->
+    <aside class="control-sidebar control-sidebar-dark">
+    </aside>
+    <!-- /.control-sidebar -->
+</div>
+
+<!-- REQUIRED SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+
+<script>
+    $(document).on('click', '.chat-member', function() {
+            const memberId = $(this).data('member-id');
+            const groupId = $(this).data('group-id'); // 새로 추가
+
+            // 클릭된 카드 강조
+            $('.chat-member').removeClass('active');
+            $(this).addClass('active');
+
+            // Ajax 요청
+            $.ajax({
+                url: `/api/admin/chat-list/${groupId}/${memberId}`,
+                method: 'GET',
+                success: function(data) {
+                    const chats = Array.isArray(data) ? data : data.chats;
+    if (!Array.isArray(chats)) {
+        console.error('채팅 데이터가 배열이 아님:', data);
+        return;
+    }
+
+                    const tbody = $('.direct-chat table tbody');
+                    tbody.empty();
+                    data.forEach(chat => {
+                        tbody.append(`
+                            <tr>
+                                <td>${chat.id}</td>
+                                <td>${chat.senderName}</td>
+                                <td>${chat.content}</td>
+                                <td>${chat.sentAt}</td>
+                            </tr>
+                        `);
+                    });
+                },
+                error: function() {
+                    alert('채팅 내역을 불러오는 중 오류가 발생했습니다.');
+                }
+            });
+        });
+
+</script>
+
+</body>
+</html>

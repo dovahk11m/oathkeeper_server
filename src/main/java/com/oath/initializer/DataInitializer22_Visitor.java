@@ -8,12 +8,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
 @Order(22)
 public class DataInitializer22_Visitor implements CommandLineRunner {
@@ -21,6 +23,7 @@ public class DataInitializer22_Visitor implements CommandLineRunner {
     private final VisitorRepository visitorRepository;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 방문자 데이터 생성 시작");
 

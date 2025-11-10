@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("local")
+@Profile("prod")
 @Order(0)
 public class DataInitializer0_Cleanup implements CommandLineRunner {
 

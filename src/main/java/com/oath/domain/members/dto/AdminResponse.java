@@ -1,6 +1,7 @@
 package com.oath.domain.members.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oath.domain.chats.Chat;
 import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
@@ -136,6 +137,44 @@ public class AdminResponse {
             return new groupListDto(group);
         }
     }
+
+    @Data
+    public static class ChatDto {
+        private Long id;
+        private Long groupId;
+        private Long memberId;
+        private String senderName;
+        private String content;
+        private LocalDateTime sentAt;
+
+        public ChatDto(Chat chat) {
+            this.id = chat.getId();
+            this.groupId = chat.getGroup().getId();
+            this.memberId = chat.getSender().getId();
+            this.senderName = chat.getSender().getUsername();
+            this.content = chat.getContent();
+            this.sentAt = chat.getSentAt();
+        }
+
+        public static ChatDto from(Chat chat) {return new ChatDto(chat);}
+    }
+
+    @Data
+    public static class ChatMemberDto{
+        private Long id;
+        private String username;
+        private String profileImageUrl;
+        private Long groupId;
+
+        public ChatMemberDto(Long id, String username, String profileImageUrl, Long groupId) {
+            this.id = id;
+            this.username = username;
+            this.profileImageUrl = profileImageUrl;
+            this.groupId = groupId;
+        }
+    }
+
+
 
 
 }

@@ -107,6 +107,23 @@ public class AdminController {
         return "chatGrouptest";
     }
 
+    @GetMapping("/chat-list/{groupId}")
+    public String getChat(@PathVariable Long groupId, Model model) {
+        List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
+        List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
+        model.addAttribute("chats", chats);
+        model.addAttribute("chatMembers", chatMembers);
+        return "chat";
+    }
+
+    @GetMapping("/chat-list/{groupId}/{memberId}")
+    @ResponseBody
+    public List<AdminResponse.ChatDto> getChatByMember( @PathVariable Long groupId, @PathVariable Long memberId, Model model) {
+        List<AdminResponse.ChatDto> chats = adminService.chatListByMember(groupId, memberId);
+
+        return chats;
+    }
+
     @GetMapping("/active-chart")
     @ResponseBody
     public List<ActiveChartDto> getActiveChart() {
@@ -130,6 +147,8 @@ public class AdminController {
 
         return PlanTagsPie;
     }
+
+
 
 
 

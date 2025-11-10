@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Random;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
 @Order(7)
 public class DataInitializer7_PlanRandom implements CommandLineRunner {
@@ -38,6 +40,7 @@ public class DataInitializer7_PlanRandom implements CommandLineRunner {
     private final Random random = new Random();
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 플랜 & 플랜태그 랜덤 데이터 생성 시작");
 

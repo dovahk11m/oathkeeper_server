@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.Random;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
 @Order(10)
 public class DataInitializer10_PlaceTag implements CommandLineRunner {
@@ -31,6 +33,7 @@ public class DataInitializer10_PlaceTag implements CommandLineRunner {
     private final PlaceTagRepository placeTagRepository;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 PlaceTag 데이터 생성 시작");
 

@@ -71,5 +71,14 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             """)
     List<ActiveChartDto> activeChart();
 
+    @Query("""
+            SELECT new com.oath.domain.members.dto.AdminResponse$ChatMemberDto (
+                m.id, m.username, m.profileImageUrl, gm.group.id
+            )
+            FROM Member m
+            JOIN GroupMember gm ON m.id = gm.member.id
+            WHERE gm.group.id = :groupId
+            """)
+    List<AdminResponse.ChatMemberDto> chatMember(@Param("groupId") Long groupId);
 
 }

@@ -1,5 +1,7 @@
 package com.oath.domain.members.service;
 
+import com.oath.domain.chats.Chat;
+import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Member;
@@ -31,6 +33,8 @@ public class AdminService {
     private final MemberRepository memberRepository;
 
     private final GroupRepository groupRepository;
+
+    private final ChatRepository chatRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -93,4 +97,28 @@ public class AdminService {
         List<ActiveChartDto> activeChart = adminRepository.activeChart();
         return activeChart;
     }
+
+    public List<AdminResponse.ChatDto> chatList(Long groupId){
+        List<AdminResponse.ChatDto> chats = chatRepository.findByGroupIdOrderBySentAt(groupId)
+                .stream()
+                .map(m -> new AdminResponse.ChatDto(m))
+                .collect(Collectors.toList());
+        return chats;
+    }
+
+    public List<AdminResponse.ChatMemberDto> chatMember(Long groupId) {
+        List<AdminResponse.ChatMemberDto> chatMembers = adminRepository.chatMember(groupId);
+        return chatMembers;
+    }
+
+    public List<AdminResponse.ChatDto> chatListByMember (Long groupId, Long memberId){
+        List<AdminResponse.ChatDto> chats = chatRepository.findByGroup_IdAndSender_IdOrderBySentAt(groupId, memberId)
+                .stream()
+                .map(m -> new AdminResponse.ChatDto(m))
+                .collect(Collectors.toList());
+        return chats;
+    }
+
+
+
 }
