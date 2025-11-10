@@ -118,6 +118,9 @@ public class PlanService {
                 .plan(plan)
                 .member(member)
                 .participantStatus(ParticipantStatus.PENDING)
+                .startAddress(member.getDefaultAddress())
+                .startLatitude(member.getDefaultLat())
+                .startLongitude(member.getDefaultLng())
                 .build();
         Participant saved = participantRepository.save(participant);
         plan.getParticipants().add(saved);

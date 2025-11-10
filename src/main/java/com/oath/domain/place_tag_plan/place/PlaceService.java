@@ -4,6 +4,7 @@ import com.oath.common.exception.Exception404;
 import com.oath.domain.map.google.GoogleMapService;
 import com.oath.domain.map.google.dto.GoogleMapRequest;
 import com.oath.domain.map.google.dto.GoogleMapResponse;
+import com.oath.domain.place_tag_plan.place.dto.PlaceResponse;
 import com.oath.domain.place_tag_plan.place_tag.PlaceTag;
 import com.oath.domain.place_tag_plan.place_tag.PlaceTagRepository;
 import com.oath.domain.place_tag_plan.tag.Tag;
@@ -17,7 +18,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,7 +51,7 @@ public class PlaceService {
     }
 
     @Transactional // DTO 변환 시 placeTags를 지연 로딩해야 하므로 readOnly = false로 변경
-    public GoogleMapResponse findRecommendedPlaces(Long planId, List<String> tagNames) {
+    public PlaceResponse.RecommendListPlace findRecommendedPlaces(Long planId, List<String> tagNames) {
         log.info("장소 추천 시작: planId={}, tagNames={}", planId, tagNames);
 
         // 1. planId로 Plan을 찾아 참여 인원 수(m)를 파악합니다.
@@ -80,7 +84,51 @@ public class PlaceService {
             log.info("DB 조회 완료. 추천된 장소 개수: {}", recommendedPlaces.size());
 
             // 4. 조회된 place 엔티티 목록과 참여자 목록으로 Google Matrix API 호출
-            return matrixHelper(plan, recommendedPlaces);
+            GoogleMapResponse googleMapResponse = matrixHelper(plan, recommendedPlaces);
+
+            // 5. 응답받은 Matrix API로 각각 기준에 맞게 계산해서 장소 두개만 반환
+
+            // 일단 response 에서 Elements 저장
+            List<GoogleMapResponse.GoogleMapRouteMatrixElement> elements = googleMapResponse.matrixElements();
+
+            // 1. 최소 이동 거리 합 지점 구하기
+            Place matchPlace = null;
+            Long minDistance = 0L;
+            Long distance = 0L;
+            for (int i = 0; i < recommendedPlaces.size(); i++) {
+                for (int j = 0; j < elements.size(); j++) {
+                    distance += elements.get(j).distanceMeters();
+
+                    if (j == (elements.size() / recommendedPlaces.size()) - 1) {
+                        if (minDistance == 0 || (i > 0 && distance < minDistance)) {
+                            minDistance = distance;
+                            matchPlace = recommendedPlaces.get(i);
+                        }
+
+                        distance = 0L;
+                    }
+                }
+            }
+
+            List<PlaceResponse.RecommendDetailPlace> centerOfMinimumAggregatePlace =
+                    elements.stream().map((element) -> {
+
+
+                        if () {
+
+
+                            return PlaceResponse.RecommendDetailPlace.builder()
+                                    .participant(plan.getParticipants().get(element.originIndex().intValue()))
+                                    .destination(matchPlace)
+                                    .distance(element.distanceMeters())
+                                    .duration(element.duration())
+                                    .build();
+                        }
+                    }).toList();
+
+            return PlaceResponse.RecommendListPlace.builder()
+                    .recommendedPlaces(centerOfMinimumAggregatePlace)
+                    .build();
 
             // 4. 조회된 Place 엔티티 목록을 PlaceResponseDto 목록으로 변환합니다.
             // 이 과정에서 place.getPlaceTags()가 호출되며, 지연 로딩된 데이터가 조회됩니다.
