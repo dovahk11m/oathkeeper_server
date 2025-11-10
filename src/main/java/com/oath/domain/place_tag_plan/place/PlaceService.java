@@ -59,7 +59,7 @@ public class PlaceService {
         // 3. Repository에서 정렬된 장소 목록을 Pageable을 이용해 제한된 개수만큼 가져옵니다.
         return placeRepository.findPlacesByTagsOrderedByMatchCount(
                 tagNames,
-                PageRequest.of(0, maxPlaceCount)
+                (java.awt.print.Pageable) PageRequest.of(0, maxPlaceCount)
         );
     }
 
@@ -71,7 +71,9 @@ public class PlaceService {
 
     public List<String> autocompletePlaceNames(String prefix) {
         Pageable limit = PageRequest.of(0, 10); // 최대 10개까지 결과 제한
-        List<Place> places = placeRepository.findByNameStartingWith(prefix, limit);
+        List<Place> places = placeRepository.findByNameStartingWith(prefix,
+                                                                    (java.awt.print.Pageable) limit
+        );
         return places.stream()
                 .map(Place::getName)
                 .collect(Collectors.toList());
