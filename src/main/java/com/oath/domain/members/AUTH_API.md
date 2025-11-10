@@ -217,7 +217,7 @@ This document outlines the API specifications for member authentication.
 
 -   **HTTP Method**: `POST`
 -   **URL**: `/api/member/kakao/token`
--   **Description**: Logs in or signs up a member using a Kakao Access Token from a mobile SDK.
+-   **Description**: Logs in or signs up a member using a Kakao Access Token from a mobile SDK. Email is an optional field.
 -   **Request Body**:
     ```json
     {
@@ -233,7 +233,7 @@ This document outlines the API specifications for member authentication.
             "member": {
                 "id": 2,
                 "username": "kakao_nickname",
-                "email": "kakao_email@example.com",
+                "email": "kakao_email@example.com", // Can be null
                 "socialType": "KAKAO",
                 "role": "USER",
                 "status": "ACTIVE"
@@ -243,7 +243,7 @@ This document outlines the API specifications for member authentication.
     }
     ```
 -   **Error Responses**:
-    -   **400 Bad Request**: If the Kakao Access Token is invalid or the user has not consented to provide their email.
+    -   **400 Bad Request**: If the Kakao Access Token is invalid.
         ```json
         {
             "success": false,
@@ -251,36 +251,12 @@ This document outlines the API specifications for member authentication.
             "message": "유효하지 않은 카카오 액세스 토큰입니다."
         }
         ```
-        // 또는
-        ```json
-        {
-            "success": false,
-            "data": null,
-            "message": "필수 정보인 이메일이 누락되었습니다. 카카오 로그인 시 '카카오계정(이메일)' 제공에 동의해주세요."
-        }
-        ```
     -   **401 Unauthorized**: If the member's account status prevents login after social authentication.
         ```json
         {
             "success": false,
             "data": null,
-            "message": "이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요."
-        }
-        ```
-        // 또는
-        ```json
-        {
-            "success": false,
-            "data": null,
             "message": "사용이 중지된 계정입니다."
-        }
-        ```
-        // 또는
-        ```json
-        {
-            "success": false,
-            "data": null,
-            "message": "휴면계정입니다. 다시 로그인하여 활성화해주세요."
         }
         ```
     -   **500 Internal Server Error**: If an unexpected error occurs during social login processing or communication with Kakao API.
@@ -343,23 +319,7 @@ This document outlines the API specifications for member authentication.
         {
             "success": false,
             "data": null,
-            "message": "이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요."
-        }
-        ```
-        // 또는
-        ```json
-        {
-            "success": false,
-            "data": null,
             "message": "사용이 중지된 계정입니다."
-        }
-        ```
-        // 또는
-        ```json
-        {
-            "success": false,
-            "data": null,
-            "message": "휴면계정입니다. 다시 로그인하여 활성화해주세요."
         }
         ```
     -   **500 Internal Server Error**: If an unexpected error occurs during social login processing or communication with Facebook API.

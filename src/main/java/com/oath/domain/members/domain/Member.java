@@ -30,7 +30,7 @@ public class Member {
 
     private String profileImageUrl;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
     private String password;

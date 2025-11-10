@@ -190,7 +190,7 @@ public class MemberController {
     @Operation(summary = "카카오 로그인 (SDK용)", description = "모바일 SDK에서 발급받은 카카오 액세스 토큰으로 로그인 또는 회원가입을 처리합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "카카오 로그인 성공"),
-            @ApiResponse(responseCode = "400", description = "유효하지 않은 카카오 액세스 토큰 또는 이메일 동의 필요"),
+            @ApiResponse(responseCode = "400", description = "유효하지 않은 카카오 액세스 토큰"),
             @ApiResponse(responseCode = "401", description = "계정 상태에 따른 로그인 제한"),
             @ApiResponse(responseCode = "500", description = "카카오 서버 연동 오류")
     })
@@ -205,21 +205,26 @@ public class MemberController {
 
         KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
 
-        if (kakaoProfileDto.getKakao_account() == null || kakaoProfileDto.getKakao_account().getEmail() == null) {
-            throw new Exception400("필수 정보인 이메일이 누락되었습니다. 카카오 로그인 시 '카카오계정(이메일)' 제공에 동의해주세요.");
-        }
-
         Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
 
         if (originalMember == null) {
             String nickname = "사용자";
-            if (kakaoProfileDto.getKakao_account().getProfile() != null && kakaoProfileDto.getKakao_account().getProfile().getNickname() != null) {
-                nickname = kakaoProfileDto.getKakao_account().getProfile().getNickname();
+            String email = null;
+
+            if (kakaoProfileDto.getKakao_account() != null) {
+                email = kakaoProfileDto.getKakao_account().getEmail();
+                if (kakaoProfileDto.getKakao_account().getProfile() != null && kakaoProfileDto.getKakao_account().getProfile().getNickname() != null) {
+                    nickname = kakaoProfileDto.getKakao_account().getProfile().getNickname();
+                }
+            }
+            
+            if (email == null || email.isBlank()) {
+                email = kakaoProfileDto.getId() + "@kakao.oath.com";
             }
 
             originalMember = memberService.createOauth(
                     kakaoProfileDto.getId(),
-                    kakaoProfileDto.getKakao_account().getEmail(),
+                    email,
                     SocialType.KAKAO,
                     nickname
             );
