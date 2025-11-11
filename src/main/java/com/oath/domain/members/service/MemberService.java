@@ -14,6 +14,7 @@ import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.memberEvent.MemberSignupEvent;
+import com.oath.domain.members.memberEvent.SocialSignupEvent;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.terms.TermService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -54,6 +54,7 @@ public class MemberService {
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
                 .role(Role.USER)
                 .status(Status.INACTIVE)
+                .socialType(SocialType.LOCAL)
                 .lastLogin(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -63,7 +64,7 @@ public class MemberService {
 
         termService.agreeTerms(memberCreateDto.getAgreedTermIds(), savedMember);
 
-        // 이벤트 발행
+        // 이메일 가입 이벤트 발행
         eventPublisher.publishEvent(new MemberSignupEvent(savedMember.getEmail(), savedMember.getUsername(), savedMember.getEmailVerificationToken()));
 
         return savedMember;
@@ -105,7 +106,7 @@ public class MemberService {
         cacheManager.getCache("blacklistedTokens").put(token, remainingExpiration);
     }
 
-    public Member postLogin(Member member) {
+    public void postLogin(Member member) {
         if(member.getStatus() == Status.INACTIVE) {
             throw new Exception401("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
         }
@@ -121,8 +122,6 @@ public class MemberService {
 
         member.setLastLogin(LocalDateTime.now());
         memberRepository.save(member);
-
-        return member;
     }
 
     public Member getMemberBySocialId(String socialId){
@@ -140,8 +139,12 @@ public class MemberService {
                 .lastLogin(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();
-        memberRepository.save(member);
-        return member;
+        Member savedMember = memberRepository.save(member);
+
+        // 소셜 가입 이벤트 발행
+        eventPublisher.publishEvent(new SocialSignupEvent(savedMember));
+
+        return savedMember;
     }
 
     @Transactional(readOnly = true)
@@ -162,7 +165,7 @@ public class MemberService {
 
     public void updatePassword(Long memberId, MemberRequest.PasswordUpdate request) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
+                .orElseThrow(() -> new Exception404("현재 비밀번호가 일치하지 않습니다."));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
             throw new Exception400("현재 비밀번호가 일치하지 않습니다.");

@@ -256,9 +256,14 @@ public class MemberController {
         FacebookProfileDto facebookProfileDto = facebookService.getFacebookProfile(accessTokenDto.getAccess_token());
         Member originalMember = memberService.getMemberBySocialId(facebookProfileDto.getId());
         if (originalMember == null) {
+            String email = facebookProfileDto.getEmail();
+            if (email == null || email.isBlank()) {
+                email = facebookProfileDto.getId() + "@facebook.oath.com";
+            }
+            
             originalMember = memberService.createOauth(
                     facebookProfileDto.getId(),
-                    facebookProfileDto.getEmail(),
+                    email,
                     SocialType.FACEBOOK,
                     facebookProfileDto.getName()
             );
