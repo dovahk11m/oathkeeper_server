@@ -108,14 +108,16 @@ public class PlaceService {
 
         // 1. elements 리스트를 한 번만 순회하며 두 개의 Map을 채웁니다.
         for (GoogleMapResponse.GoogleMapRouteMatrixElement element : elements) {
-            int destIndex = element.destinationIndex().intValue();
-            long distance = element.distanceMeters();
+            if (element.condition().equals(GoogleMapResponse.GoogleMapRouteMatrixElement.Condition.ROUTE_EXISTS)) {
+                int destIndex = element.destinationIndex().intValue();
+                long distance = element.distanceMeters();
 
-            // 1-1. 거리 총합 계산
-            distanceSumsPerPlace.put(destIndex, distanceSumsPerPlace.getOrDefault(destIndex, 0L) + distance);
+                // 1-1. 거리 총합 계산
+                distanceSumsPerPlace.put(destIndex, distanceSumsPerPlace.getOrDefault(destIndex, 0L) + distance);
 
-            // 1-2. 최대 거리 계산 (기존 값과 비교하여 더 큰 값으로 갱신)
-            maxDistancePerPlace.put(destIndex, Math.max(maxDistancePerPlace.getOrDefault(destIndex, 0L), distance));
+                // 1-2. 최대 거리 계산 (기존 값과 비교하여 더 큰 값으로 갱신)
+                maxDistancePerPlace.put(destIndex, Math.max(maxDistancePerPlace.getOrDefault(destIndex, 0L), distance));
+            }
         }
 
         // 2. "최소 이동 거리 합" 장소 찾기
