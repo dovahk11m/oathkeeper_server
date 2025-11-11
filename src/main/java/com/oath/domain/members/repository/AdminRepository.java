@@ -82,12 +82,11 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
     List<AdminResponse.ChatMemberDto> chatMember(@Param("groupId") Long groupId);
 
     @Query("""
-            SELECT new com.oath.domain.members.dto.AdminResponse$PlanDto (
-                p.creatorMember.id, p.planDatetime, p.placeName, p.title
+            SELECT new com.oath.domain.members.dto.AdminResponse$PlanDto(
+                p.id, p.creatorMember.id, p.planDatetime, p.placeName, p.title, null, null
             )
             FROM Plan p
-            JOIN GroupMember gm
-            ON p.creatorMember.id = gm.member.id
+            JOIN GroupMember gm ON p.creatorMember.id = gm.member.id
             WHERE gm.group.id = :groupId
             """)
     List<AdminResponse.PlanDto> getPlanList(@Param("groupId") Long groupId);

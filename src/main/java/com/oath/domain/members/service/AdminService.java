@@ -12,7 +12,10 @@ import com.oath.domain.members.dto.AdminResponse;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
+import com.oath.domain.place_tag_plan.plan_tag.PlanTagRepository;
 import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,6 +42,10 @@ public class AdminService {
     private final ChatRepository chatRepository;
 
     private final PlanJpaRepository planJpaRepository;
+
+    private final PlanTagRepository planTagRepository;
+
+    private final ParticipantRepository participantRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -126,12 +133,25 @@ public class AdminService {
 
     public List<AdminResponse.PlanDto> getPlanList(Long groupId) {
         List<AdminResponse.PlanDto> plans = adminRepository.getPlanList(groupId);
+        for (AdminResponse.PlanDto plan : plans) {
+            // ✅ Plan의 ID를 기준으로 태그를 조회해야 함
+            List<String> tagNames = planTagRepository.findByPlanId(plan.getPlanId())
+                    .stream()
+                    .map(pt -> pt.getTag().getName())
+                    .collect(Collectors.toList());
+            plan.setTags(tagNames);
+        }
+
+        for (AdminResponse.PlanDto plan : plans) {
+            // ✅ Plan의 ID를 기준으로 태그를 조회해야 함
+            List<String> profileImageUrls = participantRepository.findByPlanId(plan.getPlanId())
+                    .stream()
+                    .map(pp -> pp.getMember().getProfileImageUrl())
+                    .collect(Collectors.toList());
+            plan.setProfileImageUrl(profileImageUrls);
+        }
+
         return plans;
     }
 
-    public List<AdminResponse.PlanDto> getPlanAndTagList(Long groupId) {
-                List<Plan> plans = planJpaRepository.findByGroupId(groupId);
-
-
-    }
 }

@@ -12,6 +12,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -177,20 +178,25 @@ public class AdminResponse {
 
     @Data
     public static class PlanDto {
+        private Long planId;       // ✅ 추가
         private Long creatorId;
         private String planDatetime;
         private String placeName;
         private String title;
-        private List<PlanTag> tags;
+        private List<String> tags;
+        private List<String> profileImageUrl;
 
-        public PlanDto(Long creatorId, LocalDateTime planDatetime, String placeName, String title, List<PlanTag> tags) {
+        public PlanDto(Long planId, Long creatorId, LocalDateTime planDatetime, String placeName, String title, List<String> tags, List<String> profileImageUrl) {
+            this.planId = planId;
             this.creatorId = creatorId;
             this.planDatetime = planDatetime != null ? planDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
             this.placeName = placeName != null ? placeName : "기록 없음";
             this.title = title;
-            this.tags = tags;
+            this.tags = tags != null ? tags : Collections.emptyList();
+            this.profileImageUrl = profileImageUrl;
         }
     }
+
 
 
 }
