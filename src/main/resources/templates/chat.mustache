@@ -16,13 +16,26 @@
 
     <style>
         body { font-family: 'Source Sans Pro', sans-serif; }
-        .chat-rooms { max-height: 70vh; overflow-y: auto; }
-        .direct-chat-messages { max-height: 60vh; overflow-y: auto; }
+        .chat-rooms {overflow-y: auto; }
+
         .content-wrapper { padding-right: 200px; }
         .chat-member.active {
     background-color: #e2e6ea;
     border-left: 4px solid #007bff;
 }
+/* 채팅 멤버 카드 */
+.chat-member {
+    cursor: pointer;
+    position: relative;
+    z-index: 1; /* 클릭 가능 영역 보장 */
+    margin-bottom: 0.5rem;
+}
+
+.chat-member.active {
+    background-color: #e2e6ea;
+    border-left: 4px solid #007bff;
+}
+
 /* ✅ content 안의 row를 강제로 가로 정렬 */
 .content-wrapper .container-fluid > .row {
     display: flex;
@@ -43,10 +56,19 @@
 
 /* ✅ 카드 높이 고정 */
 .chat-rooms,
-.direct-chat {
-    height: 75vh;
+.direct-chat,
+.plan {
+    height: 60vh;
     overflow-y: auto;
 }
+.plan .card-body {
+    padding: 0; /* 카드 바디 패딩 제거 */
+}
+.plan table {
+    margin: 0; /* 테이블 여백 제거 */
+}
+
+
 
 
     </style>
@@ -127,12 +149,12 @@
                 <div class="row">
                     <!-- 좌측: 방 목록 -->
                     <div class="col-md-3">
-                        <div class="card h-100">
+                        <div class="card chat-rooms">
                             <div class="card-header">
                                 <h3 class="card-title">채팅 멤버</h3>
                             </div>
 
-                            <div class="card-body chat-rooms">
+                            <div class="card-body">
                                 {{#chatMembers}}
                                     <div class="card mb-2 shadow-sm chat-member" data-member-id="{{id}}" data-group-id="{{groupId}}">
                                         <div class="card-body p-2 d-flex align-items-center">
@@ -162,9 +184,9 @@
                             </div>
                             <!-- /.card-header -->
 
-                                <!-- Conversations are loaded here -->
+                            <!-- Conversations are loaded here -->
 
-                            <div class="card-body overflow-auto" style="max-height: 60vh;">
+                            <div class="card-body overflow-auto">
                                 <table class="table table-bordered w-100 border-secondary border-opacity-25">
                                     <thead class="thead-light sticky-top bg-light">
                                     <tr>
@@ -185,11 +207,59 @@
                                     {{/chats}}
                                     </tbody>
                                 </table>
-                            <!-- /.card-body -->
-                            <div class="card-footer">
+                                <!-- /.card-body -->
+                                <div class="card-footer">
 
+                                </div>
+                                <!-- /.card-footer-->
                             </div>
-                            <!-- /.card-footer-->
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card plan">
+                            <div class="card-header">
+                                <h3 class="card-title">플랜</h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+
+                            <!-- Conversations are loaded here -->
+
+                            <div class="card-body overflow-auto">
+                                <table class="table table-bordered w-100 border-secondary border-opacity-25">
+                                    <thead class="thead-light sticky-top bg-light">
+                                    <tr>
+                                        <th>생성자ID</th>
+                                        <th>플랜시각</th>
+                                        <th>장소이름</th>
+                                        <th>제목</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#plans}}
+                                        <tr>
+                                            <td>{{creatorId}}</td>
+                                            <td>{{planDatetime}}</td>
+                                            <td>{{placeName}}</td>
+                                            <td>{{title}}</td>
+                                        </tr>
+                                    {{/plans}}
+                                    </tbody>
+                                </table>
+                                <!-- /.card-body -->
+                                <div class="card-footer">
+
+                                </div>
+                                <!-- /.card-footer-->
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -211,43 +281,47 @@
 
 
 <script>
+    // chat-member 클릭 이벤트 (delegation 유지)
     $(document).on('click', '.chat-member', function() {
-            const memberId = $(this).data('member-id');
-            const groupId = $(this).data('group-id'); // 새로 추가
+        const memberId = $(this).data('member-id');
+        const groupId = $(this).data('group-id');
 
-            // 클릭된 카드 강조
-            $('.chat-member').removeClass('active');
-            $(this).addClass('active');
+        // 클릭된 카드 강조
+        $('.chat-member').removeClass('active');
+        $(this).addClass('active');
 
-            // Ajax 요청
-            $.ajax({
-                url: `/api/admin/chat-list/${groupId}/${memberId}`,
-                method: 'GET',
-                success: function(data) {
-                    const chats = Array.isArray(data) ? data : data.chats;
-    if (!Array.isArray(chats)) {
-        console.error('채팅 데이터가 배열이 아님:', data);
-        return;
-    }
+        console.log('클릭됨!', memberId, groupId); // 디버깅용
 
-                    const tbody = $('.direct-chat table tbody');
-                    tbody.empty();
-                    data.forEach(chat => {
-                        tbody.append(`
-                            <tr>
-                                <td>${chat.id}</td>
-                                <td>${chat.senderName}</td>
-                                <td>${chat.content}</td>
-                                <td>${chat.sentAt}</td>
-                            </tr>
-                        `);
-                    });
-                },
-                error: function() {
-                    alert('채팅 내역을 불러오는 중 오류가 발생했습니다.');
+        // Ajax 요청
+        $.ajax({
+            url: `/api/admin/chat-list/${groupId}/${memberId}`,
+            method: 'GET',
+            success: function(data) {
+                const chats = Array.isArray(data) ? data : data.chats;
+                if (!Array.isArray(chats)) {
+                    console.error('채팅 데이터가 배열이 아님:', data);
+                    return;
                 }
-            });
+
+                const tbody = $('.direct-chat table tbody');
+                tbody.empty();
+                chats.forEach(chat => {
+                    tbody.append(`
+                        <tr>
+                            <td>${chat.id}</td>
+                            <td>${chat.senderName}</td>
+                            <td>${chat.content}</td>
+                            <td>${chat.sentAt}</td>
+                        </tr>
+                    `);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('채팅 내역 로딩 실패', status, error, xhr.responseText);
+            }
         });
+    });
+
 
 </script>
 

@@ -20,4 +20,6 @@ public interface PlanJpaRepository extends JpaRepository<Plan, Long> {
             "where p.creatorMember.id = :memberId or exists (select 1 from Participant pt where pt.plan = p and pt.member.id = :memberId)")
     List<Plan> findAllByCreatorOrParticipant(@Param("memberId") Long memberId);
 
+    List<Plan> findByGroupId(Long groupId);
+
 }

@@ -12,6 +12,8 @@ import com.oath.domain.members.dto.AdminResponse;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +37,8 @@ public class AdminService {
     private final GroupRepository groupRepository;
 
     private final ChatRepository chatRepository;
+
+    private final PlanJpaRepository planJpaRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -120,5 +124,14 @@ public class AdminService {
     }
 
 
+    public List<AdminResponse.PlanDto> getPlanList(Long groupId) {
+        List<AdminResponse.PlanDto> plans = adminRepository.getPlanList(groupId);
+        return plans;
+    }
 
+    public List<AdminResponse.PlanDto> getPlanAndTagList(Long groupId) {
+                List<Plan> plans = planJpaRepository.findByGroupId(groupId);
+
+
+    }
 }

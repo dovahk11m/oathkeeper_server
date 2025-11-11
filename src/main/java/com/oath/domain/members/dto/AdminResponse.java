@@ -7,6 +7,7 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.domain.Status;
+import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -174,7 +175,22 @@ public class AdminResponse {
         }
     }
 
+    @Data
+    public static class PlanDto {
+        private Long creatorId;
+        private String planDatetime;
+        private String placeName;
+        private String title;
+        private List<PlanTag> tags;
 
+        public PlanDto(Long creatorId, LocalDateTime planDatetime, String placeName, String title, List<PlanTag> tags) {
+            this.creatorId = creatorId;
+            this.planDatetime = planDatetime != null ? planDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
+            this.placeName = placeName != null ? placeName : "기록 없음";
+            this.title = title;
+            this.tags = tags;
+        }
+    }
 
 
 }

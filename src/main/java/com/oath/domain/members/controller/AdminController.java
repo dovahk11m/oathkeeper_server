@@ -111,6 +111,8 @@ public class AdminController {
     public String getChat(@PathVariable Long groupId, Model model) {
         List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
         List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
+        List<AdminResponse.PlanDto> plans = adminService.getPlanList(groupId);
+        model.addAttribute("plans", plans);
         model.addAttribute("chats", chats);
         model.addAttribute("chatMembers", chatMembers);
         return "chat";
@@ -147,9 +149,6 @@ public class AdminController {
 
         return PlanTagsPie;
     }
-
-
-
 
 
 }
