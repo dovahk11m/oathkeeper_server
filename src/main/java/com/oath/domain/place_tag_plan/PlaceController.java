@@ -54,7 +54,7 @@ public class PlaceController {
     @Operation(summary = "모든 태그 리스트 가져오기", description = "입력된 접두사로 시작하는 태그 이름 목록을 반환합니다.")
     @GetMapping("/with-tags")
     public ResponseEntity<CommonResponse<List<String>>> autocompleteTagNames(
-            @Parameter(description = "검색어 접두사", required = true) @RequestParam("prefix") String prefix) {
+            @Parameter(description = "검색어 접두사", required = true) @RequestParam(name = "prefix") String prefix) {
         List<String> names = tagService.autocompleteTagNames(prefix);
         return ResponseEntity.ok(CommonResponse.success(names, "태그 이름 자동 완성 성공"));
     }
