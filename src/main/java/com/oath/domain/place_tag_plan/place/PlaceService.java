@@ -19,7 +19,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -157,7 +159,7 @@ public class PlaceService {
                     .toList();
         } else {
             // 예외 케이스: (Matrix API가 결과를 반환했지만 맵이 비어있는 등)
-            centerAvgPlaceList = List.of();
+            throw new Exception404("Google Matrix API 응답이 들어왔지만 객체가 비어있습니다.");
         }
 
         List<PlaceResponse.RecommendDetailPlace> equalAvgPlaceList;
