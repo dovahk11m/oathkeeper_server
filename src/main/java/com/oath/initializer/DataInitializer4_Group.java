@@ -17,6 +17,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -36,16 +37,22 @@ public class DataInitializer4_Group implements CommandLineRunner {
 
         Member user1 = memberRepository.findByEmail("user1@test.com").orElseThrow();
         Member user2 = memberRepository.findByEmail("user2@test.com").orElseThrow();
+        Member user3 = memberRepository.findByEmail("user3@test.com").orElseThrow();
+        Member user4 = memberRepository.findByEmail("user4@test.com").orElseThrow();
+        Member user5 = memberRepository.findByEmail("user5@test.com").orElseThrow();
+
+        List<Member> memberList = List.of(user2, user3, user4, user5);
 
         Group sampleGroup = groupService.createGroup(
                 new GroupCreateRequest("샘플 그룹"),
                 user1.getEmail()
         );
 
-        groupMemberRepository.save(GroupMember.of(
-                sampleGroup,
-                user2
-        ));
+        groupMemberRepository.saveAll(
+                memberList.stream().map((member) -> {
+                    return GroupMember.of(sampleGroup, member);
+                }).toList()
+        );
 
         chatRepository.save(new Chat(
                 null,
