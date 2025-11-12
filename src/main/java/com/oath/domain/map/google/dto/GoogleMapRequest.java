@@ -55,6 +55,7 @@ public record GoogleMapRequest(
 
         // 3. departureTime 검증
         if (arrivalTime == null) throw new Exception400("도착 시간은 필수입니다.");
+        System.out.println(arrivalTime);
 
         try {
             OffsetDateTime.parse(arrivalTime);
@@ -101,13 +102,11 @@ public record GoogleMapRequest(
             );
         }).toList();
 
-        String testTime = "2025-11-13 14:00";
-
         return new GoogleMapRequest(origins,
                 destinations,
                 null,
                 null,
-                testTime,
+                plan.getPlanDatetime().toString(),
                 null,
                 null);
     }
