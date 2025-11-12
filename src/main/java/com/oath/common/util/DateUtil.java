@@ -72,6 +72,8 @@ public class DateUtil {
         if (time == null)
             throw new Exception400("시간은 필수입니다.");
 
+        time = time.replace("T", " ");
+
         try {
             LocalDateTime localDateTime = LocalDateTime.parse(time, DATETIME_MATRIX_FORMATTER);
             ZonedDateTime zonedDateTimeKST = localDateTime.atZone(USER_TIMEZONE);
