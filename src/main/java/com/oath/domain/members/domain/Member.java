@@ -28,6 +28,7 @@ public class Member {
     @Column(nullable = false)
     private String username;
 
+    @Lob
     private String profileImageUrl;
 
     @Column(unique = true)

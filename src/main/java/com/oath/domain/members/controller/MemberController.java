@@ -217,7 +217,7 @@ public class MemberController {
                     nickname = kakaoProfileDto.getKakao_account().getProfile().getNickname();
                 }
             }
-            
+
             if (email == null || email.isBlank()) {
                 email = kakaoProfileDto.getId() + "@kakao.oath.com";
             }
@@ -260,7 +260,7 @@ public class MemberController {
             if (email == null || email.isBlank()) {
                 email = facebookProfileDto.getId() + "@facebook.oath.com";
             }
-            
+
             originalMember = memberService.createOauth(
                     facebookProfileDto.getId(),
                     email,
@@ -282,8 +282,8 @@ public class MemberController {
     })
     @PostMapping("/profile/upload/{memberId}")
     public ResponseEntity<?> uploadProfileImage(
-            @Parameter(description = "업로드할 프로필 이미지 파일", required = true) @RequestParam("image") MultipartFile image,
-            @Parameter(description = "이미지를 업로드할 회원의 ID", required = true) @PathVariable Long memberId) {
+            @Parameter(description = "업로드할 프로필 이미지 파일", required = true) @RequestParam(name = "image") MultipartFile image,
+            @Parameter(description = "이미지를 업로드할 회원의 ID", required = true) @PathVariable(name = "memberId") Long memberId) {
         try {
             String imageUrl = memberService.uploadProfileImage(image, memberId);
             return new ResponseEntity<>(CommonResponse.success(imageUrl), HttpStatus.OK);
