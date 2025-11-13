@@ -11,11 +11,13 @@ public class MemberResponse {
     @Data
     public static class DTO {
         private Long id;
+        private String profileImageUrl;
         private String username;
         private String email;
 
         public DTO(Member member) {
             this.id = member.getId();
+            this.profileImageUrl = member.getProfileImageUrl();
             this.username = member.getUsername();
             this.email = member.getEmail();
         }
