@@ -2,9 +2,19 @@ package com.oath.domain.place_tag_plan.place;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,6 +22,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PlaceAdminService {
+
+    @Value("${kakao.rest-api-key}")
+    private String kakaoApiKey;
+
+    private final RestTemplate restTemplate;
 
     private final PlaceRepository placeRepository;
 
@@ -65,5 +80,33 @@ public class PlaceAdminService {
     public Place findPlaceById(Long placeId) {
         return placeRepository.findById(placeId)
                 .orElseThrow(() -> new EntityNotFoundException("Place not found with id: " + placeId));
+    }
+
+    public PlaceResponseDto.PlaceDto searchPlace(String keyword) {
+        String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query="
+                + UriUtils.encode(keyword, StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<PlaceResponseDto.PlaceDto> response =
+                restTemplate.exchange(url, HttpMethod.GET, entity, PlaceResponseDto.PlaceDto.class);
+
+        return response.getBody();
+
+
+    }
+
+    public Place savePlace(PlaceRequestDto.PlaceDto reqDto) {
+        Place place = Place.builder()
+                .name(reqDto.getName())
+                .address(reqDto.getAddress())
+                .lat(reqDto.getLatitude())
+                .lng(reqDto.getLongitude())
+                .build();
+
+        return placeRepository.save(place);
     }
 }

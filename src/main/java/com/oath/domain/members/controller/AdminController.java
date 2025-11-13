@@ -130,9 +130,30 @@ public class AdminController {
     @ResponseBody
     public List<ActiveChartDto> getActiveChart() {
         List<ActiveChartDto> activeChart = adminService.activeCharts();
-        activeChart.add(new ActiveChartDto(9,0,12L));
-        activeChart.add(new ActiveChartDto(10,0,7L));
-        activeChart.add(new ActiveChartDto(14,1,10L));
+        activeChart.add(new ActiveChartDto(0, 1, 5L));
+        activeChart.add(new ActiveChartDto(1, 1, 3L));
+        activeChart.add(new ActiveChartDto(2, 2, 7L));
+        activeChart.add(new ActiveChartDto(3, 2, 2L));
+        activeChart.add(new ActiveChartDto(4, 3, 6L));
+        activeChart.add(new ActiveChartDto(5, 3, 8L));
+        activeChart.add(new ActiveChartDto(6, 4, 12L));
+        activeChart.add(new ActiveChartDto(7, 4, 20L));
+        activeChart.add(new ActiveChartDto(8, 5, 15L));
+        activeChart.add(new ActiveChartDto(9, 5, 18L));
+        activeChart.add(new ActiveChartDto(10, 6, 10L));
+        activeChart.add(new ActiveChartDto(11, 6, 9L));
+        activeChart.add(new ActiveChartDto(12, 7, 14L));
+        activeChart.add(new ActiveChartDto(13, 7, 16L));
+        activeChart.add(new ActiveChartDto(14, 1, 10L));
+        activeChart.add(new ActiveChartDto(15, 2, 8L));
+        activeChart.add(new ActiveChartDto(16, 3, 6L));
+        activeChart.add(new ActiveChartDto(17, 4, 4L));
+        activeChart.add(new ActiveChartDto(18, 5, 7L));
+        activeChart.add(new ActiveChartDto(19, 6, 11L));
+        activeChart.add(new ActiveChartDto(20, 7, 13L));
+        activeChart.add(new ActiveChartDto(21, 1, 9L));
+        activeChart.add(new ActiveChartDto(22, 2, 5L));
+        activeChart.add(new ActiveChartDto(23, 3, 3L));
         return activeChart;
     }
 
@@ -149,6 +170,10 @@ public class AdminController {
 
         return PlanTagsPie;
     }
+
+
+
+
 
 
 }

@@ -134,7 +134,6 @@ public class AdminService {
     public List<AdminResponse.PlanDto> getPlanList(Long groupId) {
         List<AdminResponse.PlanDto> plans = adminRepository.getPlanList(groupId);
         for (AdminResponse.PlanDto plan : plans) {
-            // ✅ Plan의 ID를 기준으로 태그를 조회해야 함
             List<String> tagNames = planTagRepository.findByPlanId(plan.getPlanId())
                     .stream()
                     .map(pt -> pt.getTag().getName())
@@ -143,7 +142,6 @@ public class AdminService {
         }
 
         for (AdminResponse.PlanDto plan : plans) {
-            // ✅ Plan의 ID를 기준으로 태그를 조회해야 함
             List<String> profileImageUrls = participantRepository.findByPlanId(plan.getPlanId())
                     .stream()
                     .map(pp -> pp.getMember().getProfileImageUrl())

@@ -1,6 +1,7 @@
 package com.oath.domain.place_tag_plan.place;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin/places")
+@RequestMapping("/api/admin/places")
 public class PlaceAdminController {
 
     private final PlaceAdminService placeAdminService;
@@ -68,5 +69,17 @@ public class PlaceAdminController {
         placeAdminService.deletePlace(placeId);
         redirectAttributes.addFlashAttribute("message", "장소가 성공적으로 삭제되었습니다.");
         return "redirect:/admin/places";
+    }
+
+    @GetMapping("/search")
+    public String searchPlace(@RequestParam String keyword) {
+        PlaceResponseDto.PlaceDto place = placeAdminService.searchPlace(keyword);
+        return "place";
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<?> savePlace(@RequestBody PlaceRequestDto.PlaceDto requestDto) {
+        Place place = placeAdminService.savePlace(requestDto);
+        return ResponseEntity.ok(place);
     }
 }

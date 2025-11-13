@@ -147,7 +147,7 @@ public class AdminResponse {
         private Long memberId;
         private String senderName;
         private String content;
-        private LocalDateTime sentAt;
+        private String sentAt;
 
         public ChatDto(Chat chat) {
             this.id = chat.getId();
@@ -155,7 +155,7 @@ public class AdminResponse {
             this.memberId = chat.getSender().getId();
             this.senderName = chat.getSender().getUsername();
             this.content = chat.getContent();
-            this.sentAt = chat.getSentAt();
+            this.sentAt = chat.getSentAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         }
 
         public static ChatDto from(Chat chat) {return new ChatDto(chat);}
@@ -178,13 +178,14 @@ public class AdminResponse {
 
     @Data
     public static class PlanDto {
-        private Long planId;       // ✅ 추가
+        private Long planId;
         private Long creatorId;
         private String planDatetime;
         private String placeName;
         private String title;
         private List<String> tags;
         private List<String> profileImageUrl;
+
 
         public PlanDto(Long planId, Long creatorId, LocalDateTime planDatetime, String placeName, String title, List<String> tags, List<String> profileImageUrl) {
             this.planId = planId;

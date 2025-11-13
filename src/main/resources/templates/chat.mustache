@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AdminLTE 채팅 화면 예제</title>
+    <title>Oathkeeper</title>
 
     <!-- Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700">
@@ -67,6 +67,29 @@
 .plan table {
     margin: 0; /* 테이블 여백 제거 */
 }
+.participants {
+    display: flex;
+    align-items: center;
+}
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-left: -8px;
+    border: 2px solid white;
+    object-fit: cover;
+}
+.avatar:first-child {
+    margin-left: 0; /* 첫 번째 아바타는 왼쪽 여백 제거 */
+}
+.tag {
+    bacground-color: #f1f3f5;
+    color: #333;
+    font-size:0.8rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+}
 
 
 
@@ -102,7 +125,7 @@
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
         <!-- Brand Logo -->
         <a href="#" class="brand-link">
-            <span class="brand-text font-weight-light">AdminLTE Chat</span>
+            <span class="brand-text font-weight-light">Oathkeeper</span>
         </a>
 
         <!-- Sidebar -->
@@ -137,7 +160,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">채팅 대시보드</h1>
+                        <h1 class="m-0">채팅 / 플랜 대시보드</h1>
                     </div>
                 </div>
             </div>
@@ -209,7 +232,7 @@
                                 </table>
                                 <!-- /.card-body -->
                                 <div class="card-footer">
-
+                                    <div class="mb-3"></div>
                                 </div>
                                 <!-- /.card-footer-->
                             </div>
@@ -240,6 +263,8 @@
                                         <th>플랜시각</th>
                                         <th>장소이름</th>
                                         <th>제목</th>
+                                        <th>태그</th>
+                                        <th>참가자</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -249,6 +274,16 @@
                                             <td>{{planDatetime}}</td>
                                             <td>{{placeName}}</td>
                                             <td>{{title}}</td>
+                                            <td class="tags">
+                                                {{#tags}}
+                                                    <span class="tag">{{.}}</span>
+                                                {{/tags}}
+                                            </td>
+                                            <td>
+                                                {{#profileImageUrl}}
+                                                <img src="{{.}}" class="avatar">
+                                                {{/profileImageUrl}}
+                                            </td>
                                         </tr>
                                     {{/plans}}
                                     </tbody>
@@ -321,6 +356,7 @@
             }
         });
     });
+
 
 
 </script>

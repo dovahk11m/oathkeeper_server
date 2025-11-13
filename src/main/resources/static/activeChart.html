@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AdminLTE 채팅 화면</title>
+    <title>Oathkeeper</title>
 
     <!-- Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700">
@@ -36,7 +36,7 @@
 
     <!-- Sidebar -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <a href="#" class="brand-link"><span class="brand-text font-weight-light">AdminLTE Chat</span></a>
+        <a href="#" class="brand-link"><span class="brand-text font-weight-light">Oathkeeper</span></a>
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="info"><a href="#" class="d-block">관리자</a></div>
@@ -52,7 +52,7 @@
     <!-- Content -->
     <div class="content-wrapper">
         <div class="content-header">
-            <div class="container-fluid"><h1 class="m-0">채팅 대시보드</h1></div>
+            <div class="container-fluid"><h1 class="m-0">활동량 대시보드</h1></div>
         </div>
 
         <section class="content">
@@ -74,17 +74,30 @@
                         </div>
 
                         <div class="card">
-
-                                <div class="card-header"><h3 class="card-title">활동량 색상 범례</h3></div>
-                                <div style="display:flex; gap:4px; align-items:center; flex-wrap: wrap;">
+                            <div class="card-header">
+                                <h3 class="card-title">활동량 색상 범례</h3>
+                            </div>
+                            <div class="card-body" style="display:flex; align-items:center; flex-wrap: wrap; justify-content: space-between;">
+                                <div style="flex: 1; display:flex; align-items:center; gap:4px;">
                                     <div style="width:20px; height:20px; background-color: rgba(255,99,132,0.1);"></div>0
+                                </div>
+                                <div style="flex: 1; display:flex; align-items:center; gap:4px;">
                                     <div style="width:20px; height:20px; background-color: rgba(255,99,132,0.25);"></div>25
+                                </div>
+                                <div style="flex: 1; display:flex; align-items:center; gap:4px;">
                                     <div style="width:20px; height:20px; background-color: rgba(255,99,132,0.5);"></div>50
+                                </div>
+                                <div style="flex: 1; display:flex; align-items:center; gap:4px;">
                                     <div style="width:20px; height:20px; background-color: rgba(255,99,132,0.75);"></div>75
+                                </div>
+                                <div style="flex: 1; display:flex; align-items:center; gap:4px;">
                                     <div style="width:20px; height:20px; background-color: rgba(255,99,132,1);"></div>100
                                 </div>
-
+                            </div>
                         </div>
+
+
+
                     </div>
 
                     <!-- 오른쪽: 날짜 선택 + 차트 + 표 -->
