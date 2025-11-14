@@ -198,6 +198,28 @@ public class AdminResponse {
         }
     }
 
+    @Data
+    public static class DailyTagCount {
+        private List<String> date;
+        private List<DailyTag> dailyTags;
+
+        public DailyTagCount(List<String> date, List<DailyTag> dailyTags) {
+            this.date = date;
+            this.dailyTags = dailyTags;
+        }
+
+        @Data
+        public static class DailyTag{
+            private String tagName;
+            private List<Long> count;
+
+            public DailyTag(String tagName, List<Long> count) {
+                this.tagName = tagName;
+                this.count = count;
+            }
+        }
+    }
+
 
 
 }

@@ -91,4 +91,18 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             """)
     List<AdminResponse.PlanDto> getPlanList(@Param("groupId") Long groupId);
 
+    @Query("""
+            SELECT new com.oath.domain.members.dto.AdminResponse$DailyTagCount(
+                tag, DATE(createdAt), COUNT(pt.id)
+            )
+            FROM PlanTag pt
+            WHERE createdAt BETWEEN :start AND :end
+            GROUP BY tag, DATE(createdAt)
+            ORDER BY DATE(createdAt)
+            """)
+    List<Object[]> getDailyTagCount(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
 }

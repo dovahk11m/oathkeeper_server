@@ -26,7 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -150,6 +153,32 @@ public class AdminService {
         }
 
         return plans;
+    }
+
+    public AdminResponse.DailyTagCount buildDailyTagCount(List<Object[]> rows) {
+
+        Map<String, List<Long>> tagToCounts = new LinkedHashMap<>();
+        List<String> dates = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            String tag = (String) row[0];
+            String date = row[1].toString();
+            Long count = (Long) row[2];
+
+            if(!dates.contains(date)) {
+                dates.add(date);
+            }
+
+            tagToCounts.computeIfAbsent(tag, k-> new ArrayList<>());
+            tagToCounts.get(tag).add(count);
+        }
+
+        List<AdminResponse.DailyTagCount.DailyTag> dailyTags = tagToCounts.entrySet()
+                .stream()
+                .map(e -> new AdminResponse.DailyTagCount.DailyTag(e.getKey(), e.getValue()))
+                .toList();
+
+        return new AdminResponse.DailyTagCount(dates, dailyTags);
     }
 
 }
