@@ -81,17 +81,46 @@
     }
 
     // ✅ 마커 표시
-    function displayMarker(place) {
-        const marker = new kakao.maps.Marker({
-            map: map,
-            position: new kakao.maps.LatLng(place.y, place.x)
-        });
-        const infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
-        kakao.maps.event.addListener(marker, 'click', function() {
-            infowindow.setContent('<div style="padding:5px;font-size:12px;">' + place.place_name + '</div>');
-            infowindow.open(map, marker);
-        });
-    }
+function displayMarker(place) {
+    const marker = new kakao.maps.Marker({
+        map: map,
+        position: new kakao.maps.LatLng(place.y, place.x)
+    });
+
+    const infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
+
+    kakao.maps.event.addListener(marker, 'click', function() {
+        // 말풍선 안에 저장 버튼 추가
+        const content = `
+            <div style="padding:5px;font-size:12px;">
+                ${place.place_name} <br>
+                <button onclick="savePlace('${place.place_name}', '${place.y}', '${place.x}')">저장</button>
+            </div>
+        `;
+        infowindow.setContent(content);
+        infowindow.open(map, marker);
+    });
+}
+
+// ✅ 장소 저장 함수
+function savePlace(name, lat, lng) {
+    // 1) 브라우저 로컬 저장소에 저장
+    const savedPlaces = JSON.parse(localStorage.getItem('places') || '[]');
+    savedPlaces.push({ name, lat, lng });
+    localStorage.setItem('places', JSON.stringify(savedPlaces));
+    alert(name + ' 장소가 저장되었습니다!');
+
+    // 2) 필요하면 서버로 저장도 가능
+
+    fetch('/save-place', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, lat, lng })
+    })
+    .then(res => res.json())
+    .then(data => console.log(data));
+
+}
 </script>
 
 
