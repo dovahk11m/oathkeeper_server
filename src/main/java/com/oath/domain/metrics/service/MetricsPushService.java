@@ -52,7 +52,7 @@ public class MetricsPushService {
                 HttpEntity<String> entity = new HttpEntity<>(json, headers);
 
                 // 🔸 디버그가 필요하면 /metrics/analyze_raw로 보내고 받은 json 확인
-                String url = "http://localhost:8001/metrics/analyze"; // ← 최종 엔드포인트
+                String url = "http://192.168.0.187:8001/metrics/analyze"; // ← localhost를 실제 IP로 변경
                 String resp = restTemplate.postForObject(url, entity, String.class);
 
                 log.info("[metrics-push] sent memberId={} body={} resp={}", m.getMemberId(), json, resp);

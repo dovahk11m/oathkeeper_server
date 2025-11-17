@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -20,7 +19,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(5)
+// @Order(5) 제거
 public class DataInitializer5_Chat implements CommandLineRunner {
 
     private final MemberRepository memberRepository;
@@ -36,7 +35,6 @@ public class DataInitializer5_Chat implements CommandLineRunner {
         Member user2 = memberRepository.findByEmail("user2@test.com").orElseThrow(); // 이영희
         Member user3 = memberRepository.findByEmail("user3@test.com").orElseThrow(); // 박민철
         Member user4 = memberRepository.findByEmail("user4@test.com").orElseThrow(); // 최상혁
-        Member user5 = memberRepository.findByEmail("user5@test.com").orElseThrow(); // 정민지
         Group sampleGroup = groupRepository.findByName("샘플 그룹")
                 .orElseThrow(() -> new RuntimeException("샘플 그룹을 찾을 수 없습니다. DataInitializer4_Group이 먼저 실행되었는지 확인하세요."));
 
@@ -46,9 +44,10 @@ public class DataInitializer5_Chat implements CommandLineRunner {
                 createChat(sampleGroup, user2, "네, 저는 좋아요! 뭐 할까요?", 8, 8),
                 createChat(sampleGroup, user3, "오랜만에 다 같이 치맥 어떠세요?", 8, 7),
                 createChat(sampleGroup, user4, "치맥 너무 좋죠!! 어디서 모일까요?", 8, 6),
-                createChat(sampleGroup, user5, "다들 중간 지점인 서면이 편하지 않을까요?", 8, 5),
-                createChat(sampleGroup, user1, "서면 좋네요. 그럼 서면에서 맛있는 치킨집 찾아볼까요?", 8, 4),
-                createChat(sampleGroup, user2, "알겠습니다! 제가 찾아보고 공유 드릴게요!", 8, 2)
+                createChat(sampleGroup, user1, "다들 중간 지점인 서면이 편하지 않을까요?", 8, 5),
+                createChat(sampleGroup, user2, "서면 좋네요. 그럼 서면에서 맛있는 치킨집 찾아볼까요?", 8, 4),
+                createChat(sampleGroup, user3, "알겠습니다! 제가 찾아보고 공유 드릴게요!", 8, 2),
+                createChat(sampleGroup, user4, "네! 기대하고 있겠습니다!", 8, 1)
         );
 
         chatRepository.saveAll(chats);

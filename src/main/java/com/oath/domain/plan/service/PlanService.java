@@ -14,6 +14,7 @@ import com.oath.domain.plan.event.AlarmType;
 import com.oath.domain.plan.event.ArrivalEvent;
 import com.oath.domain.plan.event.DepartureEvent;
 import com.oath.domain.plan.event.LateEvent;
+import com.oath.domain.plan.event.PlanCompletedEvent; // 추가
 import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
@@ -248,6 +249,9 @@ public class PlanService {
             );
         }
 
+        // 🔸 약속 완료 여부 확인 및 이벤트 발행 로직 추가
+        checkAndCompletePlan(plan.getId());
+
         return saved;
     }
 
@@ -330,5 +334,56 @@ public class PlanService {
         eventPublisher.publishEvent(new PlanConfirmedEvent(savedPlan.getId())); //
 
         return savedPlan;
+    }
+
+    // 🔸 약속 완료 여부 확인 및 이벤트 발행 (내부 메서드)
+    private void checkAndCompletePlan(Long planId) {
+        Plan plan = getPlanById(planId);
+        List<Participant> participants = participantRepository.findByPlanId(planId);
+
+        // 모든 참가자가 도착했는지 확인
+        boolean allArrived = participants.stream()
+                .allMatch(p -> p.getArrivalStatus() != null); // 도착 상태가 null이 아니면 도착으로 간주
+
+        if (allArrived && plan.getStatus() != Status.COMPLETED) {
+            plan.update(plan.getTitle(), plan.getPlanDatetime(), Status.COMPLETED); // 약속 상태 완료로 변경
+            planJpaRepository.save(plan);
+            eventPublisher.publishEvent(new PlanCompletedEvent(plan.getId())); // 이벤트 발행
+        }
+    }
+
+    // 🔸 [테스트용] 모든 참가자 도착 처리
+    @Transactional
+    public void markAllArrivedForTest(Long planId) {
+        Plan plan = getPlanById(planId);
+        List<Participant> participants = participantRepository.findByPlanId(planId);
+        LocalDateTime planTime = plan.getPlanDatetime();
+
+        for (Participant participant : participants) {
+            if (participant.getArrivalStatus() == null) { // 아직 도착하지 않은 참가자만 처리
+                LocalDateTime arrivalTime;
+                int minutesDiff;
+                ArrivalStatus arrivalStatus;
+
+                // user2 (ID=2)만 30분 지각 처리
+                if (participant.getMember().getId().equals(2L)) {
+                    arrivalTime = planTime.plusMinutes(30);
+                    minutesDiff = 30;
+                    arrivalStatus = ArrivalStatus.LATE;
+                } else {
+                    arrivalTime = planTime; // 정시 도착
+                    minutesDiff = 0;
+                    arrivalStatus = ArrivalStatus.ON_TIME;
+                }
+
+                participant.setActualArrivalTime(arrivalTime);
+                participant.setTimeBurdenMinutes(minutesDiff);
+                participant.markArrived(arrivalStatus, minutesDiff);
+            }
+        }
+        participantRepository.saveAll(participants);
+
+        // 모든 참가자 도착 처리 후, 약속 완료 로직 호출
+        checkAndCompletePlan(planId);
     }
 }

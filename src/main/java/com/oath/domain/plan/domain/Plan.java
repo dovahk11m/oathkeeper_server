@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter; // Setter 임포트
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -33,7 +34,7 @@ public class Plan {
     private Member creatorMember;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id") // todo nullable = false로 변경
+    @JoinColumn(name = "group_id") // nullable = false 제거
     private Group group;
 
     @Column(name = "title", nullable = false)
@@ -59,18 +60,22 @@ public class Plan {
     private Long lateFineAmount;
 
     // --- 개별 약속 통계 필드 추가 ---
+    @Setter
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer totalLateMinutes = 0;
 
+    @Setter
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer totalOnTimeArrivals = 0;
 
+    @Setter
     @ColumnDefault("0.0")
     @Column(nullable = false)
     private Double totalTravelDistance = 0.0;
 
+    @Setter
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer totalTravelTime = 0; // 분 단위
@@ -92,13 +97,17 @@ public class Plan {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Plan(Member creatorMember, Group group, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
+    public Plan(Member creatorMember, Group group, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount,
+                String placeName, Double placeLatitude, Double placeLongitude) {
         this.creatorMember = creatorMember;
         this.group = group;
         this.title = title;
         this.planDatetime = planDatetime;
         this.status = status;
         this.lateFineAmount = lateFineAmount;
+        this.placeName = placeName;
+        this.placeLatitude = placeLatitude;
+        this.placeLongitude = placeLongitude;
     }
 
     public void update(String title, LocalDateTime planDatetime, Status status) {
