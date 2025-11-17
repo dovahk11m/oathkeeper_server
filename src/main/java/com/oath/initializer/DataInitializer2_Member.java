@@ -50,10 +50,10 @@ public class DataInitializer2_Member implements CommandLineRunner {
                 .defaultAddress(address)
                 .defaultLat(lat)
                 .defaultLng(lng)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .lastLogin(LocalDateTime.now())
-                .profileImageUrl(profileImageUrl)
-                .build());
+                .createdAt(LocalDateTime.now().minusDays(10)) // 10일 전 가입
+                .updatedAt(LocalDateTime.now().minusDays(5))  // 5일 전 수정
+                .lastLogin(LocalDateTime.now().minusDays(1))  // 1일 전 마지막 로그인
+                 .profileImageUrl(profileImageUrl)
+                 .build());
     }
 }

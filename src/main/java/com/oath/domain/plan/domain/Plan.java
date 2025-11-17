@@ -1,5 +1,6 @@
 package com.oath.domain.plan.domain;
 
+import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.plan.Status;
@@ -8,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.geo.Point;
@@ -29,6 +31,10 @@ public class Plan {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_member_id", nullable = false)
     private Member creatorMember;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id") // todo nullable = false로 변경
+    private Group group;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -52,6 +58,23 @@ public class Plan {
     @Column(name = "late_fine_amount")
     private Long lateFineAmount;
 
+    // --- 개별 약속 통계 필드 추가 ---
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalLateMinutes = 0;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalOnTimeArrivals = 0;
+
+    @ColumnDefault("0.0")
+    @Column(nullable = false)
+    private Double totalTravelDistance = 0.0;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalTravelTime = 0; // 분 단위
+
     // 참가자 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Participant> participants = new ArrayList<>();
@@ -69,8 +92,9 @@ public class Plan {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Plan(Member creatorMember, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
+    public Plan(Member creatorMember, Group group, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
         this.creatorMember = creatorMember;
+        this.group = group;
         this.title = title;
         this.planDatetime = planDatetime;
         this.status = status;
