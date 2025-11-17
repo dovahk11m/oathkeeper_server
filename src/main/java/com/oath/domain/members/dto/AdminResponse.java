@@ -200,11 +200,11 @@ public class AdminResponse {
 
     @Data
     public static class DailyTagCount {
-        private List<String> date;
+        private List<String> dates;
         private List<DailyTag> dailyTags;
 
-        public DailyTagCount(List<String> date, List<DailyTag> dailyTags) {
-            this.date = date;
+        public DailyTagCount(List<String> dates, List<DailyTag> dailyTags) {
+            this.dates = dates;
             this.dailyTags = dailyTags;
         }
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>서버 데이터 선그래프</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+
+    </style>
+</head>
+<body>
+<h2 style="text-align:center;">📊 일별 태그 사용량 통계</h2>
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<button id="loadChart">조회</button>
+
+<div style="display:flex; align-items:flex-start; gap:20px;">
+    <div style="flex:1; max-width:400px; height:400px;">
+        <canvas id="multiLineChart" width="400" height="200"></canvas>
+
+    </div>
+    <div id="legend-container"></div>
+</div>
+
+<script>
+    document.getElementById("loadChart").addEventListener("click", () => {
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    if (!startDate || !endDate) {
+        alert("날짜를 모두 선택해주세요.");
+        return;
+    }
+
+
+    fetch(`/api/admin/daily-tag-count?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`)
+      .then(res => res.json())
+      .then(result => {
+          const ctx = document.getElementById('multiLineChart').getContext('2d');
+
+
+          new Chart(ctx, {
+              type: 'line',
+              data: {
+                  labels: result.dates,
+                  datasets: result.dailyTags.map(ds => ({
+                      label: ds.tagName,
+                      data: ds.count,
+                      borderWidth: 2,
+                      borderColor: getRandomColor(),
+                      tension: 0.2,
+                      fill: false
+                  }))
+              },
+              options: {
+                  responsive: true,
+                  plugins: {
+                      legend: {
+                          position: 'top'
+                      }
+                  },
+                  scales: {
+                      y: {
+                          beginAtZero: true
+                      }
+                  }
+              }
+          });
+      });
+
+    function getRandomColor() {
+        return `hsl(${Math.random() * 360}, 70%, 50%)`;
+    }
+    });
+
+</script>
+</body>
+</html>

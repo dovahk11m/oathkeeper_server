@@ -171,9 +171,48 @@ public class AdminController {
         return PlanTagsPie;
     }
 
+    @GetMapping("/daily-tag-count")
+    @ResponseBody
+    public AdminResponse.DailyTagCount buildDailyTagCount(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1);
+        AdminResponse.DailyTagCount dailyTagCount = adminService.buildDailyTagCount(startDateTime, endDateTime);
 
+        AdminResponse.DailyTagCount tags = createDummyDailyTagCount();
 
+        return tags;
+    }
 
+    public static AdminResponse.DailyTagCount createDummyDailyTagCount() {
+        // 날짜 리스트 예시 (1주일)
+        List<String> dates = List.of(
+                "2025-11-11",
+                "2025-11-12",
+                "2025-11-13",
+                "2025-11-14",
+                "2025-11-15",
+                "2025-11-16",
+                "2025-11-17"
+        );
+
+        // 태그별 카운트 예시 (날짜 순서대로)
+        List<AdminResponse.DailyTagCount.DailyTag> dailyTags = List.of(
+                new AdminResponse.DailyTagCount.DailyTag(
+                        "Java",
+                        List.of(5L, 3L, 4L, 6L, 5L, 7L, 8L)
+                ),
+                new AdminResponse.DailyTagCount.DailyTag(
+                        "Spring",
+                        List.of(2L, 4L, 3L, 5L, 4L, 6L, 5L)
+                ),
+                new AdminResponse.DailyTagCount.DailyTag(
+                        "React",
+                        List.of(0L, 1L, 2L, 1L, 3L, 2L, 4L)
+                )
+        );
+
+        return new AdminResponse.DailyTagCount(dates, dailyTags);
+    }
 
 
 }

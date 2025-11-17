@@ -155,7 +155,9 @@ public class AdminService {
         return plans;
     }
 
-    public AdminResponse.DailyTagCount buildDailyTagCount(List<Object[]> rows) {
+    public AdminResponse.DailyTagCount buildDailyTagCount(LocalDateTime startDate, LocalDateTime endDate) {
+
+        List<Object[]> rows = adminRepository.getDailyTagCount(startDate, endDate);
 
         Map<String, List<Long>> tagToCounts = new LinkedHashMap<>();
         List<String> dates = new ArrayList<>();
