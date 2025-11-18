@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional("h2TransactionManager")
 public class PlanTrackingService {
 
     private final PlanJpaRepository planJpaRepository;
@@ -37,7 +38,6 @@ public class PlanTrackingService {
     private final PlanCoreService planCoreService; // PlanCoreService의 getPlanById, validatePlanCreator 사용
 
     // 출발 시간 기록 (본인만 가능)
-    @Transactional
     public Participant recordDeparture(
             Long participantId,
             LocalDateTime actualDeparture,
@@ -79,7 +79,6 @@ public class PlanTrackingService {
     }
 
     // 도착 시간 기록 (본인만 가능)
-    @Transactional
     public Participant recordArrival(
             Long participantId,
             LocalDateTime actualArrival,
@@ -162,7 +161,6 @@ public class PlanTrackingService {
     }
 
     // 예상 출발 시간 제안 (본인만 가능)
-    @Transactional
     public Participant suggestExpectedDeparture(
             Long participantId,
             Integer expectedTravelTimeMinutes,
@@ -191,6 +189,7 @@ public class PlanTrackingService {
     }
 
     // 지각 벌금 계산 (본인 또는 생성자만 조회 가능)
+    @Transactional(readOnly = true)
     public Long calculateLateFine(
             Long participantId,
             Long requesterId
@@ -255,7 +254,6 @@ public class PlanTrackingService {
     }
 
     // 🔸 수동으로 플랜 완료 처리
-    @Transactional
     public Plan completePlanManually(
             Long planId,
             Long requesterId
@@ -290,7 +288,6 @@ public class PlanTrackingService {
     }
 
     // 🔸 [테스트용] 모든 참가자 도착 처리
-    @Transactional
     public void markAllArrivedForTest(
             Long planId,
             Long requesterId

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager") // Facade의 기본 트랜잭션 관리자 지정
 public class PlanFacade {
 
     private final PlanCoreService planCoreService;
@@ -43,9 +44,13 @@ public class PlanFacade {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    // 이 메서드는 두 개의 다른 트랜잭션 관리자를 사용하는 서비스를 호출하므로,
+    // 자체적인 트랜잭션을 시작하지 않고 각 서비스의 트랜잭션에 위임한다.
     public List<PlanResponse.CreatePlan> listRecommendPlans(Long currentPlanId, Long limit) {
+        // planEmbeddingService는 내부적으로 "pgTransactionManager"를 사용한다.
         List<Plan> plans = planEmbeddingService.findSimilarEmbeddings(currentPlanId, limit);
+        
+        // DTO 변환 로직은 추가적인 DB 조회가 없으므로 트랜잭션이 필요 없다.
         return plans.stream()
                 .map((plan) -> PlanResponse.CreatePlan.of(plan))
                 .toList();
@@ -58,7 +63,6 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(plan);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan createPlan(
             Long creatorMemberId,
             String title,
@@ -78,7 +82,6 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(reloaded);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan updatePlan(
             Long planId,
             String title,
@@ -142,7 +145,6 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(reloaded);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan confirmPlace(
             Long planId,
             String placeName,
@@ -168,12 +170,10 @@ public class PlanFacade {
         planCoreService.validatePlanCreator(planId, memberId);
     }
 
-    @Transactional
     public void deletePlan(Long planId) {
         planCoreService.deletePlan(planId);
     }
 
-    @Transactional
     public Plan confirmFinalPlan(Long planId, Long requesterId) {
         return planCoreService.confirmFinalPlan(planId, requesterId);
     }
@@ -183,12 +183,10 @@ public class PlanFacade {
         return planTrackingService.calculateLateFine(participantId, requesterId);
     }
 
-    @Transactional
     public Plan completePlanManually(Long planId, Long requesterId) {
         return planTrackingService.completePlanManually(planId, requesterId);
     }
 
-    @Transactional
     public void markAllArrivedForTest(Long planId, Long requesterId) {
         planTrackingService.markAllArrivedForTest(planId, requesterId);
     }

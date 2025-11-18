@@ -26,6 +26,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager")
 public class MetricsRollupService {
 
     private final LocationTrackRepository trackRepo;
@@ -33,10 +34,9 @@ public class MetricsRollupService {
     private final PlanJpaRepository planJpaRepository;
     private final ParticipantRepository participantRepository; // Participant Repository 추가
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "h2EntityManagerFactory")
     private EntityManager em;
 
-    @Transactional
     public void rebuildForPlan(Long planId){
         List<Participant> participants = em.createQuery(
                 "select p from Participant p join fetch p.member where p.plan.id = :planId",
@@ -50,7 +50,6 @@ public class MetricsRollupService {
         }
     }
 
-    @Transactional
     public void rebuildForParticipantByParticipantId(Long planId, Long participantId) {
         Participant p = em.find(Participant.class, participantId);
         if (p == null) {
@@ -64,7 +63,6 @@ public class MetricsRollupService {
         computeAndSave(planId, p.getMember().getId(), participantId);
     }
 
-    @Transactional
     public void rebuildForParticipant(Long planId, Long memberId, Long participantId){
         computeAndSave(planId, memberId, participantId);
     }
@@ -121,7 +119,6 @@ public class MetricsRollupService {
      * 멤버별 통계를 합산하여 Plan 엔티티의 통계 필드를 업데이트합니다.
      * @param planId 통계를 집계할 Plan의 ID
      */
-    @Transactional
     public void aggregateMetricsForPlan(Long planId) {
         Plan plan = planJpaRepository.findById(planId)
                 .orElseThrow(() -> new Exception404("Plan not found with id: " + planId));
@@ -168,7 +165,6 @@ public class MetricsRollupService {
      * 완료된 Plan의 통계를 해당 Group에 누적합니다.
      * @param planId 완료된 Plan의 ID
      */
-    @Transactional
     public void accumulatePlanStatsToGroup(Long planId) {
         Plan plan = planJpaRepository.findById(planId)
                 .orElseThrow(() -> new Exception404("Plan not found with id: " + planId));
