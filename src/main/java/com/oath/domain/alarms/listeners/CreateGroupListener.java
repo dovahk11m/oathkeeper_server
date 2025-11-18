@@ -8,7 +8,6 @@ import com.oath.domain.groups.groupEvent.CreateGroupEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.annotation.Propagation;
@@ -25,7 +24,7 @@ public class CreateGroupListener {
     private String notificationType;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Async
+    // @Async // 초기화 시점의 과도한 DB Connection 방지를 위해 동기 처리로 변경
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     // 서비스의 트랜잭션과 연동, 새로운 트랜잭션을 시작
     public void handleCreateGroupEvent(CreateGroupEvent event) {

@@ -17,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager")
 public class PlanParticipantService {
 
     private final PlanJpaRepository planJpaRepository;
@@ -25,7 +26,6 @@ public class PlanParticipantService {
     private final PlanCoreService planCoreService; // PlanCoreService의 getPlanById 사용
 
     // 참가자 추가 (생성자만 가능)
-    @Transactional
     public Participant addParticipant(
             Long planId,
             Long memberId,
@@ -58,7 +58,6 @@ public class PlanParticipantService {
     }
 
     // 참가자 삭제 (생성자 또는 본인만 가능)
-    @Transactional
     public void removeParticipant(
             Long participantId,
             Long requesterId
@@ -82,7 +81,6 @@ public class PlanParticipantService {
     }
 
     // 참가자 상태 변경 (본인만 가능)
-    @Transactional
     public Participant changeParticipantStatus(
             Long participantId,
             ParticipantStatus status,
@@ -104,6 +102,7 @@ public class PlanParticipantService {
     }
 
     // 참가자 조회
+    @Transactional(readOnly = true)
     public List<Participant> getParticipants(Long planId) {
         if (!planJpaRepository.existsById(planId)) {
             throw new Exception404("해당 플랜을 찾을 수 없습니다.");

@@ -2,10 +2,8 @@ package com.oath.recommend_domain.plan;
 
 import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception500;
-import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.domain.Plan;
-import com.oath.domain.plan.repository.ParticipantRepository;
-import com.oath.domain.plan.repository.PlanJpaRepository;
+import com.oath.domain.plan.service.PlanCoreService;
 import com.oath.recommend_domain._common.dto.EmbeddingRequest;
 import com.oath.recommend_domain._common.dto.EmbeddingResponse;
 import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
@@ -13,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -21,25 +20,23 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 
 @Service
+@Transactional("pgTransactionManager")
 public class PlanEmbeddingService {
 
     private final PlanEmbeddingRepository planEmbeddingRepository;
-    private final ParticipantRepository participantRepository;
-    private final PlanJpaRepository planJpaRepository;
+    private final PlanCoreService planCoreService; // PlanCoreService 주입
     private final String apiKey;
     private final String embeddingEndpoint;
     private final String embeddingModel;
 
     public PlanEmbeddingService(PlanEmbeddingRepository planEmbeddingRepository,
-                                ParticipantRepository participantRepository,
-                                PlanJpaRepository planJpaRepository,
+                                PlanCoreService planCoreService, // 의존성 변경
                                 @Value("${ai.gemini.api-key}") String apiKey,
                                 @Value("${ai.gemini.embedding-endpoint}") String embeddingEndpoint,
                                 @Value("${ai.gemini.embedding-model}") String embeddingModel) {
 
         this.planEmbeddingRepository = planEmbeddingRepository;
-        this.participantRepository = participantRepository;
-        this.planJpaRepository = planJpaRepository;
+        this.planCoreService = planCoreService; // 의존성 변경
         this.apiKey = apiKey;
         this.embeddingEndpoint = embeddingEndpoint;
         this.embeddingModel = embeddingModel;
@@ -52,15 +49,14 @@ public class PlanEmbeddingService {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW) // 독립적인 새 트랜잭션으로 실행
     public void handlePlanConfirmation(PlanConfirmedEvent event) {
 
         Long planId = event.getPlanId();
 
         try {
-            Plan plan = planJpaRepository.findByIdWithParticipants(planId)
-                    .orElseThrow(() -> new Exception404("이벤트 리스너: 해당하는 플랜을 찾을 수 없습니다."));
-
-            List<Participant> participants = participantRepository.findByPlanId(planId);
+            // PlanCoreService를 통해 Plan 조회
+            Plan plan = planCoreService.getPlanById(planId);
 
             PlanEmbedding planEmbedding = saveOrUpdateEmbedding(
                     plan, null
@@ -77,7 +73,6 @@ public class PlanEmbeddingService {
         }
     }
 
-    @Transactional
     public PlanEmbedding saveOrUpdateEmbedding(Plan plan, float[] vector) {
 
         PlanEmbedding planEmbedding = planEmbeddingRepository.findByPlanId(plan.getId())
@@ -113,10 +108,11 @@ public class PlanEmbeddingService {
         return response.getBody().getValues();
     }
 
+    @Transactional(readOnly = true)
     public List<Plan> findSimilarEmbeddings(Long planId, Long limit) {
         try {
-            Plan plan = planJpaRepository.findByIdWithParticipants(planId)
-                    .orElseThrow(() -> new Exception404("해당하는 플랜을 찾을 수 없습니다."));
+            // PlanCoreService를 통해 Plan 조회
+            Plan plan = planCoreService.getPlanById(planId);
 
             PlanEmbedding planEmbedding = planEmbeddingRepository.findByPlanId(plan.getId())
                     .orElseThrow(() -> new Exception404("해당하는 플랜 임베딩을 찾을 수 없습니다."));
@@ -124,10 +120,11 @@ public class PlanEmbeddingService {
             String naturalLanguage = PlanEmbedding.getNaturalLanguage(planEmbedding, plan);
             List<Long> planIds = planEmbeddingRepository.findTopSimilarPlanEmbeddings(getVector(naturalLanguage), limit)
                     .stream()
-                    .map((foundPlanEmbedding) -> foundPlanEmbedding.getPlanId())
+                    .map(PlanEmbedding::getPlanId)
                     .toList();
 
-            return planJpaRepository.findAllByIdInWithParticipants(planIds);
+            // PlanCoreService를 통해 Plan 목록 조회
+            return planCoreService.listPlans(planIds);
         } catch (IllegalAccessException e) {
             throw new Exception500("서버 내부 오류가 발생했습니다. / 원인: " + e.getMessage());
         }

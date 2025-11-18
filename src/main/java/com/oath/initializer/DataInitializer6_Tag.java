@@ -4,9 +4,9 @@ import com.oath.domain.place_tag_plan.tag.Tag;
 import com.oath.domain.place_tag_plan.tag.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -20,6 +20,7 @@ public class DataInitializer6_Tag {
 
     private final TagRepository tagRepository;
 
+    @Transactional
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 태그 데이터 생성 시작");
 

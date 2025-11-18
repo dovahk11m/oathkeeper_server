@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +25,7 @@ public class DataInitializer5_Chat {
     private final GroupRepository groupRepository;
     private final ChatRepository chatRepository;
 
+    @Transactional
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 채팅 데이터 생성 시작");
 

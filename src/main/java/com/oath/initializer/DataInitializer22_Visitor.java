@@ -5,9 +5,9 @@ import com.oath.domain.visitors.Visitor;
 import com.oath.domain.visitors.VisitorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
@@ -20,6 +20,7 @@ public class DataInitializer22_Visitor {
 
     private final VisitorRepository visitorRepository;
 
+    @Transactional
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 방문자 데이터 생성 시작");
 

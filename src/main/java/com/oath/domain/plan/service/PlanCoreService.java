@@ -9,7 +9,7 @@ import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
-import com.oath.domain.plan.repository.ParticipantRepository; // checkAndCompletePlan에서 필요할 수 있으므로 일단 추가
+import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,21 +19,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager")
 public class PlanCoreService {
 
     private final PlanJpaRepository planJpaRepository;
     private final MemberRepository memberRepository;
-    private final ParticipantRepository participantRepository; // checkAndCompletePlan에서 필요
+    private final ParticipantRepository participantRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     // 플랜 조회
+    @Transactional(readOnly = true)
     public Plan getPlanById(Long planId) {
         return planJpaRepository.findById(planId)
                 .orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
+    }
+
+    // 여러 플랜 조회
+    @Transactional(readOnly = true)
+    public List<Plan> listPlans(List<Long> planIds) {
+        return planJpaRepository.findAllByIdInWithParticipants(planIds);
     }
 
     // 플랜 접근 권한 검증 (생성자 또는 참가자만 접근 가능)
@@ -59,6 +66,7 @@ public class PlanCoreService {
     }
 
     // 플랜 생성자 권한 검증 (생성자만 가능)
+    @Transactional(readOnly = true)
     public void validatePlanCreator(
             Long planId,
             Long memberId
@@ -72,7 +80,6 @@ public class PlanCoreService {
     }
 
     // 플랜 생성
-    @Transactional
     public Plan createPlan(
             Long creatorMemberId,
             String title,
@@ -94,7 +101,6 @@ public class PlanCoreService {
     }
 
     // 플랜 수정
-    @Transactional
     public Plan updatePlan(
             Long planId,
             String title,
@@ -112,7 +118,6 @@ public class PlanCoreService {
     }
 
     // 플랜 삭제
-    @Transactional
     public void deletePlan(Long planId) {
         if (!planJpaRepository.existsById(planId)) {
             throw new Exception404("해당 플랜을 찾을 수 없습니다.");
@@ -121,12 +126,12 @@ public class PlanCoreService {
     }
 
     // 플랜 목록 조회 (본인이 생성하거나 참여한 플랜만)
+    @Transactional(readOnly = true)
     public List<Plan> listPlans(Long memberId) {
         return planJpaRepository.findAllByCreatorOrParticipant(memberId);
     }
 
     // 장소 확정
-    @Transactional
     public Plan confirmPlace(
             Long planId,
             String placeName,
@@ -141,7 +146,6 @@ public class PlanCoreService {
         return planJpaRepository.save(plan);
     }
 
-    @Transactional
     public Plan confirmFinalPlan(
             Long planId,
             Long requesterId

@@ -16,9 +16,8 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableJpaRepositories(
-        // 1. PostgreSQL 리포지토리 위치만 지정
+        // PostgreSQL은 recommend_domain의 Repository만 담당하도록 역할을 명확히 함
         basePackages = "com.oath.recommend_domain",
-        // 2. 이 클래스에서 생성할 Factory와 Manager를 명시
         entityManagerFactoryRef = "pgEntityManagerFactory",
         transactionManagerRef = "pgTransactionManager"
 )
@@ -38,6 +37,7 @@ public class PgJpaConfig {
 
         return builder
                 .dataSource(pgDataSource)
+                // 엔티티 패키지도 recommend_domain만 담당하도록 수정
                 .packages("com.oath.recommend_domain")
                 .properties(pgJpaProperties.getProperties())
                 .build();

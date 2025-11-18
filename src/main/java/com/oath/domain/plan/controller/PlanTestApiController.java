@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Plan Test API", description = "약속 테스트 관련 API (Local 환경 전용)")
 @RestController
-@RequestMapping("/api/test/plans")
+@RequestMapping("/api/plans") // 경로 변경
 @RequiredArgsConstructor
 @Profile("local") // 'local' 프로파일에서만 활성화
 public class PlanTestApiController {
@@ -28,7 +28,7 @@ public class PlanTestApiController {
             @ApiResponse(responseCode = "403", description = "플랜 생성자만 가능"),
             @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
     })
-    @PostMapping("/{planId}/complete-manually")
+    @PostMapping("/{planId}/test/complete-manually") // 경로 변경
     public ResponseEntity<CommonResponse<Plan>> completePlanManuallyForTest(@PathVariable Long planId, @RequestParam Long requesterId) {
         Plan completedPlan = planFacade.completePlanManually(planId, requesterId);
         return ResponseEntity.ok(CommonResponse.success(completedPlan, "플랜이 수동으로 완료되었습니다."));
@@ -39,7 +39,7 @@ public class PlanTestApiController {
             @ApiResponse(responseCode = "200", description = "모든 참가자 도착 처리 성공"),
             @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
     })
-    @PostMapping("/{planId}/mark-all-arrived")
+    @PostMapping("/{planId}/test/mark-all-arrived") // 경로 변경
     public ResponseEntity<CommonResponse<String>> markAllParticipantsArrivedForTest(@PathVariable Long planId, @RequestParam Long requesterId) { // requesterId 추가
         planFacade.markAllArrivedForTest(planId, requesterId); // requesterId 전달
         return ResponseEntity.ok(CommonResponse.success(null, "모든 참가자가 도착 처리되었습니다."));

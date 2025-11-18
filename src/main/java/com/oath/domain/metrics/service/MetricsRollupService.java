@@ -2,6 +2,7 @@
 package com.oath.domain.metrics.service;
 
 import com.oath.common.exception.Exception404;
+import com.oath.domain.groups.Group;
 import com.oath.domain.locationevents.domain.LocationTrack;
 import com.oath.domain.locationevents.repository.LocationTrackRepository;
 import com.oath.domain.metrics.domain.ParticipantMetrics;
@@ -25,6 +26,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager")
 public class MetricsRollupService {
 
     private final LocationTrackRepository trackRepo;
@@ -32,10 +34,9 @@ public class MetricsRollupService {
     private final PlanJpaRepository planJpaRepository;
     private final ParticipantRepository participantRepository; // Participant Repository 추가
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "h2EntityManagerFactory")
     private EntityManager em;
 
-    @Transactional
     public void rebuildForPlan(Long planId){
         List<Participant> participants = em.createQuery(
                 "select p from Participant p join fetch p.member where p.plan.id = :planId",
@@ -49,7 +50,6 @@ public class MetricsRollupService {
         }
     }
 
-    @Transactional
     public void rebuildForParticipantByParticipantId(Long planId, Long participantId) {
         Participant p = em.find(Participant.class, participantId);
         if (p == null) {
@@ -63,7 +63,6 @@ public class MetricsRollupService {
         computeAndSave(planId, p.getMember().getId(), participantId);
     }
 
-    @Transactional
     public void rebuildForParticipant(Long planId, Long memberId, Long participantId){
         computeAndSave(planId, memberId, participantId);
     }
@@ -120,7 +119,6 @@ public class MetricsRollupService {
      * 멤버별 통계를 합산하여 Plan 엔티티의 통계 필드를 업데이트합니다.
      * @param planId 통계를 집계할 Plan의 ID
      */
-    @Transactional
     public void aggregateMetricsForPlan(Long planId) {
         Plan plan = planJpaRepository.findById(planId)
                 .orElseThrow(() -> new Exception404("Plan not found with id: " + planId));
@@ -150,14 +148,36 @@ public class MetricsRollupService {
                 .filter(p -> p.getArrivalStatus() == com.oath.domain.plan.ArrivalStatus.ON_TIME)
                 .count();
 
-        plan.setTotalLateMinutes(totalLateMinutes);
-        plan.setTotalTravelDistance(GeoUtils.round2(totalTravelDistance));
-        plan.setTotalTravelTime(totalTravelTime);
-        plan.setTotalOnTimeArrivals((int) onTimeArrivals);
+        plan.updateStatistics(
+                totalLateMinutes,
+                (int) onTimeArrivals,
+                GeoUtils.round2(totalTravelDistance),
+                totalTravelTime
+        );
 
         planJpaRepository.save(plan);
 
         log.info("[aggregate] Plan 통계 집계 완료: planId={}, totalLateMinutes={}, totalTravelDistance={}, totalTravelTime={}, onTimeArrivals={}",
                 planId, totalLateMinutes, totalTravelDistance, totalTravelTime, onTimeArrivals);
+    }
+
+    /**
+     * 완료된 Plan의 통계를 해당 Group에 누적합니다.
+     * @param planId 완료된 Plan의 ID
+     */
+    public void accumulatePlanStatsToGroup(Long planId) {
+        Plan plan = planJpaRepository.findById(planId)
+                .orElseThrow(() -> new Exception404("Plan not found with id: " + planId));
+
+        Group group = plan.getGroup();
+        if (group == null) {
+            log.info("[accumulate] Plan(id={}) is not associated with any group. Skipping accumulation.", planId);
+            return;
+        }
+
+        group.addPlanStatistics(plan);
+        // Dirty-checking에 의해 트랜잭션 커밋 시점에 Group 엔티티가 자동으로 업데이트됩니다.
+
+        log.info("[accumulate] Plan(id={}) stats have been accumulated to Group(id={}).", planId, group.getId());
     }
 }
