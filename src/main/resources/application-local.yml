@@ -21,7 +21,7 @@ spring:
     pg:
       jdbc-url: jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0&ApplicationName=oathServer
       username: postgres.ucvalhtcwaxscdmyjoiz
-      password: postgreSql123
+      password: ${POSTGRES_PW:FAKE_PW}
       driver-class-name: org.postgresql.Driver
 
       hikari:

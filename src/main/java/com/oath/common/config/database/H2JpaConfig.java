@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -25,14 +24,12 @@ import javax.sql.DataSource;
 )
 public class H2JpaConfig {
 
-    @Primary
     @Bean(name = "h2JpaProperties")
     @ConfigurationProperties(prefix = "spring.jpa.h2-props")
     public JpaProperties h2JpaProperties() {
         return new JpaProperties();
     }
 
-    @Primary
     @Bean(name = "h2EntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean h2EntityManagerFactory(
             @Qualifier("h2DataSource") DataSource h2DataSource,
@@ -46,7 +43,6 @@ public class H2JpaConfig {
                 .build();
     }
 
-    @Primary
     @Bean(name = "h2TransactionManager")
     public PlatformTransactionManager h2TransactionManager(
             @Qualifier("h2EntityManagerFactory") EntityManagerFactory h2EntityManagerFactory) {

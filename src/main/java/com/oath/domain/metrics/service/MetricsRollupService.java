@@ -2,6 +2,7 @@
 package com.oath.domain.metrics.service;
 
 import com.oath.common.exception.Exception404;
+import com.oath.domain.groups.Group;
 import com.oath.domain.locationevents.domain.LocationTrack;
 import com.oath.domain.locationevents.repository.LocationTrackRepository;
 import com.oath.domain.metrics.domain.ParticipantMetrics;
@@ -150,14 +151,37 @@ public class MetricsRollupService {
                 .filter(p -> p.getArrivalStatus() == com.oath.domain.plan.ArrivalStatus.ON_TIME)
                 .count();
 
-        plan.setTotalLateMinutes(totalLateMinutes);
-        plan.setTotalTravelDistance(GeoUtils.round2(totalTravelDistance));
-        plan.setTotalTravelTime(totalTravelTime);
-        plan.setTotalOnTimeArrivals((int) onTimeArrivals);
+        plan.updateStatistics(
+                totalLateMinutes,
+                (int) onTimeArrivals,
+                GeoUtils.round2(totalTravelDistance),
+                totalTravelTime
+        );
 
         planJpaRepository.save(plan);
 
         log.info("[aggregate] Plan 통계 집계 완료: planId={}, totalLateMinutes={}, totalTravelDistance={}, totalTravelTime={}, onTimeArrivals={}",
                 planId, totalLateMinutes, totalTravelDistance, totalTravelTime, onTimeArrivals);
+    }
+
+    /**
+     * 완료된 Plan의 통계를 해당 Group에 누적합니다.
+     * @param planId 완료된 Plan의 ID
+     */
+    @Transactional
+    public void accumulatePlanStatsToGroup(Long planId) {
+        Plan plan = planJpaRepository.findById(planId)
+                .orElseThrow(() -> new Exception404("Plan not found with id: " + planId));
+
+        Group group = plan.getGroup();
+        if (group == null) {
+            log.info("[accumulate] Plan(id={}) is not associated with any group. Skipping accumulation.", planId);
+            return;
+        }
+
+        group.addPlanStatistics(plan);
+        // Dirty-checking에 의해 트랜잭션 커밋 시점에 Group 엔티티가 자동으로 업데이트됩니다.
+
+        log.info("[accumulate] Plan(id={}) stats have been accumulated to Group(id={}).", planId, group.getId());
     }
 }

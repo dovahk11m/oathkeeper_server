@@ -163,6 +163,7 @@ public class PlanFacade {
         planCoreService.validatePlanAccess(planId, memberId);
     }
 
+    @Transactional(readOnly = true)
     public void validatePlanCreator(Long planId, Long memberId) {
         planCoreService.validatePlanCreator(planId, memberId);
     }
@@ -177,6 +178,7 @@ public class PlanFacade {
         return planCoreService.confirmFinalPlan(planId, requesterId);
     }
 
+    @Transactional(readOnly = true)
     public Long calculateLateFine(Long participantId, Long requesterId) {
         return planTrackingService.calculateLateFine(participantId, requesterId);
     }

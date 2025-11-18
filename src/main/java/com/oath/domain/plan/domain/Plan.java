@@ -9,7 +9,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter; // Setter 임포트
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -60,22 +59,18 @@ public class Plan {
     private Long lateFineAmount;
 
     // --- 개별 약속 통계 필드 추가 ---
-    @Setter
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer totalLateMinutes = 0;
 
-    @Setter
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer totalOnTimeArrivals = 0;
 
-    @Setter
     @ColumnDefault("0.0")
     @Column(nullable = false)
     private Double totalTravelDistance = 0.0;
 
-    @Setter
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer totalTravelTime = 0; // 분 단위
@@ -126,6 +121,13 @@ public class Plan {
             this.placeLatitude = location.getY();
             this.placeLongitude = location.getX();
         }
+    }
+
+    public void updateStatistics(Integer totalLateMinutes, Integer totalOnTimeArrivals, Double totalTravelDistance, Integer totalTravelTime) {
+        this.totalLateMinutes = totalLateMinutes;
+        this.totalOnTimeArrivals = totalOnTimeArrivals;
+        this.totalTravelDistance = totalTravelDistance;
+        this.totalTravelTime = totalTravelTime;
     }
 
     // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환

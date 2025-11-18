@@ -8,9 +8,9 @@ import com.oath.domain.place_tag_plan.tag.Tag;
 import com.oath.domain.place_tag_plan.tag.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Random;
@@ -26,6 +26,7 @@ public class DataInitializer10_PlaceTag {
     private final TagRepository tagRepository;
     private final PlaceTagRepository placeTagRepository;
 
+    @Transactional
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 PlaceTag 데이터 생성 시작");
 

@@ -1,6 +1,7 @@
 package com.oath.domain.groups;
 
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
+import com.oath.domain.plan.domain.Plan;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -65,5 +66,17 @@ public class Group {
                 .name(request.getGroupName())
                 .createdAt(LocalDateTime.now())
                 .build();
+    }
+
+    /**
+     * 완료된 Plan의 통계를 그룹 통계에 누적합니다.
+     * @param completedPlan 완료된 Plan 엔티티
+     */
+    public void addPlanStatistics(Plan completedPlan) {
+        this.totalPlansCompleted++;
+        this.totalLateMinutes += completedPlan.getTotalLateMinutes();
+        this.totalOnTimeArrivals += completedPlan.getTotalOnTimeArrivals();
+        this.totalTravelDistance += completedPlan.getTotalTravelDistance();
+        this.totalTravelTime += completedPlan.getTotalTravelTime();
     }
 }

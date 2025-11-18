@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 // import org.springframework.boot.CommandLineRunner; // 제거
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class DataInitializer4_Group {
     private final GroupMemberRepository groupMemberRepository;
 
     // @Override 제거
+    @Transactional
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 그룹 데이터 생성 시작");
 

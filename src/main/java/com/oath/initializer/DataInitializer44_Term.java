@@ -5,9 +5,9 @@ import com.oath.domain.terms.Term;
 import com.oath.domain.terms.termRepository.TermRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -18,6 +18,7 @@ public class DataInitializer44_Term {
 
     private final TermRepository termRepository;
 
+    @Transactional
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 약관 데이터 생성 시작");
 
