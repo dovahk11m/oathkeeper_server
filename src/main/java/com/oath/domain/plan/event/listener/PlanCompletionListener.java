@@ -5,6 +5,7 @@ import com.oath.domain.metrics.service.MetricsRollupService;
 import com.oath.domain.plan.event.PlanCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -16,6 +17,11 @@ public class PlanCompletionListener {
     private final MetricsRollupService rollupService;
     private final MetricsPushService pushService;
 
+    /**
+     * 플랜 완료 이벤트를 비동기적으로 처리하여, 통계 집계 등 오래 걸릴 수 있는 작업이
+     * 원래의 API 응답 시간을 저하시키지 않도록 합니다.
+     */
+    @Async
     @TransactionalEventListener // 트랜잭션 커밋 후에 이벤트 처리
     public void handlePlanCompletedEvent(PlanCompletedEvent event) {
         Long planId = event.getPlanId();

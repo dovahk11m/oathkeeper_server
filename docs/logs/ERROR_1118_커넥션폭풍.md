@@ -40,47 +40,38 @@
     3.  **결정적 충돌 지점:** `PlanFacade`의 `listRecommendPlans` 메서드는 `@Transactional` 하에서 `com.oath.domain`의 Repository와 `com.oath.recommend_domain`의 `PlanEmbeddingService`를 **동시에 호출**함.
     4.  **시나리오:** 'H2 트랜잭션'으로 시작된 작업이, 내부에서 'PostgreSQL'을 사용하는 코드를 만나자 Spring은 두 DB를 하나의 트랜잭션으로 묶지 못하고 제어 불가능한 커넥션을 생성/요청하기 시작함. 이 '커넥션 폭풍'이 Supabase의 연결 한계를 초과시켜 서버가 응답하지 않게 됨(`Connect timed out`).
 
-## 3. 최종 해결 방안 도출
+## 3. 최종 해결 방안: 아키텍처 결정 및 근거
 
-**목표:** H2와 PostgreSQL을 분리하여 사용하는 현재 구조를 유지하면서, 트랜잭션 충돌을 막는다.
+**목표:** H2(메인 도메인)와 PostgreSQL(추천 도메인)을 분리하여 사용하는 구조를 유지하면서, 트랜잭션 충돌을 원천적으로 방지한다.
 
-**전략:** Spring이 스스로 트랜잭션 관리자를 결정하게 두지 않고, 개발자가 명시적으로 지정한다.
+**최종 전략:** Spring의 묵시적 결정에 의존하지 않고, 모든 트랜잭션의 책임과 동작을 명시적으로 제어한다.
 
-1.  **`@Primary` 제거:** `H2JpaConfig`와 `PgJpaConfig` 양쪽에서 `@Primary` 어노테이션을 모두 제거한다. 이로써 "기본값"이라는 모호한 상태를 없앤다.
-2.  **서비스별 트랜잭션 관리자 명시:**
-    -   H2를 사용하는 `com.oath.domain` 소속 서비스들(`PlanCoreService`, `GroupService` 등)의 클래스 상단에 `@Transactional("h2TransactionManager")`를 선언한다.
-    -   PostgreSQL을 사용하는 `com.oath.recommend_domain` 소속 서비스들(`PlanEmbeddingService` 등)의 클래스 상단에 `@Transactional("pgTransactionManager")`를 선언한다.
-3.  **트랜잭션 경계 분리:**
-    -   두 DB를 동시에 사용하는 `PlanFacade`의 `listRecommendPlans` 같은 메서드에서는 자체 `@Transactional`을 제거한다.
-    -   대신, 내부에서 호출하는 각 서비스(`PlanEmbeddingService` 등)가 스스로의 트랜잭션 경계 안에서 동작하도록 책임을 위임한다. 이를 통해 하나의 메서드 안에서 두 개의 다른 트랜잭션이 섞이는 것을 원천적으로 방지한다.
+1.  **`@Primary`의 역할 재정의 및 최소화:**
+    -   **문제:** `@Primary`를 모두 제거하면, Spring Boot의 자동 설정 컴포넌트가 기본 `TransactionManager`나 `JpaProperties`를 찾지 못해 애플리케이션 시작에 실패한다.
+    -   **해결:** `H2JpaConfig`의 `h2TransactionManager`와 `h2JpaProperties`에만 `@Primary`를 유지한다.
+    -   **근거:** 이는 **우리의 코드를 위함이 아닌, Spring 프레임워크의 요구사항을 만족시키기 위한 최소한의 조치**이다. 이로써 프레임워크는 "기본값"을 인지하여 정상 구동하고, 우리의 코드는 이어질 명시적 설정에 따라 동작한다.
 
-이 전략을 통해, 복잡한 분산 트랜잭션(JTA) 설정 없이도 각 데이터베이스가 자신의 트랜잭션 컨텍스트 안에서 독립적이고 안정적으로 동작하도록 보장할 수 있다.
+2.  **서비스별 트랜잭션 관리자 명시적 지정:**
+    -   **원칙:** 어떤 서비스가 어떤 DB를 사용하는지 코드 레벨에서 명확히 한다.
+    -   **구현:**
+        -   H2를 사용하는 `com.oath.domain` 소속 서비스에는 클래스 레벨에 `@Transactional("h2TransactionManager")`를 선언한다.
+        -   PostgreSQL을 사용하는 `com.oath.recommend_domain` 소속 서비스에는 `@Transactional("pgTransactionManager")`를 선언한다.
+    -   **효과:** `@Qualifier`와 동일한 효과로, `@Primary` 설정보다 우선하여 각 서비스가 올바른 트랜잭션 관리자를 사용하도록 강제한다.
 
-## 4. 향후 작업 계획
+3.  **트랜잭션 경계 분리 (Facade 역할 재정의):**
+    -   **문제:** `PlanFacade`와 같이 여러 DB를 사용하는 서비스를 호출하는 메서드에 `@Transactional`이 있으면, 해당 트랜잭션의 컨텍스트가 하위 서비스로 전파되어 충돌을 일으킨다.
+    -   **해결:** `PlanFacade`의 `listRecommendPlans`처럼 두 종류의 트랜잭션 관리자를 사용하는 서비스들을 호출하는 메서드에서는 **자체 `@Transactional`을 제거**한다.
+    -   **효과:** Facade는 더 이상 트랜잭션을 직접 관리하지 않고, 각 하위 서비스가 스스로의 트랜잭션 경계 안에서 독립적으로 동작하도록 책임을 위임한다.
 
-1.  **`H2JpaConfig.java` 수정:**
-    -   `@Primary` 어노테이션을 모든 Bean(`h2JpaProperties`, `h2TransactionManager`)에서 제거한다.
+4.  **비동기 처리(`@Async`)의 전략적 사용:**
+    -   **문제:** `PlanCompletionListener`의 `@Async`를 제거하면 DB 커넥션 문제는 해결되지만, 통계 처리 등 무거운 작업이 API 응답 시간을 지연시킨다.
+    -   **해결:** DB 커넥션 문제가 해결된 지금, **`@Async`를 다시 복원**한다.
+    -   **근거:** 사용자에게 빠른 API 응답을 제공하는 것이 우선이다. 시간이 걸리는 후속 작업(통계, 그룹핑, AI 푸시 등)은 비동기로 처리하여 사용자 경험 저하를 방지한다.
 
-2.  **`PgJpaConfig.java` 수정:**
-    -   `@Primary` 어노테이션을 모든 Bean(`pgJpaProperties`, `pgEntityManagerFactory`, `pgTransactionManager`)에서 제거한다.
-
-3.  **서비스 클래스에 트랜잭션 관리자 지정:**
-    -   `com.oath.domain` 패키지 내의 모든 `@Service` 클래스를 검토하여, 클래스 레벨에 `@Transactional("h2TransactionManager")`를 추가한다. (예: `PlanCoreService`, `GroupService` 등)
-    -   `com.oath.recommend_domain` 패키지 내의 모든 `@Service` 클래스를 검토하여, 클래스 레벨에 `@Transactional("pgTransactionManager")`를 추가한다. (예: `PlanEmbeddingService`)
-
-4.  **Facade 및 트랜잭션 없는 서비스 검토:**
-    -   `PlanFacade`, `ParticipantFacade` 등 여러 서비스를 호출하는 클래스의 `@Transactional` 사용을 재검토한다.
-    -   두 개 이상의 다른 트랜잭션 관리자를 사용하는 서비스들을 호출하는 메서드가 있다면, 해당 메서드의 `@Transactional`을 제거하여 트랜잭션 전파를 차단한다.
-
-5.  **테스트 및 검증:**
-    -   애플리케이션을 재시작하여 `Connect timed out` 오류가 해결되었는지 확인한다.
-    -   주요 기능(플랜 생성, 추천 플랜 조회 등)을 테스트하여 각 기능이 올바른 데이터베이스와 트랜잭션 하에서 정상적으로 동작하는지 검증한다.
-
-## 5. 최종 검증 및 결론
+## 4. 최종 검증 및 결론
 
 -   **검증 방법:** H2 트랜잭션만 사용하는 `POST /api/plans` API를 호출하여 새로운 플랜 생성을 시도.
 -   **결과:** `200 OK` 응답과 함께 새로운 플랜 데이터가 정상적으로 반환됨을 확인.
 -   **결론:**
-    -   `PlanFacade`와 `PlanCoreService`가 의도대로 `h2TransactionManager`를 사용하여 H2 DB와 통신하는 것을 확인함.
-    -   `PgJpaConfig`와의 설정 충돌 없이, H2를 사용하는 기능이 독립적으로 완벽하게 동작함을 입증함.
+    -   위 전략을 통해, 각 서비스가 의도된 트랜잭션 관리자를 사용하고, 서로 다른 DB를 사용하는 서비스 간의 호출이 안전하게 이루어짐을 입증했다.
     -   복잡한 멀티-데이터소스 환경에서 발생했던 커넥션 충돌 및 폭풍 문제가 **완전히 해결되었음.**

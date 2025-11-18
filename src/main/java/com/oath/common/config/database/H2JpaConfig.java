@@ -45,7 +45,7 @@ public class H2JpaConfig {
                 .build();
     }
 
-    @Primary // 여러 TransactionManager 중 h2TransactionManager를 기본값으로 사용하도록 지정
+    @Primary // 여러 TransactionManager 중, 명시적 지정이 없을 때를 대비한 기본값으로 사용
     @Bean(name = "h2TransactionManager")
     public PlatformTransactionManager h2TransactionManager(
             @Qualifier("h2EntityManagerFactory") EntityManagerFactory h2EntityManagerFactory) {
