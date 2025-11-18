@@ -1,12 +1,16 @@
 // com/oath/domain/metrics/service/MetricsRollupService.java
 package com.oath.domain.metrics.service;
 
+import com.oath.common.exception.Exception404;
 import com.oath.domain.locationevents.domain.LocationTrack;
 import com.oath.domain.locationevents.repository.LocationTrackRepository;
 import com.oath.domain.metrics.domain.ParticipantMetrics;
 import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
 import com.oath.domain.metrics.util.GeoUtils;
 import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.repository.ParticipantRepository;
+import com.oath.domain.plan.repository.PlanJpaRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -24,6 +29,8 @@ public class MetricsRollupService {
 
     private final LocationTrackRepository trackRepo;
     private final ParticipantMetricsRepository metricsRepo;
+    private final PlanJpaRepository planJpaRepository;
+    private final ParticipantRepository participantRepository; // Participant Repository 추가
 
     @PersistenceContext
     private EntityManager em;
@@ -90,11 +97,67 @@ public class MetricsRollupService {
                         .memberId(memberId)
                         .build());
 
+        // Participant 엔티티에서 지각 시간(timeBurdenMinutes) 가져오기
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new Exception404("Participant not found with id: " + participantId));
+        
+        Integer lateMinutes = participant.getTimeBurdenMinutes();
+        if (lateMinutes != null && lateMinutes < 0) {
+            lateMinutes = 0; // 지각 시간은 0 이상이어야 함
+        }
+
         m.setDistanceKm(distKm);
         m.setTravelMinutes((int) minutes);
+        m.setLateMinutes(lateMinutes); // 지각 시간 설정
+
         metricsRepo.save(m);
 
-        log.info("[rollup] saved planId={} memberId={} distKm={} minutes={}",
-                planId, memberId, distKm, minutes);
+        log.info("[rollup] saved planId={} memberId={} distKm={} minutes={} lateMinutes={}",
+                planId, memberId, distKm, minutes, lateMinutes);
+    }
+
+    /**
+     * 멤버별 통계를 합산하여 Plan 엔티티의 통계 필드를 업데이트합니다.
+     * @param planId 통계를 집계할 Plan의 ID
+     */
+    @Transactional
+    public void aggregateMetricsForPlan(Long planId) {
+        Plan plan = planJpaRepository.findById(planId)
+                .orElseThrow(() -> new Exception404("Plan not found with id: " + planId));
+
+        List<ParticipantMetrics> metricsList = metricsRepo.findAllByPlanId(planId);
+
+        int totalLateMinutes = metricsList.stream()
+                .map(ParticipantMetrics::getLateMinutes)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        double totalTravelDistance = metricsList.stream()
+                .map(ParticipantMetrics::getDistanceKm)
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
+        int totalTravelTime = metricsList.stream()
+                .map(ParticipantMetrics::getTravelMinutes)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        // '정시 도착'은 Participant의 arrivalStatus를 기반으로 계산해야 합니다.
+        long onTimeArrivals = plan.getParticipants().stream()
+                .filter(p -> p.getArrivalStatus() == com.oath.domain.plan.ArrivalStatus.ON_TIME)
+                .count();
+
+        plan.setTotalLateMinutes(totalLateMinutes);
+        plan.setTotalTravelDistance(GeoUtils.round2(totalTravelDistance));
+        plan.setTotalTravelTime(totalTravelTime);
+        plan.setTotalOnTimeArrivals((int) onTimeArrivals);
+
+        planJpaRepository.save(plan);
+
+        log.info("[aggregate] Plan 통계 집계 완료: planId={}, totalLateMinutes={}, totalTravelDistance={}, totalTravelTime={}, onTimeArrivals={}",
+                planId, totalLateMinutes, totalTravelDistance, totalTravelTime, onTimeArrivals);
     }
 }

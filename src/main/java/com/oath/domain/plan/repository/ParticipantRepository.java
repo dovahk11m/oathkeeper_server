@@ -22,5 +22,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
         Long getId();
         String getName();
     }
-}
 
+    // LazyInitializationException 해결을 위해 Member를 fetch join
+    @Query("SELECT p FROM Participant p JOIN FETCH p.member WHERE p.plan.id = :planId AND p.id != :excludeParticipantId")
+    List<Participant> findOtherParticipantsWithMember(@Param("planId") Long planId, @Param("excludeParticipantId") Long excludeParticipantId);
+}

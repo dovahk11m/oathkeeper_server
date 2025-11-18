@@ -10,12 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -23,48 +19,36 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(10)
-public class DataInitializer10_PlaceTag implements CommandLineRunner {
+// @Order(10) 제거
+public class DataInitializer10_PlaceTag {
 
     private final PlaceRepository placeRepository;
     private final TagRepository tagRepository;
     private final PlaceTagRepository placeTagRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 PlaceTag 데이터 생성 시작");
 
-        List<Place> allPlaces = placeRepository.findAll();
-        List<Tag> allTags = tagRepository.findAll();
-        List<PlaceTag> placeTagsToSave = new ArrayList<>();
-
-        if (allPlaces.isEmpty() || allTags.isEmpty()) {
-            log.warn("Place 또는 Tag 데이터가 없어 PlaceTag를 생성할 수 없습니다.");
-            return;
-        }
-
+        List<Place> places = placeRepository.findAll();
+        List<Tag> tags = tagRepository.findAll();
         Random random = new Random();
-        int minTagsPerPlace = 2; // 장소당 최소 태그 수
-        int maxTagsPerPlace = 5; // 장소당 최대 태그 수
+        int count = 0;
 
-        for (Place place : allPlaces) {
-            // 각 장소에 할당할 태그 수를 랜덤으로 결정
-            int numberOfTagsToAssign = random.nextInt(maxTagsPerPlace - minTagsPerPlace + 1) + minTagsPerPlace;
-
-            // 모든 태그를 섞어서 랜덤으로 선택
-            Collections.shuffle(allTags, random);
-
-            for (int i = 0; i < numberOfTagsToAssign && i < allTags.size(); i++) {
-                Tag tag = allTags.get(i);
-                placeTagsToSave.add(PlaceTag.builder()
-                        .place(place)
-                        .tag(tag)
-                        .createdAt(LocalDateTime.now())
-                        .build());
+        if (!tags.isEmpty()) {
+            for (Place place : places) {
+                int numberOfTags = 1 + random.nextInt(3); // 1~3개의 태그를 랜덤으로 할당
+                for (int i = 0; i < numberOfTags; i++) {
+                    Tag randomTag = tags.get(random.nextInt(tags.size()));
+                    PlaceTag placeTag = PlaceTag.builder()
+                            .place(place)
+                            .tag(randomTag)
+                            .build();
+                    placeTagRepository.save(placeTag);
+                    count++;
+                }
             }
         }
 
-        placeTagRepository.saveAll(placeTagsToSave);
-        log.info("👷‍♂️ 샘플 PlaceTag 데이터 {}개 생성 완료", placeTagsToSave.size());
+        log.info("👷‍♂️ 샘플 PlaceTag 데이터 {}개 생성 완료", count);
     }
 }

@@ -3,6 +3,7 @@ package com.oath.domain.groups;
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -26,6 +27,33 @@ public class Group {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // --- 그룹 스탯 필드 추가 ---
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalPlansCompleted = 0;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalLateMinutes = 0;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalOnTimeArrivals = 0;
+
+    @Builder.Default
+    @ColumnDefault("0.0")
+    @Column(nullable = false)
+    private Double totalTravelDistance = 0.0;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalTravelTime = 0; // 분 단위
+
 
     /**
      * DTO로부터 새로운 Group 엔티티를 생성하는 정적 팩토리 메서드입니다.
