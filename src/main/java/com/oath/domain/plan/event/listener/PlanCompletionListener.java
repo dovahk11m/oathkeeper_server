@@ -1,7 +1,7 @@
 package com.oath.domain.plan.event.listener;
 
-import com.oath.domain.metrics.service.MetricsPushService;
 import com.oath.domain.metrics.service.MetricsRollupService;
+import com.oath.domain.metrics.service.MockMetricsPushService;
 import com.oath.domain.plan.event.PlanCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,14 +15,15 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class PlanCompletionListener {
 
     private final MetricsRollupService rollupService;
-    private final MetricsPushService pushService;
+    // private final MetricsPushService pushService; // todo
+    private final MockMetricsPushService pushService; // Mock 서비스 주입
 
     /**
      * 플랜 완료 이벤트를 비동기적으로 처리하여, 통계 집계 등 오래 걸릴 수 있는 작업이
      * 원래의 API 응답 시간을 저하시키지 않도록 합니다.
      */
     @Async
-    @TransactionalEventListener // 트랜잭션 커밋 후에 이벤트 처리
+    @TransactionalEventListener
     public void handlePlanCompletedEvent(PlanCompletedEvent event) {
         Long planId = event.getPlanId();
         log.info("[PlanCompletionListener] PlanCompletedEvent 수신: planId={}", planId);
@@ -39,14 +40,13 @@ public class PlanCompletionListener {
         rollupService.accumulatePlanStatsToGroup(planId);
         log.info("[PlanCompletionListener] MetricsRollupService.accumulatePlanStatsToGroup 완료.");
 
-        // 4. 통계 데이터 AI 서버로 푸시 (Push)
-        // 학원 환경 제약으로 인해 AI 통신 부분은 현재 MetricsOrchestrationController에서 임시 비활성화 상태
-        // pushService.pushPlan(planId);
-        log.warn("[PlanCompletionListener] MetricsPushService 호출은 학원 환경 제약으로 임시 비활성화됨.");
+        // 4. 통계 데이터 AI 서버로 푸시 (Push) - Mock Service 호출
+        pushService.pushPlan(planId);
+        // log.info("[PlanCompletionListener] MetricsPushService.pushPlan 호출 완료."); //todo
+        log.info("[PlanCompletionListener] MockMetricsPushService.pushPlan 호출 완료.");
 
         // 5. (추후 구현) AI 서버로부터 요약 보고서 수신 및 Plan 엔티티에 저장
         // 이 부분은 MetricsOrchestrationController의 로직을 참고하여 구현될 예정입니다.
-        // 현재는 AI 통신이 비활성화되어 있으므로, 이 단계는 건너뜁니다.
 
         log.info("[PlanCompletionListener] PlanCompletedEvent 처리 완료: planId={}", planId);
     }
