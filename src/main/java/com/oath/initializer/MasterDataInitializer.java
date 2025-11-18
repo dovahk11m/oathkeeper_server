@@ -10,11 +10,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Profile("local")
-@Order(1) // 가장 먼저 실행되도록 설정
+@Order(2)
 @RequiredArgsConstructor
 public class MasterDataInitializer implements CommandLineRunner {
 
-    private final DataInitializer0_Cleanup dataInitializer0_Cleanup; // 다시 주입받도록 복원
     private final DataInitializer2_Member dataInitializer2_Member;
     private final DataInitializer4_Group dataInitializer4_Group;
     private final DataInitializer5_Chat dataInitializer5_Chat;
@@ -30,17 +29,15 @@ public class MasterDataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("========= MasterDataInitializer: 데이터 초기화 시작 =========");
 
-        dataInitializer0_Cleanup.run(args); // 호출 복원
-
-        dataInitializer2_Member.run(args);
-        dataInitializer4_Group.run(args);
-        dataInitializer5_Chat.run(args);
-        dataInitializer6_Tag.run(args);
-        dataInitializer8_Place.run(args);
-        dataInitializer10_PlaceTag.run(args);
-        dataInitializer12_Plan.run(args);
-        dataInitializer22_Visitor.run(args);
-        dataInitializer44_Term.run(args);
+        dataInitializer2_Member.initialize(); // initialize() 호출
+        dataInitializer4_Group.initialize();
+        dataInitializer5_Chat.initialize();
+        dataInitializer6_Tag.initialize();
+        dataInitializer8_Place.initialize();
+        dataInitializer10_PlaceTag.initialize();
+        dataInitializer12_Plan.initialize();
+        dataInitializer22_Visitor.initialize();
+        dataInitializer44_Term.initialize();
 
         log.info("========= MasterDataInitializer: 데이터 초기화 완료 =========");
     }

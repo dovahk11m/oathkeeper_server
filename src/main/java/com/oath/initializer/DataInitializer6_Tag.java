@@ -16,13 +16,11 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-// @Order(6) 제거
-public class DataInitializer6_Tag implements CommandLineRunner {
+public class DataInitializer6_Tag {
 
     private final TagRepository tagRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 태그 데이터 생성 시작");
 
         List<String> tags = Arrays.asList(

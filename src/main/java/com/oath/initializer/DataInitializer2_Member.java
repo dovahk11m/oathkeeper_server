@@ -6,7 +6,6 @@ import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -17,14 +16,12 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-// @Order(2) 제거
-public class DataInitializer2_Member implements CommandLineRunner {
+public class DataInitializer2_Member {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize() throws Exception {
         log.info("👷‍♂️ 샘플 사용자 데이터를 생성 시작");
 
         createMember("user1@test.com", "김철수", "1234", Role.USER, "부산광역시 금정구 부산대학로63번길 2", 35.2335, 129.0814, "");

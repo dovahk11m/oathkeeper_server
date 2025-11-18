@@ -16,12 +16,11 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @Profile("local")
 // @Order(22) 제거
-public class DataInitializer22_Visitor implements CommandLineRunner {
+public class DataInitializer22_Visitor {
 
     private final VisitorRepository visitorRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 방문자 데이터 생성 시작");
 
         for (int i = 0; i < 10; i++) {

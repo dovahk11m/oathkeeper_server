@@ -23,6 +23,7 @@ public class PlanResponse {
         private String location;
         private Double placeLatitude;
         private Double placeLongitude;
+        private String status;
         private List<ParticipantResponse> participants;
 
         public CreatePlan(Plan plan) {
@@ -42,6 +43,8 @@ public class PlanResponse {
                 this.placeLatitude = lp.getY();
                 this.placeLongitude = lp.getX();
             }
+
+            this.status = plan.getStatus().name(); // status 값 할당
 
             this.participants = plan.getParticipants().stream()
                     .map(ParticipantResponse::of)

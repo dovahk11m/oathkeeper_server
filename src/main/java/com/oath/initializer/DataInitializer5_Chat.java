@@ -8,7 +8,6 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -19,15 +18,13 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-// @Order(5) 제거
-public class DataInitializer5_Chat implements CommandLineRunner {
+public class DataInitializer5_Chat {
 
     private final MemberRepository memberRepository;
     private final GroupRepository groupRepository;
     private final ChatRepository chatRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 채팅 데이터 생성 시작");
 
         // 1. 필요한 엔티티 조회

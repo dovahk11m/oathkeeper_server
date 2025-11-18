@@ -9,7 +9,7 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+// import org.springframework.boot.CommandLineRunner; // 제거
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -19,15 +19,14 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-// @Order(4) 제거
-public class DataInitializer4_Group implements CommandLineRunner {
+public class DataInitializer4_Group {
 
     private final MemberRepository memberRepository;
     private final GroupService groupService;
     private final GroupMemberRepository groupMemberRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    // @Override 제거
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 그룹 데이터 생성 시작");
 
         Member user1 = memberRepository.findByEmail("user1@test.com").orElseThrow();

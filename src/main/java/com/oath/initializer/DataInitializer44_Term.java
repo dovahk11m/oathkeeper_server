@@ -14,12 +14,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Profile("local")
 // @Order(44) 제거
-public class DataInitializer44_Term implements CommandLineRunner {
+public class DataInitializer44_Term {
 
     private final TermRepository termRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 약관 데이터 생성 시작");
 
         if (termRepository.count() == 0) {

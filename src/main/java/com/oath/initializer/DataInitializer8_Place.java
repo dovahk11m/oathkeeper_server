@@ -17,12 +17,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Profile("local")
 // @Order(8) 제거
-public class DataInitializer8_Place implements CommandLineRunner {
+public class DataInitializer8_Place {
 
     private final PlaceRepository placeRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 장소 데이터 생성 시작");
 
         List<Place> places = Arrays.asList(

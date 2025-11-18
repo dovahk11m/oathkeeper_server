@@ -20,14 +20,13 @@ import java.util.Random;
 @RequiredArgsConstructor
 @Profile("local")
 // @Order(10) 제거
-public class DataInitializer10_PlaceTag implements CommandLineRunner {
+public class DataInitializer10_PlaceTag {
 
     private final PlaceRepository placeRepository;
     private final TagRepository tagRepository;
     private final PlaceTagRepository placeTagRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 PlaceTag 데이터 생성 시작");
 
         List<Place> places = placeRepository.findAll();

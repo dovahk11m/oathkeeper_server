@@ -8,7 +8,9 @@ import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.plan.request.PlanResponse;
-import com.oath.domain.plan.service.PlanService;
+import com.oath.domain.plan.service.PlanCoreService;
+import com.oath.domain.plan.service.PlanParticipantService;
+import com.oath.domain.plan.service.PlanTrackingService;
 import com.oath.recommend_domain.plan.PlanEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.Point;
@@ -25,7 +27,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlanFacade {
 
-    private final PlanService planService;
+    private final PlanCoreService planCoreService;
+    private final PlanParticipantService planParticipantService;
+    private final PlanTrackingService planTrackingService;
     private final PlanJpaRepository planJpaRepository;
     private final TagRepository tagRepository;
     private final PlanTagRepository planTagRepository;
@@ -33,7 +37,7 @@ public class PlanFacade {
 
     @Transactional(readOnly = true)
     public List<PlanResponse.CreatePlan> listPlans(Long memberId) {
-        List<Plan> plans = planJpaRepository.findAllByCreatorOrParticipant(memberId);
+        List<Plan> plans = planCoreService.listPlans(memberId);
         return plans.stream()
                 .map(plan -> PlanResponse.CreatePlan.of(plan))
                 .collect(Collectors.toList());
@@ -62,7 +66,7 @@ public class PlanFacade {
             Status status,
             Long lateFineAmount
     ) {
-        Plan plan = planService.createPlan(
+        Plan plan = planCoreService.createPlan(
                 creatorMemberId,
                 title,
                 planDatetime,
@@ -82,7 +86,7 @@ public class PlanFacade {
             Status status,
             List<String> tags
     ) {
-        Plan plan = planService.updatePlan(
+        Plan plan = planCoreService.updatePlan(
                 planId,
                 title,
                 planDatetime,
@@ -144,7 +148,7 @@ public class PlanFacade {
             String placeName,
             Point location
     ) {
-        Plan plan = planService.confirmPlace(
+        Plan plan = planCoreService.confirmPlace(
                 planId,
                 placeName,
                 location
@@ -152,5 +156,38 @@ public class PlanFacade {
         Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId())
                 .orElse(plan);
         return PlanResponse.CreatePlan.of(reloaded);
+    }
+
+    @Transactional(readOnly = true)
+    public void validatePlanAccess(Long planId, Long memberId) {
+        planCoreService.validatePlanAccess(planId, memberId);
+    }
+
+    public void validatePlanCreator(Long planId, Long memberId) {
+        planCoreService.validatePlanCreator(planId, memberId);
+    }
+
+    @Transactional
+    public void deletePlan(Long planId) {
+        planCoreService.deletePlan(planId);
+    }
+
+    @Transactional
+    public Plan confirmFinalPlan(Long planId, Long requesterId) {
+        return planCoreService.confirmFinalPlan(planId, requesterId);
+    }
+
+    public Long calculateLateFine(Long participantId, Long requesterId) {
+        return planTrackingService.calculateLateFine(participantId, requesterId);
+    }
+
+    @Transactional
+    public Plan completePlanManually(Long planId, Long requesterId) {
+        return planTrackingService.completePlanManually(planId, requesterId);
+    }
+
+    @Transactional
+    public void markAllArrivedForTest(Long planId, Long requesterId) {
+        planTrackingService.markAllArrivedForTest(planId, requesterId);
     }
 }

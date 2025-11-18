@@ -2,7 +2,8 @@ package com.oath.domain.plan.facade;
 
 import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.ParticipantStatus;
-import com.oath.domain.plan.service.PlanService;
+import com.oath.domain.plan.service.PlanParticipantService;
+import com.oath.domain.plan.service.PlanTrackingService;
 import com.oath.domain.plan.request.ParticipantResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,44 +17,49 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ParticipantFacade {
 
-    private final PlanService planService;
+    private final PlanParticipantService planParticipantService;
+    private final PlanTrackingService planTrackingService;
 
     @Transactional
     public ParticipantResponse addParticipant(Long planId, Long memberId, Long requesterId) {
-        Participant participant = planService.addParticipant(planId, memberId, requesterId);
+        Participant participant = planParticipantService.addParticipant(planId, memberId, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional
+    public void removeParticipant(Long participantId, Long requesterId) {
+        planParticipantService.removeParticipant(participantId, requesterId);
+    }
+
+    @Transactional
     public ParticipantResponse changeParticipantStatus(Long participantId, ParticipantStatus status, Long requesterId) {
-        Participant participant = planService.changeParticipantStatus(participantId, status, requesterId);
+        Participant participant = planParticipantService.changeParticipantStatus(participantId, status, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional(readOnly = true)
     public List<ParticipantResponse> getParticipants(Long planId) {
-        List<Participant> participants = planService.getParticipants(planId);
+        List<Participant> participants = planParticipantService.getParticipants(planId);
         return participants.stream()
-                .map(participant -> ParticipantResponse.of(participant))
+                .map(ParticipantResponse::of)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public ParticipantResponse recordDeparture(Long participantId, LocalDateTime actualDeparture, Long requesterId) {
-        Participant participant = planService.recordDeparture(participantId, actualDeparture, requesterId);
+        Participant participant = planTrackingService.recordDeparture(participantId, actualDeparture, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional
     public ParticipantResponse recordArrival(Long participantId, LocalDateTime actualArrival, Long requesterId) {
-        Participant participant = planService.recordArrival(participantId, actualArrival, requesterId);
+        Participant participant = planTrackingService.recordArrival(participantId, actualArrival, requesterId);
         return ParticipantResponse.of(participant);
     }
 
     @Transactional
     public ParticipantResponse suggestExpectedDeparture(Long participantId, Integer expectedTravelTimeMinutes, Long requesterId) {
-        Participant participant = planService.suggestExpectedDeparture(participantId, expectedTravelTimeMinutes, requesterId);
+        Participant participant = planTrackingService.suggestExpectedDeparture(participantId, expectedTravelTimeMinutes, requesterId);
         return ParticipantResponse.of(participant);
     }
 }
-
