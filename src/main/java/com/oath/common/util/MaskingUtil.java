@@ -38,7 +38,7 @@ public class MaskingUtil {
                     .type(EntityType.PHONE)
                     .startIndex(phoneMatcher.start())
                     .endIndex(phoneMatcher.end())
-                    .value(phoneMatcher.group())
+                    .realValue(phoneMatcher.group())
                     .build();
             entities.add(e);
         }
@@ -52,7 +52,7 @@ public class MaskingUtil {
                     .type(EntityType.EMAIL)
                     .startIndex(emailMatcher.start())
                     .endIndex(emailMatcher.end())
-                    .value(emailMatcher.group())
+                    .realValue(emailMatcher.group())
                     .build();
             entities.add(e);
         }
@@ -61,35 +61,35 @@ public class MaskingUtil {
         return entities;
     }
 
-    public static String maskMessage(String text, List<ChatEntity> entities, MaskingLevel level) {
+    public static String maskMessage(String text, List<ChatEntity> entities) {
         StringBuilder masked = new StringBuilder(text);
 
         for (int i = entities.size() - 1; i >= 0; i--) {
             ChatEntity e = entities.get(i);
-            if (shouldMask(e.getType(), level)) {
+
                 int start = e.getStartIndex();
                 int end = e.getEndIndex();
                 masked.replace(start, end, "*".repeat(end - start));
-            }
+
         }
         return masked.toString();
     }
 
-    public static MaskingLevel detectMaskLevel(List<ChatEntity> entities) {
-        boolean hasSensitive = entities.stream().anyMatch(e ->
-                e.getType() == EntityType.PHONE || e.getType() == EntityType.EMAIL || e.getType() == EntityType.ADDRESS
-        );
-
-        if (hasSensitive) return MaskingLevel.STRICT;
-        else return MaskingLevel.MEDIUM;
-    }
-
-
-    private static boolean shouldMask(EntityType type, MaskingLevel level) {
-        return switch(level) {
-            case STRICT -> true;
-            case MEDIUM -> type == EntityType.PHONE || type == EntityType.EMAIL;
-            case NONE -> false;
-        };
-    }
+//    public static MaskingLevel detectMaskLevel(List<ChatEntity> entities) {
+//        boolean hasSensitive = entities.stream().anyMatch(e ->
+//                e.getType() == EntityType.PHONE || e.getType() == EntityType.EMAIL || e.getType() == EntityType.ADDRESS
+//        );
+//
+//        if (hasSensitive) return MaskingLevel.STRICT;
+//        else return MaskingLevel.MEDIUM;
+//    }
+//
+//
+//    private static boolean shouldMask(EntityType type, MaskingLevel level) {
+//        return switch(level) {
+//            case STRICT -> true;
+//            case MEDIUM -> type == EntityType.PHONE || type == EntityType.EMAIL;
+//            case NONE -> false;
+//        };
+//    }
 }

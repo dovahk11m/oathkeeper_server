@@ -33,6 +33,8 @@ public class Chat {
     @Column(nullable = false, length = 1000)
     private String content;
 
+    private String maskedContent;
+
     private Long planId;
 
     @Column(nullable = false, updatable = false)

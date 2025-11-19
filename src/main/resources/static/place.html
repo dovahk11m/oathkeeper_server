@@ -94,7 +94,7 @@ function displayMarker(place) {
         const content = `
             <div style="padding:5px;font-size:12px;">
                 ${place.place_name} <br>
-                <button onclick="savePlace('${place.place_name}', '${place.y}', '${place.x}')">저장</button>
+                <button onclick="savePlace('${place.place_name}','${place.address_name}', '${place.y}', '${place.x}')">저장</button>
             </div>
         `;
         infowindow.setContent(content);
@@ -103,22 +103,18 @@ function displayMarker(place) {
 }
 
 // ✅ 장소 저장 함수
-function savePlace(name, lat, lng) {
-    // 1) 브라우저 로컬 저장소에 저장
-    const savedPlaces = JSON.parse(localStorage.getItem('places') || '[]');
-    savedPlaces.push({ name, lat, lng });
-    localStorage.setItem('places', JSON.stringify(savedPlaces));
-    alert(name + ' 장소가 저장되었습니다!');
+function savePlace(name, address, lat, lng) {
 
     // 2) 필요하면 서버로 저장도 가능
 
-    fetch('/save-place', {
+    fetch('api/admin/places/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, lat, lng })
+        body: JSON.stringify({ name, address, lat, lng })
     })
     .then(res => res.json())
     .then(data => console.log(data));
+    alert(name + ' 장소가 저장되었습니다!');
 
 }
 </script>

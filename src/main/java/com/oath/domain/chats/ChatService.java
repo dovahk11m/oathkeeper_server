@@ -3,6 +3,7 @@ package com.oath.domain.chats;
 import com.oath.common.exception.Exception403;
 import com.oath.common.exception.Exception404;
 import com.oath.common.paging.PageResponseDTO;
+import com.oath.domain.chatEntity.ChatEntityService;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.groupRepository.GroupMemberRepository;
 import com.oath.domain.groups.groupRepository.GroupRepository;
@@ -25,6 +26,7 @@ public class ChatService {
     private final MemberRepository memberRepository;
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final ChatEntityService chatEntityService;
 
     /**
      * 특정 그룹(채팅방)의 이전 대화 내용을 페이징하여 조회합니다.
@@ -89,7 +91,10 @@ public class ChatService {
             throw new Exception403("해당 그룹에 메시지를 보낼 권한이 없습니다.");
         }
 
-        Chat chat = Chat.of(group, sender, request.getContent(), request.getPlanId());
+        Chat chatPrev = Chat.of(group, sender, request.getContent(), request.getPlanId());
+
+        Chat chat = chatEntityService.saveMessage(chatPrev);
+
         chatRepository.save(chat);
 
         log.info("메시지 저장 완료: messageId={}, content='{}'", chat.getId(), chat.getContent());

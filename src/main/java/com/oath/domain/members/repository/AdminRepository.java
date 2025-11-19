@@ -103,4 +103,34 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             @Param("endDate") LocalDateTime endDate
     );
 
+    @Query(
+        value = """
+        SELECT
+            DATE_FORMAT(p.created_at, '%Y-%m') AS month,
+            COUNT(DISTINCT p.id) AS planCount,
+            COUNT(pp.id) AS participantCount
+        FROM plan_tb p
+        LEFT JOIN plan_participants_tb pp
+        ON p.id = pp.plan_id
+        WHERE p.created_at >= DATE_SUB(CURDATE(), INTERVAL 5 MONTH)
+        GROUP BY DATE_FORMAT(p.created_at, '%Y-%m')
+        ORDER BY month
+        """,
+        nativeQuery = true
+    )
+    List<AdminResponse.MonthlyCount> getMonthlyCount();
+
+    @Query("""
+    SELECT new com.oath.domain.members.dto.AdminResponse$activeCount(
+        c.sender.username,
+        COUNT(c.id)
+    )
+    FROM Chat c
+    WHERE c.sentAt >= :oneMonthAgo
+    GROUP BY c.sender.id, c.sender.username
+    ORDER BY COUNT(c.id) DESC
+    """)
+    List<AdminResponse.activeCount> getActiveCount(@Param("oneMonthAgo") LocalDateTime oneMonthAgo);
+
+
 }

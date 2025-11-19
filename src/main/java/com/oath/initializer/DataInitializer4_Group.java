@@ -56,6 +56,7 @@ public class DataInitializer4_Group implements CommandLineRunner {
                 user1,
                 "안녕하세요! 샘플 데이터입니다.",
                 null,
+                null,
                 LocalDateTime.now().minusMinutes(5)
         ));
         chatRepository.save(new Chat(
@@ -63,6 +64,7 @@ public class DataInitializer4_Group implements CommandLineRunner {
                 sampleGroup,
                 user2,
                 "네, 반갑습니다!",
+                null,
                 null,
                 LocalDateTime.now().minusMinutes(4)
         ));

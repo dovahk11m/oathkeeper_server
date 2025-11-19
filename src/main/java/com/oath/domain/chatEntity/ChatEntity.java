@@ -23,9 +23,10 @@ public class ChatEntity {
     private Chat chat;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "type", length = 20)
     private EntityType type; // EMAIL, PHONE, NAME, ADDRESS
 
     private int startIndex; // text에서 시작 위치
     private int endIndex;   // text에서 끝 위치
-    private String value;   // 실제 값
+    private String realValue;   // 실제 값
 }

@@ -9,6 +9,10 @@ spring:
       username: sa # H2 DB 기본 사용자 이름
       password: # 비밀번호는 없음
       driver-class-name: org.h2.Driver # H2 드라이버 지정
+      hikari:
+        data-source-properties:
+          MODE: MySQL
+          DATABASE_TO_UPPER: false
 
     # 1-2. MySQL 설정
     mysql:
@@ -21,7 +25,7 @@ spring:
     pg:
       jdbc-url: jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
       username: postgres.ucvalhtcwaxscdmyjoiz
-      password: postgreSql123
+      password: ${POSTGRES_PW:FAKE_PW}
       driver-class-name: org.postgresql.Driver
 
       hikari:

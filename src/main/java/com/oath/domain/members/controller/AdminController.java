@@ -214,5 +214,19 @@ public class AdminController {
         return new AdminResponse.DailyTagCount(dates, dailyTags);
     }
 
+    @GetMapping("/bar-chart")
+    @ResponseBody
+    public List<AdminResponse.barChart> getBarChart() {
+        List<AdminResponse.barChart> chart = adminService.getBarChart();
+        return chart;
+    }
+
+    @GetMapping("/active-count")
+    @ResponseBody
+    public List<AdminResponse.activeCount> getActiveCount() {
+        List<AdminResponse.activeCount> activeCount = adminService.getActiveCount();
+        return activeCount;
+    }
+
 
 }

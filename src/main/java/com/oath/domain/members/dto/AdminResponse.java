@@ -220,6 +220,36 @@ public class AdminResponse {
         }
     }
 
+    @Data
+    public static class barChart {
+        private String labels;
+        private Long participantCount;
+        private Long planCount;
+
+        public barChart(String labels, Long participantCount, Long planCount) {
+            this.labels = labels;
+            this.participantCount = participantCount;
+            this.planCount = planCount;
+        }
+    }
+
+    public interface MonthlyCount {
+        String getMonth();
+        Long getCount();
+        Long getParticipantCount();
+    }
+
+    @Data
+    public static class activeCount {
+        private String username;
+        private Long count;
+
+        public activeCount(String username, Long count) {
+            this.username = username;
+            this.count = count;
+        }
+    }
+
 
 
 }

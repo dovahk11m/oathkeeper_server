@@ -32,7 +32,7 @@ public class PlaceRequestDto {
     public static class PlaceDto {
         private String name;
         private String address;
-        private Double latitude;
-        private Double longitude;
+        private Double lat;
+        private Double lng;
     }
 }

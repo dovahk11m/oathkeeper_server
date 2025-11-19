@@ -96,15 +96,14 @@ public class PlaceAdminService {
 
         return response.getBody();
 
-
     }
 
     public Place savePlace(PlaceRequestDto.PlaceDto reqDto) {
         Place place = Place.builder()
                 .name(reqDto.getName())
                 .address(reqDto.getAddress())
-                .lat(reqDto.getLatitude())
-                .lng(reqDto.getLongitude())
+                .lat(reqDto.getLat())
+                .lng(reqDto.getLng())
                 .build();
 
         return placeRepository.save(place);

@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -181,6 +182,20 @@ public class AdminService {
                 .toList();
 
         return new AdminResponse.DailyTagCount(dates, dailyTags);
+    }
+
+    public List<AdminResponse.barChart> getBarChart() {
+        List<AdminResponse.MonthlyCount> count = adminRepository.getMonthlyCount();
+        List<AdminResponse.barChart> dtos = count.stream()
+                .map(c -> new AdminResponse.barChart(c.getMonth(), c.getCount(), c.getParticipantCount()))
+                .toList();
+        return dtos;
+    }
+
+    public List<AdminResponse.activeCount> getActiveCount() {
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+        List<AdminResponse.activeCount> activeCount = adminRepository.getActiveCount(oneMonthAgo);
+        return activeCount;
     }
 
 }
