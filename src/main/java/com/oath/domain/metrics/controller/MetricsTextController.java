@@ -2,7 +2,11 @@
 package com.oath.domain.metrics.controller;
 
 import com.oath.domain.plan.repository.ParticipantRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Profile("local") // 이 컨트롤러는 local 환경에서만 활성화
+@Tag(name = "Metrics (내부 테스트용)", description = "통계 계산 및 AI 연동을 수동으로 테스트하기 위한 API")
 @RestController
 @RequestMapping("/api/plans/{planId}/metrics")
 @RequiredArgsConstructor
@@ -22,12 +28,15 @@ public class MetricsTextController {
     private final WebClient aiClient; // baseUrl=http://localhost:8001
     private final ParticipantRepository participantRepo;
 
+    @Operation(summary = "[4.1단계] AI 기반 텍스트 요약 생성 (옵션 포함)", description = "AI 서버에 스타일, 추가 노트 등의 옵션을 전달하여 커스텀된 텍스트 요약 보고서를 생성하도록 요청합니다.")
     @PostMapping("/summary/text")
-    public ResponseEntity<String> getPromptedText(@PathVariable Long planId,
-                                                  @RequestParam(defaultValue = "prompt") String mode,
-                                                  @RequestParam(defaultValue = "친근하고 캐주얼하게") String style,
-                                                  @RequestParam(defaultValue = "") String notes,
-                                                  @RequestParam(required = false) Integer seed) {
+    public ResponseEntity<String> getPromptedText(
+            @Parameter(description = "플랜 ID") @PathVariable Long planId,
+            @Parameter(description = "생성 모드 ('rules', 'prompt', 'llm')") @RequestParam(defaultValue = "prompt") String mode,
+            @Parameter(description = "텍스트 스타일 (예: '친근하고 캐주얼하게')") @RequestParam(defaultValue = "친근하고 캐주얼하게") String style,
+            @Parameter(description = "요약에 참고할 추가 노트") @RequestParam(defaultValue = "") String notes,
+            @Parameter(description = "결과 재현을 위한 시드값 (선택)") @RequestParam(required = false) Integer seed) {
+
         // 1) 이름 조회
         List<ParticipantRepository.MemberIdName> pairs =
                 participantRepo.findMemberIdNameByPlanId(planId);

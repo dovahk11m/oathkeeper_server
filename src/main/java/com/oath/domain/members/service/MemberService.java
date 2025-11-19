@@ -1,10 +1,7 @@
 package com.oath.domain.members.service;
 
 import com.oath.common.JwtTokenProvider;
-import com.oath.common.exception.Exception400;
-import com.oath.common.exception.Exception401;
-import com.oath.common.exception.Exception404;
-import com.oath.common.exception.Exception409;
+import com.oath.common.exception.*;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -18,6 +15,7 @@ import com.oath.domain.members.memberEvent.SocialSignupEvent;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.terms.TermService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +33,7 @@ import java.util.UUID;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -43,7 +42,10 @@ public class MemberService {
     private final TermService termService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Member create(MemberCreateDto memberCreateDto){
+    private final String UPLOAD_DIR = "./uploads/profile/";
+    private final String WEB_PATH_PREFIX = "/profile-images/";
+
+    public Member create(MemberCreateDto memberCreateDto) {
         if (memberRepository.findByEmail(memberCreateDto.getEmail()).isPresent()) {
             throw new Exception409("이미 사용 중인 이메일입니다.");
         }
@@ -82,11 +84,11 @@ public class MemberService {
         member.activate();
     }
 
-    public Member login(MemberLoginDto memberLoginDto){
+    public Member login(MemberLoginDto memberLoginDto) {
         Member member = memberRepository.findByEmail(memberLoginDto.getEmail())
                 .orElseThrow(() -> new Exception401("이메일 또는 비밀번호가 일치하지 않습니다."));
 
-        if(!passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
+        if (!passwordEncoder.matches(memberLoginDto.getPassword(), member.getPassword())) {
             throw new Exception401("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
 
@@ -107,14 +109,14 @@ public class MemberService {
     }
 
     public void postLogin(Member member) {
-        if(member.getStatus() == Status.INACTIVE) {
+        if (member.getStatus() == Status.INACTIVE) {
             throw new Exception401("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
         }
-        if(member.getStatus() != Status.ACTIVE) {
+        if (member.getStatus() != Status.ACTIVE) {
             throw new Exception401("사용이 중지된 계정입니다.");
         }
 
-        if(member.getLastLogin().isBefore(LocalDateTime.now().minusYears(1))) {
+        if (member.getLastLogin().isBefore(LocalDateTime.now().minusYears(1))) {
             member.setStatus(Status.INACTIVE);
             memberRepository.save(member);
             throw new Exception401("휴면계정입니다. 다시 로그인하여 활성화해주세요.");
@@ -124,7 +126,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public Member getMemberBySocialId(String socialId){
+    public Member getMemberBySocialId(String socialId) {
         Member member = memberRepository.findBySocialId(socialId).orElse(null);
         return member;
     }
@@ -176,7 +178,7 @@ public class MemberService {
     }
 
     public String findId(MemberRequest.FindId request) {
-         Member member = memberRepository.findByEmail(request.getEmail())
+        Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         return member.getUsername();
     }
@@ -201,37 +203,44 @@ public class MemberService {
                             // 이메일 발송
                             // emailService.sendMail(...); // 이 부분도 이벤트 기반으로 변경 가능
                         },
-                        () -> { throw new Exception404("일치하는 회원이 없습니다."); }
+                        () -> {
+                            throw new Exception404("일치하는 회원이 없습니다.");
+                        }
                 );
     }
 
-    public String uploadProfileImage (MultipartFile image, Long memberId) throws IOException {
+    @Transactional
+    public String uploadProfileImage(MultipartFile image, Long memberId) throws IOException {
+
+        // 1. 회원 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
 
-        String oldImageUrl = member.getProfileImageUrl();
-        if (oldImageUrl != null) {
-            Path oldPath = Paths.get("uploads/profile/" + oldImageUrl.replace("/profile-image", ""));
-            Files.deleteIfExists(oldPath);
+        // 2. 기존 이미지 삭제
+        try {
+            String oldImageUrl = member.getProfileImageUrl();
+            if (oldImageUrl != null && !oldImageUrl.trim().isEmpty()) {
+                String oldFileName = oldImageUrl.replace(WEB_PATH_PREFIX, "");
+                Path oldPath = Paths.get(UPLOAD_DIR + oldFileName);
+                Files.deleteIfExists(oldPath);
+            }
+        } catch (IOException e) {
+            throw new Exception500("기존 이미지 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
 
         String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
-        Path filePath = Paths.get("uploads/profile/" + fileName);
+        Path filePath = Paths.get(UPLOAD_DIR + fileName);
 
-            Files.createDirectories(filePath.getParent());
+        Files.createDirectories(filePath.getParent());
+        Files.copy(image.getInputStream(), filePath);
 
-            Files.copy(image.getInputStream(), filePath);
+        String newImageUrl = WEB_PATH_PREFIX + fileName;
+        member.setProfileImageUrl(newImageUrl);
 
-            String fileUrl = "/파일경로/" + fileName;
-
-            member.setProfileImageUrl(fileUrl);
-
-            memberRepository.save(member);
-
-            return fileUrl;
+        return newImageUrl;
     }
 
-    public void deleteProfileImage (Long memberId) {
+    public void deleteProfileImage(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
 
@@ -240,7 +249,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public void countJoin () {
+    public void countJoin() {
 
     }
 

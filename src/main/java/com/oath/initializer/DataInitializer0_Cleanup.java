@@ -13,16 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
-@Order(0)
+@Order(1)
 public class DataInitializer0_Cleanup implements CommandLineRunner {
 
     private final PlanEmbeddingRepository planEmbeddingRepository;
 
     @Override
-    @Transactional
+    @Transactional("pgTransactionManager")
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ [PG] Supabase의 기존 PlanEmbedding 데이터 삭제 시작");
-        planEmbeddingRepository.deleteAllInBatch(); // (싹 비우기)
+        planEmbeddingRepository.deleteAllInBatch();
         log.info("👷‍♂️ [PG] PlanEmbedding 데이터 삭제 완료");
     }
 }

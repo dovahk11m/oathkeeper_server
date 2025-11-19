@@ -1,5 +1,6 @@
 package com.oath.domain.plan.domain;
 
+import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.plan.Status;
@@ -8,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.geo.Point;
@@ -29,6 +31,10 @@ public class Plan {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_member_id", nullable = false)
     private Member creatorMember;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id") // nullable = false 제거
+    private Group group;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -52,6 +58,23 @@ public class Plan {
     @Column(name = "late_fine_amount")
     private Long lateFineAmount;
 
+    // --- 개별 약속 통계 필드 추가 ---
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalLateMinutes = 0;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalOnTimeArrivals = 0;
+
+    @ColumnDefault("0.0")
+    @Column(nullable = false)
+    private Double totalTravelDistance = 0.0;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalTravelTime = 0; // 분 단위
+
     // 참가자 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Participant> participants = new ArrayList<>();
@@ -72,12 +95,17 @@ public class Plan {
     private LocalDateTime completedAt;
 
     @Builder
-    public Plan(Member creatorMember, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
+    public Plan(Member creatorMember, Group group, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount,
+                String placeName, Double placeLatitude, Double placeLongitude) {
         this.creatorMember = creatorMember;
+        this.group = group;
         this.title = title;
         this.planDatetime = planDatetime;
         this.status = status;
         this.lateFineAmount = lateFineAmount;
+        this.placeName = placeName;
+        this.placeLatitude = placeLatitude;
+        this.placeLongitude = placeLongitude;
     }
 
     public void update(String title, LocalDateTime planDatetime, Status status) {
@@ -107,6 +135,13 @@ public class Plan {
     // 약속 완료 여부 확인
     public boolean isCompleted() {
         return this.status == Status.COMPLETED && this.completedAt != null;
+    }
+
+    public void updateStatistics(Integer totalLateMinutes, Integer totalOnTimeArrivals, Double totalTravelDistance, Integer totalTravelTime) {
+        this.totalLateMinutes = totalLateMinutes;
+        this.totalOnTimeArrivals = totalOnTimeArrivals;
+        this.totalTravelDistance = totalTravelDistance;
+        this.totalTravelTime = totalTravelTime;
     }
 
     // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환

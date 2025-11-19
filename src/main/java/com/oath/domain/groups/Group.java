@@ -1,8 +1,10 @@
 package com.oath.domain.groups;
 
 import com.oath.domain.groups.groupDTO.GroupCreateRequest;
+import com.oath.domain.plan.domain.Plan;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -27,6 +29,33 @@ public class Group {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // --- 그룹 스탯 필드 추가 ---
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalPlansCompleted = 0;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalLateMinutes = 0;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalOnTimeArrivals = 0;
+
+    @Builder.Default
+    @ColumnDefault("0.0")
+    @Column(nullable = false)
+    private Double totalTravelDistance = 0.0;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalTravelTime = 0; // 분 단위
+
+
     /**
      * DTO로부터 새로운 Group 엔티티를 생성하는 정적 팩토리 메서드입니다.
      * @param request 그룹 생성 요청 DTO
@@ -37,5 +66,17 @@ public class Group {
                 .name(request.getGroupName())
                 .createdAt(LocalDateTime.now())
                 .build();
+    }
+
+    /**
+     * 완료된 Plan의 통계를 그룹 통계에 누적합니다.
+     * @param completedPlan 완료된 Plan 엔티티
+     */
+    public void addPlanStatistics(Plan completedPlan) {
+        this.totalPlansCompleted++;
+        this.totalLateMinutes += completedPlan.getTotalLateMinutes();
+        this.totalOnTimeArrivals += completedPlan.getTotalOnTimeArrivals();
+        this.totalTravelDistance += completedPlan.getTotalTravelDistance();
+        this.totalTravelTime += completedPlan.getTotalTravelTime();
     }
 }

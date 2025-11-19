@@ -5,6 +5,7 @@ import com.oath.common.JwtTokenProvider;
 import com.oath.common.auth.Auth;
 import com.oath.common.exception.Exception400;
 import com.oath.common.exception.Exception401;
+import com.oath.document.MemberApiResponseExamples;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -14,8 +15,12 @@ import com.oath.domain.members.service.KakaoService;
 import com.oath.domain.members.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +36,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "Bearer Authentication")
 public class MemberController {
     private final MemberService memberService;
     private final KakaoService kakaoService;
@@ -39,12 +45,17 @@ public class MemberController {
 
     @Operation(summary = "회원가입", description = "새로운 회원을 등록하고 이메일 인증을 요청합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "409", description = "이미 사용 중인 이메일")
+            @ApiResponse(responseCode = "201", description = "회원가입 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = MemberApiResponseExamples.MemberCreate.SUCCESS_201))),
+            @ApiResponse(responseCode = "409", description = "이미 사용 중인 이메일",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = MemberApiResponseExamples.MemberCreate.CONFLICT_409)))
     })
     @PostMapping("/create")
-    public ResponseEntity<CommonResponse<?>> memberCreate(
-            @Parameter(description = "회원가입 요청 정보", required = true) @RequestBody MemberCreateDto memberCreateDto) {
+    public ResponseEntity<CommonResponse<?>> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
         Member member = memberService.create(memberCreateDto);
         return new ResponseEntity<>(CommonResponse.success(member.getId(), "회원가입 성공. 이메일 인증을 완료해주세요."), HttpStatus.CREATED);
     }
@@ -69,12 +80,20 @@ public class MemberController {
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 JWT 토큰을 발급받습니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "로그인 성공"),
-            @ApiResponse(responseCode = "401", description = "이메일/비밀번호 불일치, 미인증 계정, 휴면 계정 등")
+            @ApiResponse(responseCode = "200", description = "로그인 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = MemberApiResponseExamples.MemberLogin.SUCCESS_200))),
+            @ApiResponse(responseCode = "401", description = "이메일/비밀번호 불일치 또는 미인증 계정",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "자격 증명 실패", value = MemberApiResponseExamples.MemberLogin.UNAUTHORIZED_401),
+                                    @ExampleObject(name = "미인증 계정", value = MemberApiResponseExamples.MemberLogin.INACTIVE_401)
+                            }))
     })
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse<?>> login(
-            @Parameter(description = "로그인 요청 정보", required = true) @RequestBody MemberLoginDto memberLoginDto) {
+    public ResponseEntity<CommonResponse<?>> login(@RequestBody MemberLoginDto memberLoginDto) {
         Member member = memberService.login(memberLoginDto);
         String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole(), member.getId());
         MemberResponse.Login loginInfo = new MemberResponse.Login(jwtToken, member);
@@ -101,7 +120,7 @@ public class MemberController {
     @PutMapping("/{memberId}")
     public ResponseEntity<CommonResponse<MemberResponse.DTO>> updateMember(
             @Parameter(description = "수정할 회원의 ID", required = true) @PathVariable Long memberId,
-            @Parameter(description = "회원 정보 수정 요청", required = true) @RequestBody MemberRequest.Update request) {
+            @RequestBody MemberRequest.Update request) {
         MemberResponse.DTO dto = memberService.updateMember(memberId, request);
         return ResponseEntity.ok(CommonResponse.success(dto, "회원정보 수정 성공"));
     }
@@ -115,7 +134,7 @@ public class MemberController {
     @PatchMapping("/{memberId}/password")
     public ResponseEntity<CommonResponse<?>> updatePassword(
             @Parameter(description = "비밀번호를 수정할 회원의 ID", required = true) @PathVariable Long memberId,
-            @Parameter(description = "비밀번호 수정 요청 정보", required = true) @RequestBody MemberRequest.PasswordUpdate request) {
+            @RequestBody MemberRequest.PasswordUpdate request) {
         memberService.updatePassword(memberId, request);
         return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 수정 성공"));
     }
@@ -127,7 +146,7 @@ public class MemberController {
     })
     @PostMapping("/find-id")
     public ResponseEntity<CommonResponse<?>> findId(
-            @Parameter(description = "아이디 찾기 요청 정보", required = true) @RequestBody MemberRequest.FindId request) {
+            @RequestBody MemberRequest.FindId request) {
         String foundId = memberService.findId(request);
         return ResponseEntity.ok(CommonResponse.success(foundId, "아이디 찾기 성공"));
     }
@@ -139,7 +158,7 @@ public class MemberController {
     })
     @PostMapping("/find-password")
     public ResponseEntity<CommonResponse<?>> findPassword(
-            @Parameter(description = "비밀번호 찾기 요청 정보", required = true) @RequestBody MemberRequest.FindPassword request) {
+            @RequestBody MemberRequest.FindPassword request) {
         memberService.sendTemporaryPassword(request);
         return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 찾기용 메일 보내기 성공"));
     }
@@ -178,7 +197,7 @@ public class MemberController {
     @PostMapping("/{memberId}/check-password")
     public ResponseEntity<CommonResponse<?>> checkPassword(
             @Parameter(description = "비밀번호를 확인할 회원의 ID", required = true) @PathVariable Long memberId,
-            @Parameter(description = "비밀번호 확인 요청 정보", required = true) @RequestBody MemberRequest.CheckPassword request) {
+            @RequestBody MemberRequest.CheckPassword request) {
         boolean isPasswordCorrect = memberService.checkPassword(memberId, request.getPassword());
         if (isPasswordCorrect) {
             return ResponseEntity.ok(CommonResponse.success(null, "비밀번호 확인 성공"));
@@ -196,7 +215,6 @@ public class MemberController {
     })
     @PostMapping("/kakao/token")
     public ResponseEntity<CommonResponse<?>> kakaoLoginWithToken(
-            @Parameter(description = "카카오 SDK에서 발급받은 액세스 토큰", required = true)
             @RequestBody AccessTokenDto accessTokenDto) {
 
         if (accessTokenDto.getAccess_token() == null || accessTokenDto.getAccess_token().isBlank()) {
@@ -217,7 +235,7 @@ public class MemberController {
                     nickname = kakaoProfileDto.getKakao_account().getProfile().getNickname();
                 }
             }
-            
+
             if (email == null || email.isBlank()) {
                 email = kakaoProfileDto.getId() + "@kakao.oath.com";
             }
@@ -252,7 +270,7 @@ public class MemberController {
     })
     @PostMapping("/facebook/doLogin")
     public ResponseEntity<CommonResponse<?>> facebookLogin(
-            @Parameter(description = "페이스북 액세스 토큰", required = true) @RequestBody AccessTokenDto accessTokenDto) {
+            @RequestBody AccessTokenDto accessTokenDto) {
         FacebookProfileDto facebookProfileDto = facebookService.getFacebookProfile(accessTokenDto.getAccess_token());
         Member originalMember = memberService.getMemberBySocialId(facebookProfileDto.getId());
         if (originalMember == null) {
@@ -260,7 +278,7 @@ public class MemberController {
             if (email == null || email.isBlank()) {
                 email = facebookProfileDto.getId() + "@facebook.oath.com";
             }
-            
+
             originalMember = memberService.createOauth(
                     facebookProfileDto.getId(),
                     email,
@@ -282,8 +300,8 @@ public class MemberController {
     })
     @PostMapping("/profile/upload/{memberId}")
     public ResponseEntity<?> uploadProfileImage(
-            @Parameter(description = "업로드할 프로필 이미지 파일", required = true) @RequestParam("image") MultipartFile image,
-            @Parameter(description = "이미지를 업로드할 회원의 ID", required = true) @PathVariable Long memberId) {
+            @Parameter(description = "업로드할 프로필 이미지 파일", required = true) @RequestParam(name = "image") MultipartFile image,
+            @Parameter(description = "이미지를 업로드할 회원의 ID", required = true) @PathVariable(name = "memberId") Long memberId) {
         try {
             String imageUrl = memberService.uploadProfileImage(image, memberId);
             return new ResponseEntity<>(CommonResponse.success(imageUrl), HttpStatus.OK);

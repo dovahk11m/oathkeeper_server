@@ -97,7 +97,6 @@ public class Participant {
 
     // 도착 처리
     public void markArrived(ArrivalStatus status, Integer offsetMinutes) {
-        this.actualArrivalTime = LocalDateTime.now();
         this.arrivalStatus = status;
         this.arrivalOffsetMinutes = offsetMinutes;
     }

@@ -8,7 +8,9 @@ import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.plan.request.PlanResponse;
-import com.oath.domain.plan.service.PlanService;
+import com.oath.domain.plan.service.PlanCoreService;
+import com.oath.domain.plan.service.PlanParticipantService;
+import com.oath.domain.plan.service.PlanTrackingService;
 import com.oath.recommend_domain.plan.PlanEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.Point;
@@ -23,9 +25,12 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager") // Facade의 기본 트랜잭션 관리자 지정
 public class PlanFacade {
 
-    private final PlanService planService;
+    private final PlanCoreService planCoreService;
+    private final PlanParticipantService planParticipantService;
+    private final PlanTrackingService planTrackingService;
     private final PlanJpaRepository planJpaRepository;
     private final TagRepository tagRepository;
     private final PlanTagRepository planTagRepository;
@@ -33,15 +38,19 @@ public class PlanFacade {
 
     @Transactional(readOnly = true)
     public List<PlanResponse.CreatePlan> listPlans(Long memberId) {
-        List<Plan> plans = planJpaRepository.findAllByCreatorOrParticipant(memberId);
+        List<Plan> plans = planCoreService.listPlans(memberId);
         return plans.stream()
                 .map(plan -> PlanResponse.CreatePlan.of(plan))
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    // 이 메서드는 두 개의 다른 트랜잭션 관리자를 사용하는 서비스를 호출하므로,
+    // 자체적인 트랜잭션을 시작하지 않고 각 서비스의 트랜잭션에 위임한다.
     public List<PlanResponse.CreatePlan> listRecommendPlans(Long currentPlanId, Long limit) {
+        // planEmbeddingService는 내부적으로 "pgTransactionManager"를 사용한다.
         List<Plan> plans = planEmbeddingService.findSimilarEmbeddings(currentPlanId, limit);
+        
+        // DTO 변환 로직은 추가적인 DB 조회가 없으므로 트랜잭션이 필요 없다.
         return plans.stream()
                 .map((plan) -> PlanResponse.CreatePlan.of(plan))
                 .toList();
@@ -54,7 +63,6 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(plan);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan createPlan(
             Long creatorMemberId,
             String title,
@@ -62,7 +70,7 @@ public class PlanFacade {
             Status status,
             Long lateFineAmount
     ) {
-        Plan plan = planService.createPlan(
+        Plan plan = planCoreService.createPlan(
                 creatorMemberId,
                 title,
                 planDatetime,
@@ -74,7 +82,6 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(reloaded);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan updatePlan(
             Long planId,
             String title,
@@ -82,7 +89,7 @@ public class PlanFacade {
             Status status,
             List<String> tags
     ) {
-        Plan plan = planService.updatePlan(
+        Plan plan = planCoreService.updatePlan(
                 planId,
                 title,
                 planDatetime,
@@ -138,13 +145,12 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(reloaded);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan confirmPlace(
             Long planId,
             String placeName,
             Point location
     ) {
-        Plan plan = planService.confirmPlace(
+        Plan plan = planCoreService.confirmPlace(
                 planId,
                 placeName,
                 location
@@ -152,5 +158,36 @@ public class PlanFacade {
         Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId())
                 .orElse(plan);
         return PlanResponse.CreatePlan.of(reloaded);
+    }
+
+    @Transactional(readOnly = true)
+    public void validatePlanAccess(Long planId, Long memberId) {
+        planCoreService.validatePlanAccess(planId, memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public void validatePlanCreator(Long planId, Long memberId) {
+        planCoreService.validatePlanCreator(planId, memberId);
+    }
+
+    public void deletePlan(Long planId) {
+        planCoreService.deletePlan(planId);
+    }
+
+    public Plan confirmFinalPlan(Long planId, Long requesterId) {
+        return planCoreService.confirmFinalPlan(planId, requesterId);
+    }
+
+    @Transactional(readOnly = true)
+    public Long calculateLateFine(Long participantId, Long requesterId) {
+        return planTrackingService.calculateLateFine(participantId, requesterId);
+    }
+
+    public Plan completePlanManually(Long planId, Long requesterId) {
+        return planTrackingService.completePlanManually(planId, requesterId);
+    }
+
+    public void markAllArrivedForTest(Long planId, Long requesterId) {
+        planTrackingService.markAllArrivedForTest(planId, requesterId);
     }
 }
