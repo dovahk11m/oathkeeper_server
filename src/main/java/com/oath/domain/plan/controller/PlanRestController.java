@@ -232,10 +232,21 @@ public class PlanRestController {
     }
 
     // 최종 확정
+    @Auth
     @PostMapping("/{planId}/confirm")
     public ResponseEntity<?> confirmPlan(@PathVariable Long planId, HttpServletRequest request) {
         Plan confirmedPlan = planService.confirmFinalPlan(planId, getCurrentMember(request).getId());
         return ResponseEntity.ok(CommonResponse.success(confirmedPlan, "약속이 최종 확정되었습니다."));
+    }
+
+    // 약속 완료 (생성자만 수동 완료 가능)
+    @Auth
+    @PostMapping("/{planId}/complete")
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> completePlan(@PathVariable Long planId, HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        Plan completedPlan = planService.completePlan(planId, currentMember.getId());
+        PlanResponse.CreatePlan dto = planFacade.getPlanById(completedPlan.getId());
+        return ResponseEntity.ok(CommonResponse.success(dto, "약속이 완료되었습니다."));
     }
 }
 

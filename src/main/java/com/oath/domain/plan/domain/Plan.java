@@ -68,6 +68,9 @@ public class Plan {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @Builder
     public Plan(Member creatorMember, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
         this.creatorMember = creatorMember;
@@ -93,6 +96,17 @@ public class Plan {
             this.placeLatitude = location.getY();
             this.placeLongitude = location.getX();
         }
+    }
+
+    // 약속 완료 처리
+    public void complete() {
+        this.status = Status.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    // 약속 완료 여부 확인
+    public boolean isCompleted() {
+        return this.status == Status.COMPLETED && this.completedAt != null;
     }
 
     // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환

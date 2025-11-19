@@ -248,6 +248,9 @@ public class PlanService {
             );
         }
 
+        // 모든 참가자가 도착했는지 확인 후 자동 완료
+        checkAndCompletePlan(plan.getId());
+
         return saved;
     }
 
@@ -330,5 +333,48 @@ public class PlanService {
         eventPublisher.publishEvent(new PlanConfirmedEvent(savedPlan.getId())); //
 
         return savedPlan;
+    }
+
+    // 약속 수동 완료 (생성자만 가능)
+    @Transactional
+    public Plan completePlan(Long planId, Long requesterId) {
+        validatePlanCreator(planId, requesterId);
+
+        Plan plan = getPlanById(planId);
+
+        if (plan.getStatus() == Status.COMPLETED) {
+            throw new Exception400("이미 완료된 약속입니다.");
+        }
+
+        plan.complete();
+        return planJpaRepository.save(plan);
+    }
+
+    // 모든 참가자 도착 시 자동 완료 체크
+    @Transactional
+    public void checkAndCompletePlan(Long planId) {
+        Plan plan = getPlanById(planId);
+
+        // 이미 완료된 약속은 스킵
+        if (plan.getStatus() == Status.COMPLETED) {
+            return;
+        }
+
+        List<Participant> participants = participantRepository.findByPlanId(planId);
+
+        // 참가자가 없으면 완료하지 않음
+        if (participants.isEmpty()) {
+            return;
+        }
+
+        // 모든 참가자가 도착했는지 확인 (ACCEPTED 상태인 참가자만 체크)
+        boolean allArrived = participants.stream()
+                .filter(p -> p.getParticipantStatus() == ParticipantStatus.ACCEPTED)
+                .allMatch(p -> p.getActualArrivalTime() != null);
+
+        if (allArrived) {
+            plan.complete();
+            planJpaRepository.save(plan);
+        }
     }
 }
