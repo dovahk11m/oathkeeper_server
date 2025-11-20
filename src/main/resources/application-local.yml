@@ -10,12 +10,12 @@ spring:
       password: # 비밀번호는 없음
       driver-class-name: org.h2.Driver # H2 드라이버 지정
 
-    # 1-2. MySQL 설정
-    mysql:
-      jdbc-url: jdbc:mysql://localhost:3306/oath?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
-      username: root
-      password: asd1234
-      driver-class-name: com.mysql.cj.jdbc.Driver
+#    # 1-2. MySQL 설정
+#    mysql:
+#      jdbc-url: jdbc:mysql://localhost:3306/oath?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
+#      username: root
+#      password: asd1234
+#      driver-class-name: com.mysql.cj.jdbc.Driver
 
     # 1-3. PostgreSQL 설정
     pg:
@@ -30,7 +30,7 @@ spring:
         idle-timeout: 30000
         max-lifetime: 1800000
         connection-timeout: 30000
-  
+
   # ===================================================================
   # 2. H2 데이터베이스 콘솔 설정
   # ===================================================================
@@ -55,17 +55,17 @@ spring:
           dialect: org.hibernate.dialect.H2Dialect
       show-sql: true
 
-    # 3-3. MySQL 전용 JPA 속성 (MySqlJpaConfig에서 사용)
-    mysql-props:
-      hibernate:
-      properties:
-        hibernate:
-          # (중요) 운영 환경에서는 'validate' 또는 'none' 사용
-          ddl-auto: create-drop
-          default_batch_fetch_size: 100
-          format_sql: true # SQL 포맷팅
-          dialect: org.hibernate.dialect.MySQLDialect
-      show-sql: true # SQL 로그 출력 (개발용)
+#    # 3-3. MySQL 전용 JPA 속성 (MySqlJpaConfig에서 사용)
+#    mysql-props:
+#      hibernate:
+#      properties:
+#        hibernate:
+#          # (중요) 운영 환경에서는 'validate' 또는 'none' 사용
+#          ddl-auto: create-drop
+#          default_batch_fetch_size: 100
+#          format_sql: true # SQL 포맷팅
+#          dialect: org.hibernate.dialect.MySQLDialect
+#      show-sql: true # SQL 로그 출력 (개발용)
 
     # 3-4. PostgreSQL 전용 JPA 속성 (PgJpaConfig에서 사용)
     pg-props:
@@ -145,3 +145,6 @@ ai:
     embedding-endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
     embedding-model: "models/gemini-embedding-001"
     api-key: ${GEMINI_API_KEY:FAKE_AI_KEY}
+  server:
+    url: "http://192.168.0.3:8001/metrics/analyze"
+    summary-url: "http://192.168.0.3:8001/metrics/report/{planId}"
