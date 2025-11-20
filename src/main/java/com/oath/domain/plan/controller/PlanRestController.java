@@ -14,6 +14,7 @@ import com.oath.domain.plan.facade.PlanFacade;
 import com.oath.domain.plan.request.ParticipantResponse;
 import com.oath.domain.plan.request.PlanRequest;
 import com.oath.domain.plan.request.PlanResponse;
+import com.oath.domain.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -37,6 +38,7 @@ import java.util.List;
 public class PlanRestController {
 
     private final PlanFacade planFacade;
+    private final PlanService planService;
     private final ParticipantFacade participantFacade;
     private final MemberRepository memberRepository;
 
@@ -452,6 +454,7 @@ public class PlanRestController {
     }
 
     // 최종 확정
+    @Auth
     @Operation(summary = "플랜 최종 확정", description = "플랜을 최종 확정 상태로 변경합니다. 플랜 생성자만 가능합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "플랜 최종 확정 성공"),
@@ -473,5 +476,15 @@ public class PlanRestController {
                 confirmedPlan,
                 "약속이 최종 확정되었습니다."
         ));
+    }
+
+    // 약속 완료 (생성자만 수동 완료 가능)
+    @Auth
+    @PostMapping("/{planId}/complete")
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> completePlan(@PathVariable Long planId, HttpServletRequest request) {
+        Member currentMember = getCurrentMember(request);
+        Plan completedPlan = planService.completePlan(planId, currentMember.getId());
+        PlanResponse.CreatePlan dto = planFacade.getPlanById(completedPlan.getId());
+        return ResponseEntity.ok(CommonResponse.success(dto, "약속이 완료되었습니다."));
     }
 }

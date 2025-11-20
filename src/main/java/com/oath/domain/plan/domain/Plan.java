@@ -95,6 +95,9 @@ public class Plan {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @Builder
     public Plan(Member creatorMember, Group group, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount,
                 String placeName, Double placeLatitude, Double placeLongitude) {
@@ -125,6 +128,17 @@ public class Plan {
             this.placeLatitude = location.getY();
             this.placeLongitude = location.getX();
         }
+    }
+
+    // 약속 완료 처리
+    public void complete() {
+        this.status = Status.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    // 약속 완료 여부 확인
+    public boolean isCompleted() {
+        return this.status == Status.COMPLETED && this.completedAt != null;
     }
 
     public void updateStatistics(Integer totalLateMinutes, Integer totalOnTimeArrivals, Double totalTravelDistance, Integer totalTravelTime) {
