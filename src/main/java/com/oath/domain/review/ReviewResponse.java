@@ -35,9 +35,15 @@ public class ReviewResponse {
             this.authorId = review.getAuthor().getId();
             this.createdAt = review.getCreatedAt() != null ? review.getCreatedAt().toString() : null;
             this.updatedAt = review.getUpdatedAt() != null ? review.getUpdatedAt().toString() : null;
-            this.replies = review.getReplies().stream()
-                    .map(ReplyDTO::new)
-                    .collect(Collectors.toList());
+            // replies는 LAZY라 세션이 닫힌 컨텍스트에서 접근하면 LazyInitializationException 발생 가능
+            try {
+                this.replies = review.getReplies().stream()
+                        .map(ReplyDTO::new)
+                        .collect(Collectors.toList());
+            } catch (Exception e) {
+                // LazyInitializationException 등 발생 시 빈 리스트로 대체
+                this.replies = java.util.Collections.emptyList();
+            }
         }
 
         public static ReviewDTO of(Review review) {
@@ -71,4 +77,3 @@ public class ReviewResponse {
         }
     }
 }
-

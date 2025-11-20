@@ -24,9 +24,11 @@ public interface ReviewJpaRepository extends JpaRepository<Review, Long> {
             "ORDER BY r.createdAt DESC")
     List<Review> findByPlanIdWithDetails(@Param("planId") Long planId);
 
-    @Query(value = "SELECT r FROM Review r " +
+    @Query(value = "SELECT DISTINCT r FROM Review r " +
             "JOIN FETCH r.author " +
             "JOIN FETCH r.plan " +
+            "LEFT JOIN FETCH r.replies rr " +
+            "LEFT JOIN FETCH rr.author " +
             "WHERE r.author.id = :authorId " +
             "ORDER BY r.createdAt DESC",
             countQuery = "SELECT COUNT(r) FROM Review r WHERE r.author.id = :authorId")

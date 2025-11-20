@@ -5,6 +5,7 @@ import com.oath.common.exception.Exception403;
 import com.oath.common.exception.Exception404;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class ReviewService {
                 .orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
 
         // 약속이 완료되었는지 확인
-        if (!plan.isCompleted()) {
+        if (plan.getStatus() != Status.COMPLETED) {
             throw new Exception400("약속이 종료된 후에만 후기를 작성할 수 있습니다.");
         }
 
