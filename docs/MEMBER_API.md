@@ -1,6 +1,6 @@
 # 회원 및 약관 API 명세서
 
-- **최종 수정 일자:** 2025-11-18
+- **최종 수정 일자:** 2025-11-20
 
 이 문서는 회원 가입, 인증, 프로필 관리, 약관 조회를 포함한 모든 회원 관련 API 명세를 종합적으로 제공합니다.
 
@@ -155,6 +155,17 @@
 -   **URL**: `/api/member/{memberId}`
 -   **설명**: 특정 회원의 프로필 정보를 조회합니다.
 -   **Success Response (200 OK)**: `data` 필드에 `MemberResponse.DTO` 객체가 포함됩니다.
+    ```json
+    {
+      "id": 1,
+      "username": "김철수",
+      "email": "user1@test.com",
+      "profileImageUrl": "/path/to/image.jpg",
+      "defaultAddress": "부산광역시 부산진구",
+      "socialType": "LOCAL",
+      "isPremium": false
+    }
+    ```
 
 ### 3.2. 회원 정보 수정
 
@@ -166,10 +177,10 @@
     {
       "username": "김오스",
       "profileImageUrl": "/new/image.jpg",
-      "defaultAddress": "부산광역시"
+      "defaultAddress": "부산광역시 해운대구"
     }
     ```
--   **Success Response (200 OK)**: `data` 필드에 수정된 `MemberResponse.DTO` 객체가 포함됩니다.
+-   **Success Response (200 OK)**: `data` 필드에 수정된 `MemberResponse.DTO` 객체가 포함됩니다. (조회 응답과 형식 동일)
 
 ### 3.3. 비밀번호 수정
 

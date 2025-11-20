@@ -5,9 +5,12 @@ import com.oath.domain.metrics.service.MetricsRollupService;
 import com.oath.domain.plan.event.PlanCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.time.Instant;
 
 @Slf4j
 @Component
@@ -16,6 +19,7 @@ public class PlanCompletionListener {
 
     private final MetricsRollupService rollupService;
     private final MetricsPushService pushService;
+    private final TaskScheduler taskScheduler; // 비동기 작업 스케줄러 주입
 
     /**
      * 플랜 완료 이벤트를 비동기적으로 처리하여, 통계 집계 등 오래 걸릴 수 있는 작업이
@@ -44,18 +48,16 @@ public class PlanCompletionListener {
             pushService.pushPlan(planId);
             log.info("[PlanCompletionListener] MetricsPushService.pushPlan 호출 완료.");
 
-            // 5. AI 서버가 데이터를 처리할 시간을 잠시 대기 (5초)
-            log.info("[PlanCompletionListener] AI 서버의 분석 시간 대기 시작 (5초)...");
-            Thread.sleep(5000);
-            log.info("[PlanCompletionListener] AI 서버 분석 시간 대기 완료.");
+            // 5. AI 서버의 분석 시간을 고려하여, 5초 뒤에 요약 보고서 수신 작업을 '예약'합니다.
+            taskScheduler.schedule(
+                    () -> {
+                        log.info("[PlanCompletionListener] 예약된 작업 실행: AI 요약 보고서 수신 시작 (planId: {})", planId);
+                        pushService.fetchAndSaveSummary(planId);
+                    },
+                    Instant.now().plusSeconds(5)
+            );
+            log.info("[PlanCompletionListener] 5초 후 AI 요약 보고서 수신 작업 예약 완료.");
 
-            // 6. AI 서버로부터 요약 보고서 수신 및 Plan 엔티티에 저장
-            pushService.fetchAndSaveSummary(planId);
-            log.info("[PlanCompletionListener] MetricsPushService.fetchAndSaveSummary 호출 완료.");
-
-        } catch (InterruptedException e) {
-            log.error("[PlanCompletionListener] AI 서버 대기 중 스레드 오류 발생: {}", e.getMessage());
-            Thread.currentThread().interrupt(); // 스레드 인터럽트 상태 복원
         } catch (Exception e) {
             log.error("[PlanCompletionListener] 이벤트 처리 중 예외 발생: {}", e.getMessage(), e);
         }

@@ -10,7 +10,7 @@ spring:
       password: # 비밀번호는 없음
       driver-class-name: org.h2.Driver # H2 드라이버 지정
 
-#    # 1-2. MySQL 설정
+#    # 1-2. MySQL 설정 (local 환경에서 사용하지 않으므로 주석 처리)
 #    mysql:
 #      jdbc-url: jdbc:mysql://localhost:3306/oath?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
 #      username: root
@@ -30,7 +30,7 @@ spring:
         idle-timeout: 30000
         max-lifetime: 1800000
         connection-timeout: 30000
-
+  
   # ===================================================================
   # 2. H2 데이터베이스 콘솔 설정
   # ===================================================================
@@ -55,7 +55,7 @@ spring:
           dialect: org.hibernate.dialect.H2Dialect
       show-sql: true
 
-#    # 3-3. MySQL 전용 JPA 속성 (MySqlJpaConfig에서 사용)
+#    # 3-3. MySQL 전용 JPA 속성 (MySqlJpaConfig에서 사용하지 않으므로 주석 처리)
 #    mysql-props:
 #      hibernate:
 #      properties:
@@ -121,7 +121,7 @@ oauth:
 
 notification:
   policy:
-    # 기본 알림 방식을 COMPOSITE(WebSocket + DB저장)로 설정
+    # 기본 알림 방식을 COMPOSITE(WebSocket + DB저장)으로 설정
     default: COMPOSITE
     # 특정 이벤트별로 다른 방식 지정 가능
     on-signup: EMAIL
