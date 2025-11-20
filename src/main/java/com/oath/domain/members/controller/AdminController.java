@@ -1,10 +1,14 @@
 package com.oath.domain.members.controller;
 
 
+import com.oath.common.exception.Exception401;
 import com.oath.domain.chatEntity.ChatEntity;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
+import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.dto.ActiveChartDto;
+import com.oath.domain.members.dto.MemberLoginDto;
+import com.oath.domain.members.service.MemberService;
 import com.oath.domain.members.service.SummaryService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -27,6 +31,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,6 +47,8 @@ public class AdminController {
     private final ChatRepository chatRepository;
 
     private final SummaryService summaryService;
+
+    private final MemberService memberService;
 
 
 //    @GetMapping("/member-list")
@@ -117,13 +124,20 @@ public class AdminController {
     }
 
     @GetMapping("/chat-list/{groupId}")
-    public String getChat(@PathVariable Long groupId, Model model) {
-        List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
+    public String getChat(@PathVariable Long groupId, Model model) throws IOException {
         List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
+        String summary = summarizeChat(groupId);
+        model.addAttribute("chatMembers", chatMembers);
+        model.addAttribute("summary", summary);
+        return "chat";
+    }
+
+    @GetMapping("/chat-list/{groupId}/detail")
+    public String getChatDetail(@PathVariable Long groupId, Model model) {
+        List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
         List<AdminResponse.PlanDto> plans = adminService.getPlanList(groupId);
         model.addAttribute("plans", plans);
         model.addAttribute("chats", chats);
-        model.addAttribute("chatMembers", chatMembers);
         return "chat";
     }
 
@@ -236,18 +250,35 @@ public class AdminController {
         return activeCount;
     }
 
-    @PostMapping("/summary/{roomId}")
-    public String summarizeChat(@PathVariable Long roomId) throws IOException {
 
+    public String summarizeChat(@PathVariable Long roomId) throws IOException {
         // DB에서 채팅 불러오기
         List<Chat> chatEntities = chatRepository.findByGroupIdWithMember(roomId);
+        System.out.println(chatEntities);
 
         // ChatMessage 로 변환
         List<String> chats = chatEntities.stream()
                 .map(e -> e.getContent())
+                .filter(c -> c != null)
                 .collect(Collectors.toList());
 
-        return summaryService.summarizeChats(chats);
+        String summary = summaryService.summarizeChats(chats);
+        return summary;
     }
+
+    @PostMapping("/login")
+    public Member adminLogin(MemberLoginDto dto) {
+        Member member = memberService.login(dto); // 공통 로그인 사용
+        checkAdmin(member);
+        return member;
+    }
+
+    private void checkAdmin(Member member) {
+        if (!member.getRole().equals(Role.ADMIN)) {
+            throw new Exception401("관리자 권한이 없습니다.");
+        }
+    }
+
+
 
 }

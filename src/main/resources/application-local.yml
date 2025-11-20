@@ -129,6 +129,4 @@ ai:
     embedding-model: "models/gemini-embedding-001"
     api-key: ${GEMINI_API_KEY:FAKE_AI_KEY}
 
-kakao:
-  rest-api-key: 1b3011acfb9ddd1a3f7f2fcb1d22e2c6
-  js-key: 8168fe817ae0d61fedd845fb08b5c805
+

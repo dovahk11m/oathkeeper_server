@@ -124,13 +124,13 @@ public class AdminResponse {
         private Long id;
         private String name;
         private String description;
-        private LocalDateTime createdAt;
+        private String createdAt;
 
         public groupListDto(Group group) {
             this.id = group.getId();
             this.name = group.getName();
             this.description = group.getDescription() != null ? group.getDescription() : "설명없음";
-            this.createdAt = group.getCreatedAt();
+            this.createdAt = group.getCreatedAt() != null ? group.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
         }
 
         public static groupListDto from(Group group) {

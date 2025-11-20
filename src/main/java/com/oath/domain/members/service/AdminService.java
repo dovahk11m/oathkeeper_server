@@ -1,5 +1,6 @@
 package com.oath.domain.members.service;
 
+import com.oath.common.exception.Exception401;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
@@ -9,6 +10,7 @@ import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.Status;
 import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.AdminResponse;
+import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
@@ -50,6 +52,8 @@ public class AdminService {
     private final PlanTagRepository planTagRepository;
 
     private final ParticipantRepository participantRepository;
+
+
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -193,5 +197,8 @@ public class AdminService {
         List<AdminResponse.activeCount> activeCount = adminRepository.getActiveCount(oneMonthAgo);
         return activeCount;
     }
+
+
+
 
 }

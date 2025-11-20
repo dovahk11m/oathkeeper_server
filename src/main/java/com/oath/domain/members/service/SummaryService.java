@@ -29,7 +29,7 @@ public class SummaryService {
     private String apiKey;
 
     @Value("${huggingface.api.url}")
-    private String apiUrl;  // 예: "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+    private String apiUrl;
 
     public SummaryService(CloseableHttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
@@ -37,6 +37,21 @@ public class SummaryService {
     }
 
     public String summarizeChats(List<String> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return "요약할 채팅 내용이 없습니다.";
+        }
+
+        String inputText = String.join("\n", messages);
+
+        if (inputText.isBlank()) {
+            return "요약할 채팅 내용이 없습니다.";
+        }
+
+        // API가 처리할 수 있는 최대 길이를 1024자로 제한 (KoBART 모델 권장 길이)
+        final int MAX_LENGTH = 1024;
+        if (inputText.length() > MAX_LENGTH) {
+            inputText = inputText.substring(0, MAX_LENGTH);
+        }
         String result = "";
 
         HttpPost request = new HttpPost(apiUrl);
@@ -44,16 +59,20 @@ public class SummaryService {
         request.setHeader("Authorization", "Bearer " + apiKey);
 
         try {
-            // 메시지들을 하나의 문자열로 합치기
-            String inputText = String.join("\n", messages);
-
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("inputs", inputText);
 
             request.setEntity(new StringEntity(objectMapper.writeValueAsString(requestBody)));
 
             try (CloseableHttpResponse response = httpClient.execute(request)) {
+                int status = response.getCode(); // 5.x에서는 getCode() 사용
+                String reason = response.getReasonPhrase(); // 상태 메시지
                 String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+
+                if (status != 200) {
+                    // 200 OK가 아니면 JSON으로 파싱하지 않고 에러 처리
+                    throw new RuntimeException("API 요청 실패: " + status + " / " + responseBody);
+                }
 
                 // Hugging Face 요약 응답은 [{"summary_text": "..."}] 형식
                 JsonNode rootNode = objectMapper.readTree(responseBody);
@@ -64,6 +83,7 @@ public class SummaryService {
                         result = summaryNode.get("summary_text").asText();
                     }
                 }
+                System.out.println("결과=================" + responseBody);
             }
 
         } catch (IOException | ParseException e) {
@@ -73,4 +93,3 @@ public class SummaryService {
         return result;
     }
 }
-
