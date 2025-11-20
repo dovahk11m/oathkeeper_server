@@ -148,3 +148,4 @@ ai:
   server:
     url: "http://192.168.0.3:8001/metrics/analyze"
     summary-url: "http://192.168.0.3:8001/metrics/report/{planId}"
+    summary-fetch-delay-ms: 5000 # 5초

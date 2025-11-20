@@ -5,6 +5,7 @@ import com.oath.domain.metrics.service.MetricsRollupService;
 import com.oath.domain.plan.event.PlanCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,10 @@ public class PlanCompletionListener {
 
     private final MetricsRollupService rollupService;
     private final MetricsPushService pushService;
-    private final TaskScheduler taskScheduler; // 비동기 작업 스케줄러 주입
+    private final TaskScheduler taskScheduler;
+
+    @Value("${ai.server.summary-fetch-delay-ms}")
+    private long summaryFetchDelayMs;
 
     /**
      * 플랜 완료 이벤트를 비동기적으로 처리하여, 통계 집계 등 오래 걸릴 수 있는 작업이
@@ -48,15 +52,15 @@ public class PlanCompletionListener {
             pushService.pushPlan(planId);
             log.info("[PlanCompletionListener] MetricsPushService.pushPlan 호출 완료.");
 
-            // 5. AI 서버의 분석 시간을 고려하여, 5초 뒤에 요약 보고서 수신 작업을 '예약'합니다.
+            // 5. AI 서버의 분석 시간을 고려하여, 설정된 시간(ms) 뒤에 요약 보고서 수신 작업을 '예약'합니다.
             taskScheduler.schedule(
                     () -> {
                         log.info("[PlanCompletionListener] 예약된 작업 실행: AI 요약 보고서 수신 시작 (planId: {})", planId);
                         pushService.fetchAndSaveSummary(planId);
                     },
-                    Instant.now().plusSeconds(5)
+                    Instant.now().plusMillis(summaryFetchDelayMs)
             );
-            log.info("[PlanCompletionListener] 5초 후 AI 요약 보고서 수신 작업 예약 완료.");
+            log.info("[PlanCompletionListener] {}ms 후 AI 요약 보고서 수신 작업 예약 완료.", summaryFetchDelayMs);
 
         } catch (Exception e) {
             log.error("[PlanCompletionListener] 이벤트 처리 중 예외 발생: {}", e.getMessage(), e);
