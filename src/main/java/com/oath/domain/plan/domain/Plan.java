@@ -75,6 +75,10 @@ public class Plan {
     @Column(nullable = false)
     private Integer totalTravelTime = 0; // 분 단위
 
+    // --- AI 요약 보고서 필드 추가 ---
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
     // 참가자 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Participant> participants = new ArrayList<>();
@@ -128,6 +132,10 @@ public class Plan {
         this.totalOnTimeArrivals = totalOnTimeArrivals;
         this.totalTravelDistance = totalTravelDistance;
         this.totalTravelTime = totalTravelTime;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 
     // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환

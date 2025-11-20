@@ -30,7 +30,7 @@ spring:
         idle-timeout: 30000
         max-lifetime: 1800000
         connection-timeout: 30000
-  
+
   # ===================================================================
   # 2. H2 데이터베이스 콘솔 설정
   # ===================================================================
@@ -145,3 +145,6 @@ ai:
     embedding-endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
     embedding-model: "models/gemini-embedding-001"
     api-key: ${GEMINI_API_KEY:FAKE_AI_KEY}
+  server:
+    url: "http://192.168.0.3:8001/metrics/analyze"
+    summary-url: "http://192.168.0.3:8001/metrics/report/{planId}"
