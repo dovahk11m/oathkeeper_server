@@ -44,16 +44,6 @@
 <script>
     let myChart;
 
-    // 예시: 전일 데이터 가져오기 (실제 서버 API 호출로 변경 가능)
-    async function fetchPreviousData(startDate, endDate) {
-      const response = await fetch(`/api/admin/plan-tag-pie-previous?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`);
-      const previousData = await response.json();
-      // { tagName: count } 형태로 변환
-      const map = {};
-      previousData.forEach(item => map[item.tagName] = item.planCount);
-      return map;
-    }
-
     async function loadChartData(startDate, endDate) {
       const response = await fetch(`/api/admin/plan-tag-pie?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`);
       const chartData = await response.json();
@@ -66,9 +56,6 @@
 
       // 최다 항목 인덱스
       const maxIndex = data.indexOf(Math.max(...data));
-
-      // 전일 데이터
-      const previousMap = await fetchPreviousData(startDate, endDate);
 
       const colors = [
         'rgba(255, 99, 132, 0.6)',
@@ -99,11 +86,11 @@
         }
       });
 
-      createLegend(labels, data, colors, maxIndex, previousMap, total);
+      createLegend(labels, data, colors, maxIndex, total);
     }
 
     // 범례 생성
-    function createLegend(labels, data, colors, maxIndex, previousMap, total) {
+    function createLegend(labels, data, colors, maxIndex, total) {
       const legendContainer = document.getElementById('legend-container');
       legendContainer.innerHTML = `<span id="total-count">총 방문자 수: ${total}</span>`;
 
@@ -116,25 +103,22 @@
         colorBox.style.border = '1px solid #ccc';
 
         const percent = ((data[i]/total)*100).toFixed(1);
-        const previousCount = previousMap[label] || 0;
-        const diff = data[i] - previousCount;
-        const diffText = diff === 0 ? '' : (diff > 0 ? `▲${diff}` : `▼${-diff}`);
 
         const text = document.createElement('span');
-        text.textContent = `${label} (${data[i]}, ${percent}%) ${diffText}`;
+        text.textContent = `${label} (${data[i]}, ${percent}%)`;
         if (i === maxIndex) text.style.fontWeight = 'bold';
 
         item.appendChild(colorBox);
         item.appendChild(text);
         legendContainer.appendChild(item);
 
-        // 클릭 토글
-        item.addEventListener('click', () => {
-          const meta = myChart.getDatasetMeta(0);
-          meta.data[i].hidden = !meta.data[i].hidden;
-          myChart.update();
-          colorBox.style.opacity = meta.data[i].hidden ? 0.3 : 1;
-        });
+<!--        // 클릭 토글-->
+<!--        item.addEventListener('click', () => {-->
+<!--          const meta = myChart.getDatasetMeta(0);-->
+<!--          meta.data[i].hidden = !meta.data[i].hidden;-->
+<!--          myChart.update();-->
+<!--          colorBox.style.opacity = meta.data[i].hidden ? 0.3 : 1;-->
+<!--        });-->
       });
     }
 

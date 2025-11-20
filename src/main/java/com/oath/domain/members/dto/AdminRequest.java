@@ -12,4 +12,17 @@ public class AdminRequest {
         private String role;
     }
 
+    @Data
+    public static class ChatMessage {
+
+        private String message;
+
+        // 생성자, getter, setter
+        public ChatMessage(String message) {
+
+            this.message = message;
+        }
+    }
+
+
 }

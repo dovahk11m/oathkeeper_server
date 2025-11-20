@@ -1,7 +1,11 @@
 package com.oath.domain.members.controller;
 
 
+import com.oath.domain.chatEntity.ChatEntity;
+import com.oath.domain.chats.Chat;
+import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.members.dto.ActiveChartDto;
+import com.oath.domain.members.service.SummaryService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +38,10 @@ public class AdminController {
     private final AdminService adminService;
 
     private final MemberRepository memberRepository;
+
+    private final ChatRepository chatRepository;
+
+    private final SummaryService summaryService;
 
 
 //    @GetMapping("/member-list")
@@ -214,11 +223,10 @@ public class AdminController {
         return new AdminResponse.DailyTagCount(dates, dailyTags);
     }
 
-    @GetMapping("/bar-chart")
+    @GetMapping("/monthly-count")
     @ResponseBody
-    public List<AdminResponse.barChart> getBarChart() {
-        List<AdminResponse.barChart> chart = adminService.getBarChart();
-        return chart;
+    public List<AdminResponse.MonthlyCount> getMonthlyCount() {
+        return adminService.getMonthlyCount();
     }
 
     @GetMapping("/active-count")
@@ -228,5 +236,18 @@ public class AdminController {
         return activeCount;
     }
 
+    @PostMapping("/summary/{roomId}")
+    public String summarizeChat(@PathVariable Long roomId) throws IOException {
+
+        // DB에서 채팅 불러오기
+        List<Chat> chatEntities = chatRepository.findByGroupIdWithMember(roomId);
+
+        // ChatMessage 로 변환
+        List<String> chats = chatEntities.stream()
+                .map(e -> e.getContent())
+                .collect(Collectors.toList());
+
+        return summaryService.summarizeChats(chats);
+    }
 
 }

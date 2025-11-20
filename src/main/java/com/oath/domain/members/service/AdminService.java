@@ -184,12 +184,8 @@ public class AdminService {
         return new AdminResponse.DailyTagCount(dates, dailyTags);
     }
 
-    public List<AdminResponse.barChart> getBarChart() {
-        List<AdminResponse.MonthlyCount> count = adminRepository.getMonthlyCount();
-        List<AdminResponse.barChart> dtos = count.stream()
-                .map(c -> new AdminResponse.barChart(c.getMonth(), c.getCount(), c.getParticipantCount()))
-                .toList();
-        return dtos;
+    public List<AdminResponse.MonthlyCount> getMonthlyCount() {
+        return adminRepository.getMonthlyCount();
     }
 
     public List<AdminResponse.activeCount> getActiveCount() {

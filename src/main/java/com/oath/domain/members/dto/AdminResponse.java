@@ -1,13 +1,11 @@
 package com.oath.domain.members.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.domain.Status;
-import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -220,22 +218,9 @@ public class AdminResponse {
         }
     }
 
-    @Data
-    public static class barChart {
-        private String labels;
-        private Long participantCount;
-        private Long planCount;
-
-        public barChart(String labels, Long participantCount, Long planCount) {
-            this.labels = labels;
-            this.participantCount = participantCount;
-            this.planCount = planCount;
-        }
-    }
-
     public interface MonthlyCount {
         String getMonth();
-        Long getCount();
+        Long getPlanCount();
         Long getParticipantCount();
     }
 

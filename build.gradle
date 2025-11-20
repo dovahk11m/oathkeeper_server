@@ -71,6 +71,8 @@ dependencies {
     // 머스테치
     implementation 'org.springframework.boot:spring-boot-starter-mustache'
 
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+
     // Lombok (버전 고정)
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
