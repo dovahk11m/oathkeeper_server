@@ -44,6 +44,7 @@ public class TagAdminController {
         Tag tag = tagAdminService.findTagById(tagId);
         TagRequestDto.UpdateTagDto updateDto = new TagRequestDto.UpdateTagDto();
         updateDto.setName(tag.getName());
+        updateDto.setImageUrl(tag.getImageUrl()); // imageUrl 필드 추가
         model.addAttribute("tagId", tagId);
         model.addAttribute("tag", updateDto);
         return "admin/tags/edit"; // templates/admin/tags/edit.html (or .mustache) 뷰를 반환
