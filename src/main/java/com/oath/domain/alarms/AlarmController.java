@@ -1,10 +1,10 @@
-package com.oath.domain.alarms.controller;
+package com.oath.domain.alarms;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.auth.Auth;
 import com.oath.common.exception.Exception401;
-import com.oath.domain.alarms.strategies.alarmlocals.AlarmLocalEntity;
-import com.oath.domain.alarms.strategies.alarmlocals.AlarmLocalRepository;
+import com.oath.domain.alarms.localAlarms.LocalAlarm;
+import com.oath.domain.alarms.localAlarms.LocalAlarmRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ import java.util.Map;
 @Slf4j
 public class AlarmController {
 
-    private final AlarmLocalRepository alarmLocalRepository;
+    private final LocalAlarmRepository localAlarmRepository;
     private final MemberRepository memberRepository;
 
     private Member getCurrentMember(HttpServletRequest request) {
@@ -54,9 +54,9 @@ public class AlarmController {
      */
     @Auth
     @GetMapping
-    public ResponseEntity<CommonResponse<List<AlarmLocalEntity>>> getMyAlarms(HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<List<LocalAlarm>>> getMyAlarms(HttpServletRequest request) {
         Member currentMember = getCurrentMember(request);
-        List<AlarmLocalEntity> alarms = alarmLocalRepository.findByMemberOrderByCreatedAtDesc(currentMember);
+        List<LocalAlarm> alarms = localAlarmRepository.findByMemberOrderByCreatedAtDesc(currentMember);
         return ResponseEntity.ok(CommonResponse.success(alarms));
     }
 
@@ -67,7 +67,7 @@ public class AlarmController {
     @GetMapping("/unread-count")
     public ResponseEntity<CommonResponse<Long>> getUnreadCount(HttpServletRequest request) {
         Member currentMember = getCurrentMember(request);
-        Long count = alarmLocalRepository.countByMemberAndIsReadFalse(currentMember);
+        Long count = localAlarmRepository.countByMemberAndIsReadFalse(currentMember);
         return ResponseEntity.ok(CommonResponse.success(count));
     }
 }

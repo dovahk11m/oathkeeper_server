@@ -3,8 +3,8 @@ package com.oath.domain.alarms.strategies;
 import com.oath.common.exception.Exception404;
 import com.oath.domain.alarms.AlarmDTO;
 import com.oath.domain.alarms.AlarmSender;
-import com.oath.domain.alarms.strategies.alarmlocals.AlarmLocalEntity;
-import com.oath.domain.alarms.strategies.alarmlocals.AlarmLocalRepository;
+import com.oath.domain.alarms.localAlarms.LocalAlarm;
+import com.oath.domain.alarms.localAlarms.LocalAlarmRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class AlarmLocal implements AlarmSender {
 
     // [수정] 인앱 알림 저장을 위한 Repository 주입
-    private final AlarmLocalRepository alarmLocalRepository;
+    private final LocalAlarmRepository localAlarmRepository;
     private final MemberRepository memberRepository;
 
     @Override
@@ -34,14 +34,14 @@ public class AlarmLocal implements AlarmSender {
         Member member = memberRepository.findByEmail(request.getTo())
                 .orElseThrow(() -> new Exception404("알림을 받을 사용자를 찾을 수 없습니다: " + request.getTo()));
 
-        AlarmLocalEntity newAlarm = AlarmLocalEntity.builder()
+        LocalAlarm newAlarm = LocalAlarm.builder()
                 .member(member)
                 .subject(request.getSubject())
                 .content(request.getContent())
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
-        alarmLocalRepository.save(newAlarm);
+        localAlarmRepository.save(newAlarm);
     }
 
     @Override

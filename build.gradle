@@ -49,7 +49,6 @@ dependencies {
     implementation('org.springframework.ai:spring-ai-pgvector-store:1.0.0') {
         exclude group: 'io.swagger.core.v3', module: 'swagger-annotations'
     }
-
     implementation 'org.postgresql:postgresql:42.7.4'
     implementation 'org.hibernate.orm:hibernate-vector:6.5.2.Final'
 

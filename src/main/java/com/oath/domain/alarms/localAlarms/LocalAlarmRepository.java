@@ -1,13 +1,13 @@
-package com.oath.domain.alarms.strategies.alarmlocals;
+package com.oath.domain.alarms.localAlarms;
 
 import com.oath.domain.members.domain.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface AlarmLocalRepository extends JpaRepository<AlarmLocalEntity, Long> {
+public interface LocalAlarmRepository extends JpaRepository<LocalAlarm, Long> {
 
-    List<AlarmLocalEntity> findByMemberOrderByCreatedAtDesc(Member member);
+    List<LocalAlarm> findByMemberOrderByCreatedAtDesc(Member member);
 
     Long countByMemberAndIsReadFalse(Member member);
 }

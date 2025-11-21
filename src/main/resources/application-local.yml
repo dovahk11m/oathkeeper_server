@@ -72,7 +72,7 @@ spring:
       properties:
         hibernate:
           ddl-auto: update
-          default_batch_fetch_size: 100
+          default_batch_fetch_fetch_size: 100
           format_sql: true
           dialect: org.hibernate.dialect.PostgreSQLDialect
           default_schema: oath
@@ -125,6 +125,8 @@ notification:
     default: COMPOSITE
     # 특정 이벤트별로 다른 방식 지정 가능
     on-signup: EMAIL
+    on-password-reset: EMAIL
+    on-gps-stationary: EMAIL # GPS 정체 알림 정책 추가
     # on-arrival: WEBSOCKET
     # on-departure: COMPOSITE
     # on-late: EMAIL

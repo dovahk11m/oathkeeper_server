@@ -4,6 +4,7 @@ import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.plan.Status;
+import com.oath.domain.plan.SummaryStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -79,6 +80,11 @@ public class Plan {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "summary_status", nullable = false)
+    @ColumnDefault("'NONE'")
+    private SummaryStatus summaryStatus = SummaryStatus.NONE;
+
     // 참가자 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Participant> participants = new ArrayList<>();
@@ -150,6 +156,10 @@ public class Plan {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public void setSummaryStatus(SummaryStatus summaryStatus) {
+        this.summaryStatus = summaryStatus;
     }
 
     // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환

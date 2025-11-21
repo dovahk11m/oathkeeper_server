@@ -96,4 +96,19 @@ public class PlanResponse {
         }
     }
 
+    // AI 요약 보고서 응답을 위한 Summary DTO
+    @Getter
+    @NoArgsConstructor
+    @ToString
+    public static class Summary {
+        private Long id;
+        private String title;
+        private String summary;
+
+        public Summary(Long id, String title, String summary) {
+            this.id = id;
+            this.title = title;
+            this.summary = summary;
+        }
+    }
 }

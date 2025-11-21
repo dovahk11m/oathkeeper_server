@@ -1,13 +1,17 @@
 package com.oath.domain.plan.facade;
 
+import com.oath.common.exception.Exception404;
+import com.oath.common.exception.Exception500;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTagRepository;
 import com.oath.domain.place_tag_plan.tag.Tag;
 import com.oath.domain.place_tag_plan.tag.TagRepository;
 import com.oath.domain.plan.Status;
+import com.oath.domain.plan.SummaryStatus;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.plan.request.PlanResponse;
+import com.oath.domain.plan.service.AIService;
 import com.oath.domain.plan.service.PlanCoreService;
 import com.oath.domain.plan.service.PlanParticipantService;
 import com.oath.domain.plan.service.PlanTrackingService;
@@ -35,6 +39,7 @@ public class PlanFacade {
     private final TagRepository tagRepository;
     private final PlanTagRepository planTagRepository;
     private final PlanEmbeddingService planEmbeddingService;
+    private final AIService aiService;
 
     @Transactional(readOnly = true)
     public List<PlanResponse.CreatePlan> listPlans(Long memberId) {
@@ -61,6 +66,31 @@ public class PlanFacade {
         Plan plan = planJpaRepository.findByIdWithParticipants(planId)
                 .orElseThrow(() -> new com.oath.common.exception.Exception404("해당 플랜을 찾을 수 없습니다."));
         return PlanResponse.CreatePlan.of(plan);
+    }
+
+    public PlanResponse.Summary getPlanSummary(Long planId) {
+        Plan plan = planJpaRepository.findById(planId)
+                .orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
+
+        switch (plan.getSummaryStatus()) {
+            case NONE:
+                plan.setSummaryStatus(SummaryStatus.IN_PROGRESS);
+                planJpaRepository.save(plan);
+                aiService.generateAndSaveSummary(planId);
+                return null; // 처리 중 상태로 변경 후 null 반환
+
+            case IN_PROGRESS:
+                return null; // 여전히 처리 중이므로 null 반환
+
+            case COMPLETED:
+                return new PlanResponse.Summary(plan.getId(), plan.getTitle(), plan.getSummary());
+
+            case FAILED:
+                throw new Exception500("AI 요약 생성에 실패했습니다. 다시 시도해주세요.");
+
+            default:
+                throw new Exception500("알 수 없는 요약 상태입니다.");
+        }
     }
 
     public PlanResponse.CreatePlan createPlan(
