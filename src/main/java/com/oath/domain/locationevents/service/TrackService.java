@@ -131,8 +131,8 @@ public class TrackService {
 
     private boolean detectGpsStationary(Plan plan, Participant participant, TrackPointReq currentPoint, LocalDateTime currentTs) {
         boolean statusChanged = false;
-        // 약속 상태가 IN_PROGRESS일 때만 정체 감지 로직 수행
-        if (plan.getStatus() != Status.PROGRESS) {
+        // 약속 상태가 PROGRESS 또는 CONFIRMED일 때만 정체 감지 로직 수행
+        if (plan.getStatus() != Status.PROGRESS && plan.getStatus() != Status.CONFIRMED) {
             return false;
         }
 
@@ -143,8 +143,7 @@ public class TrackService {
 
         Map<String, Object> lastStationaryData = stationaryCheckCache.getOrDefault(participant.getId(), new HashMap<>());
 
-        // Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat()); // lat, lng로 변경되었으므로 Point 생성 방식 변경
-        Point currentLoc = new Point(currentPoint.lat(), currentPoint.lng());
+        Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat());
 
 
         if (lastStationaryData.isEmpty() || !lastStationaryData.containsKey("lastLat")) {
@@ -160,8 +159,7 @@ public class TrackService {
         double lastLat = (Double) lastStationaryData.get("lastLat");
         double lastLng = (Double) lastStationaryData.get("lastLng");
         LocalDateTime stationaryStartTime = LocalDateTime.parse((String) lastStationaryData.get("stationaryStartTime"));
-        // Point lastLoc = new Point(lastLng, lastLat); // lat, lng로 변경되었으므로 Point 생성 방식 변경
-        Point lastLoc = new Point(lastLat, lastLng);
+        Point lastLoc = new Point(lastLng, lastLat);
 
 
         // 현재 위치와 이전 위치 간의 거리 계산
@@ -177,8 +175,8 @@ public class TrackService {
                         participant.getId(),
                         participant.getMember().getId(),
                         participant.getMember().getUsername(),
-                        lastLoc.getX(), // lat
-                        lastLoc.getY(), // lng
+                        lastLoc.getY(), // lat
+                        lastLoc.getX(), // lng
                         stationaryStartTime,
                         durationMinutes
                 ));
@@ -208,8 +206,8 @@ public class TrackService {
 
     private boolean detectArrival(Plan plan, Participant participant, TrackPointReq currentPoint, LocalDateTime currentTs) {
         boolean statusChanged = false;
-        // 약속 상태가 IN_PROGRESS일 때만 도착 감지 로직 수행
-        if (plan.getStatus() != Status.PROGRESS) {
+        // 약속 상태가 PROGRESS 또는 CONFIRMED일 때만 도착 감지 로직 수행
+        if (plan.getStatus() != Status.PROGRESS && plan.getStatus() != Status.CONFIRMED) {
             return false;
         }
 
@@ -224,8 +222,7 @@ public class TrackService {
         }
 
         Point planPlaceLoc = plan.getPlaceLocation();
-        // Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat()); // lat, lng로 변경되었으므로 Point 생성 방식 변경
-        Point currentLoc = new Point(currentPoint.lat(), currentPoint.lng());
+        Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat());
 
 
         double distanceToPlace = calculateDistance(planPlaceLoc, currentLoc);
@@ -237,8 +234,8 @@ public class TrackService {
                     participant.getId(),
                     participant.getMember().getId(),
                     participant.getMember().getUsername(),
-                    currentLoc.getX(), // lat
-                    currentLoc.getY(), // lng
+                    currentLoc.getY(), // lat
+                    currentLoc.getX(), // lng
                     currentTs
             ));
             // 참가자의 이동 상태를 ARRIVED로 업데이트
@@ -250,16 +247,19 @@ public class TrackService {
         return statusChanged;
     }
 
-    // 두 지점 간의 거리 계산 (미터 단위, 간단한 근사치)
+    // 두 지점 간의 거리 계산 (미터 단위, Haversine 공식)
     private double calculateDistance(Point p1, Point p2) {
         final int R = 6371000; // 지구 반지름 (미터)
-        // double latDistance = Math.toRadians(p2.getY() - p1.getY()); // Point의 x, y가 lng, lat 순서였으므로 변경
-        // double lonDistance = Math.toRadians(p2.getX() - p1.getX()); // Point의 x, y가 lng, lat 순서였으므로 변경
-        double latDistance = Math.toRadians(p2.getX() - p1.getX()); // lat
-        double lonDistance = Math.toRadians(p2.getY() - p1.getY()); // lng
+        double lat1 = p1.getY();
+        double lon1 = p1.getX();
+        double lat2 = p2.getY();
+        double lon2 = p2.getX();
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
 
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(p1.getX())) * Math.cos(Math.toRadians(p2.getX())) // lat
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c; // 거리 (미터)

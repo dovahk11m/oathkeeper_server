@@ -207,48 +207,7 @@ public class PlanService {
             throw new Exception403("본인의 도착 시간만 기록할 수 있습니다.");
         }
 
-        participant.setActualArrivalTime(actualArrival != null ? actualArrival : LocalDateTime.now());
-
-        LocalDateTime planTime = participant.getPlan().getPlanDatetime();
-        if (planTime == null) {
-            throw new Exception400("플랜의 약속 시간이 설정되어 있지 않습니다.");
-        }
-
-        long minutesDiff = ChronoUnit.MINUTES.between(planTime, participant.getActualArrivalTime());
-        participant.setTimeBurdenMinutes((int) minutesDiff);
-
-        // ArrivalStatus 설정
-        ArrivalStatus arrivalStatus;
-        if (minutesDiff > 0) {
-            arrivalStatus = ArrivalStatus.LATE;
-        } else {
-            arrivalStatus = ArrivalStatus.ON_TIME;
-        }
-
-        participant.markArrived(arrivalStatus, (int) minutesDiff);
-
-        Participant saved = participantRepository.save(participant);
-
-        // 도착 이벤트 발행
-        Plan plan = participant.getPlan();
-        List<Participant> otherParticipants = plan.getParticipants().stream()
-                .filter(p -> !p.getId().equals(participantId))
-                .collect(Collectors.toList());
-
-        eventPublisher.publishEvent(
-                new ArrivalEvent(plan, saved, otherParticipants, AlarmType.ARRIVAL)
-        );
-
-        if (arrivalStatus == ArrivalStatus.LATE) {
-            eventPublisher.publishEvent(
-                    new LateEvent(plan, saved, otherParticipants, (int) minutesDiff, AlarmType.LATE)
-            );
-        }
-
-        // 모든 참가자 도착 시 자동 완료 체크
-        checkAndCompletePlan(plan.getId());
-
-        return saved;
+        return handleArrival(participant, actualArrival != null ? actualArrival : LocalDateTime.now());
     }
 
     // 예상 출발 시간 제안 (본인만 가능)
@@ -375,11 +334,12 @@ public class PlanService {
         Participant participant = participantRepository.findById(participantId)
                 .orElseThrow(() -> new Exception404("참가자를 찾을 수 없습니다: " + participantId));
 
-        // participant.setParticipantStatus(status); // ParticipantStatus는 변경하지 않음
-        participant.setMovementStatus(movementStatus); // MovementStatus 업데이트
+        handleArrival(participant, arrivalTime);
+    }
+
+    private Participant handleArrival(Participant participant, LocalDateTime arrivalTime) {
         participant.setActualArrivalTime(arrivalTime);
 
-        // 도착 시간 기록 로직 재사용 (지각 여부, 벌금 계산 등)
         LocalDateTime planTime = participant.getPlan().getPlanDatetime();
         if (planTime == null) {
             throw new Exception400("플랜의 약속 시간이 설정되어 있지 않습니다.");
@@ -396,24 +356,26 @@ public class PlanService {
         }
         participant.markArrived(arrivalStatus, (int) minutesDiff);
 
-        participantRepository.save(participant);
+        Participant saved = participantRepository.save(participant);
 
-        // 도착 이벤트 발행 (기존 recordArrival 로직에서 복사)
+        // 도착 이벤트 발행
         Plan plan = participant.getPlan();
         List<Participant> otherParticipants = plan.getParticipants().stream()
-                .filter(p -> !p.getId().equals(participantId))
+                .filter(p -> !p.getId().equals(participant.getId()))
                 .collect(Collectors.toList());
 
         eventPublisher.publishEvent(
-                new ArrivalEvent(plan, participant, otherParticipants, AlarmType.ARRIVAL)
+                new ArrivalEvent(plan, saved, otherParticipants, AlarmType.ARRIVAL)
         );
 
         if (arrivalStatus == ArrivalStatus.LATE) {
             eventPublisher.publishEvent(
-                    new LateEvent(plan, participant, otherParticipants, (int) minutesDiff, AlarmType.LATE)
+                    new LateEvent(plan, saved, otherParticipants, (int) minutesDiff, AlarmType.LATE)
             );
         }
 
         checkAndCompletePlan(plan.getId());
+
+        return saved;
     }
 }
