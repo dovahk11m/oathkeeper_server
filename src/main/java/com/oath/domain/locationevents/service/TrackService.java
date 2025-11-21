@@ -64,6 +64,8 @@ public class TrackService {
         }
 
         int stored = 0;
+        boolean participantStatusChanged = false; // 참가자 상태 변경 여부 플래그
+
         for (TrackPointReq p : req.points()) {
             LocalDateTime ts = p.ts() != null ? p.ts() : LocalDateTime.now();
             LocationTrack e = LocationTrack.builder()
@@ -92,17 +94,21 @@ public class TrackService {
 
 
             // 참가자의 이동 상태를 MOVING으로 업데이트 (도착 상태가 아니면)
-            if (participant.getMovementStatus() != MovementStatus.ARRIVED) {
+            if (participant.getMovementStatus() != MovementStatus.ARRIVED && participant.getMovementStatus() != MovementStatus.MOVING) {
                 participant.setMovementStatus(MovementStatus.MOVING);
-                participantRepository.save(participant);
+                participantStatusChanged = true;
             }
 
 
             // GPS 미변화 감지 로직
-            detectGpsStationary(plan, participant, p, ts);
+            if (detectGpsStationary(plan, participant, p, ts)) { // detectGpsStationary가 상태 변경 여부를 반환하도록 수정
+                participantStatusChanged = true;
+            }
 
             // 자동 도착 처리 로직
-            detectArrival(plan, participant, p, ts);
+            if (detectArrival(plan, participant, p, ts)) { // detectArrival이 상태 변경 여부를 반환하도록 수정
+                participantStatusChanged = true;
+            }
 
             // 이벤트 발행
             eventPublisher.publishEvent(new LocationUpdatedEvent(
@@ -115,23 +121,31 @@ public class TrackService {
                     ts
             ));
         }
+
+        // 루프 종료 후 참가자 상태가 변경되었으면 한 번만 저장
+        if (participantStatusChanged) {
+            participantRepository.save(participant);
+        }
         return stored;
     }
 
-    private void detectGpsStationary(Plan plan, Participant participant, TrackPointReq currentPoint, LocalDateTime currentTs) {
+    private boolean detectGpsStationary(Plan plan, Participant participant, TrackPointReq currentPoint, LocalDateTime currentTs) {
+        boolean statusChanged = false;
         // 약속 상태가 IN_PROGRESS일 때만 정체 감지 로직 수행
         if (plan.getStatus() != Status.PROGRESS) {
-            return;
+            return false;
         }
 
         // 이미 도착한 참가자는 정체 감지 불필요
         if (participant.getMovementStatus() == MovementStatus.ARRIVED) {
-            return;
+            return false;
         }
 
         Map<String, Object> lastStationaryData = stationaryCheckCache.getOrDefault(participant.getId(), new HashMap<>());
 
-        Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat());
+        // Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat()); // lat, lng로 변경되었으므로 Point 생성 방식 변경
+        Point currentLoc = new Point(currentPoint.lat(), currentPoint.lng());
+
 
         if (lastStationaryData.isEmpty() || !lastStationaryData.containsKey("lastLat")) {
             // 첫 위치 정보이거나, 이전에 정체 상태가 아니었음. 현재 위치를 기준으로 정체 시작 시간 기록
@@ -140,13 +154,15 @@ public class TrackService {
             newStationaryData.put("lastLng", currentPoint.lng());
             newStationaryData.put("stationaryStartTime", currentTs.toString());
             stationaryCheckCache.put(participant.getId(), newStationaryData);
-            return;
+            return false;
         }
 
         double lastLat = (Double) lastStationaryData.get("lastLat");
         double lastLng = (Double) lastStationaryData.get("lastLng");
         LocalDateTime stationaryStartTime = LocalDateTime.parse((String) lastStationaryData.get("stationaryStartTime"));
-        Point lastLoc = new Point(lastLng, lastLat);
+        // Point lastLoc = new Point(lastLng, lastLat); // lat, lng로 변경되었으므로 Point 생성 방식 변경
+        Point lastLoc = new Point(lastLat, lastLng);
+
 
         // 현재 위치와 이전 위치 간의 거리 계산
         double distance = calculateDistance(lastLoc, currentLoc);
@@ -161,14 +177,15 @@ public class TrackService {
                         participant.getId(),
                         participant.getMember().getId(),
                         participant.getMember().getUsername(),
-                        lastLoc,
+                        lastLoc.getX(), // lat
+                        lastLoc.getY(), // lng
                         stationaryStartTime,
                         durationMinutes
                 ));
                 // 참가자의 이동 상태를 STATIONARY로 업데이트
                 if (participant.getMovementStatus() != MovementStatus.STATIONARY) {
                     participant.setMovementStatus(MovementStatus.STATIONARY);
-                    participantRepository.save(participant);
+                    statusChanged = true;
                 }
                 // 이벤트 발행 후 정체 상태 초기화 (중복 알림 방지)
                 stationaryCheckCache.remove(participant.getId());
@@ -183,29 +200,33 @@ public class TrackService {
             // 움직임이 감지되면 이동 상태를 MOVING으로 업데이트 (정체 상태가 아니면)
             if (participant.getMovementStatus() == MovementStatus.STATIONARY) {
                 participant.setMovementStatus(MovementStatus.MOVING);
-                participantRepository.save(participant);
+                statusChanged = true;
             }
         }
+        return statusChanged;
     }
 
-    private void detectArrival(Plan plan, Participant participant, TrackPointReq currentPoint, LocalDateTime currentTs) {
+    private boolean detectArrival(Plan plan, Participant participant, TrackPointReq currentPoint, LocalDateTime currentTs) {
+        boolean statusChanged = false;
         // 약속 상태가 IN_PROGRESS일 때만 도착 감지 로직 수행
         if (plan.getStatus() != Status.PROGRESS) {
-            return;
+            return false;
         }
 
         // 이미 도착한 참가자는 다시 감지하지 않음
         if (participant.getMovementStatus() == MovementStatus.ARRIVED) {
-            return;
+            return false;
         }
 
         // 약속 장소 정보가 없으면 도착 감지 불가
         if (plan.getPlaceLocation() == null) {
-            return;
+            return false;
         }
 
         Point planPlaceLoc = plan.getPlaceLocation();
-        Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat());
+        // Point currentLoc = new Point(currentPoint.lng(), currentPoint.lat()); // lat, lng로 변경되었으므로 Point 생성 방식 변경
+        Point currentLoc = new Point(currentPoint.lat(), currentPoint.lng());
+
 
         double distanceToPlace = calculateDistance(planPlaceLoc, currentLoc);
 
@@ -216,24 +237,29 @@ public class TrackService {
                     participant.getId(),
                     participant.getMember().getId(),
                     participant.getMember().getUsername(),
-                    currentLoc,
+                    currentLoc.getX(), // lat
+                    currentLoc.getY(), // lng
                     currentTs
             ));
             // 참가자의 이동 상태를 ARRIVED로 업데이트
             participant.setMovementStatus(MovementStatus.ARRIVED);
-            participantRepository.save(participant);
+            statusChanged = true;
             // 도착 감지 후 정체 상태 초기화 (더 이상 정체 감지 불필요)
             stationaryCheckCache.remove(participant.getId());
         }
+        return statusChanged;
     }
 
     // 두 지점 간의 거리 계산 (미터 단위, 간단한 근사치)
     private double calculateDistance(Point p1, Point p2) {
         final int R = 6371000; // 지구 반지름 (미터)
-        double latDistance = Math.toRadians(p2.getY() - p1.getY());
-        double lonDistance = Math.toRadians(p2.getX() - p1.getX());
+        // double latDistance = Math.toRadians(p2.getY() - p1.getY()); // Point의 x, y가 lng, lat 순서였으므로 변경
+        // double lonDistance = Math.toRadians(p2.getX() - p1.getX()); // Point의 x, y가 lng, lat 순서였으므로 변경
+        double latDistance = Math.toRadians(p2.getX() - p1.getX()); // lat
+        double lonDistance = Math.toRadians(p2.getY() - p1.getY()); // lng
+
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(p1.getY())) * Math.cos(Math.toRadians(p2.getY()))
+                + Math.cos(Math.toRadians(p1.getX())) * Math.cos(Math.toRadians(p2.getX())) // lat
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c; // 거리 (미터)

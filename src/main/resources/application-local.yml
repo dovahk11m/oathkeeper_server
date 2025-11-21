@@ -30,7 +30,7 @@ spring:
         idle-timeout: 30000
         max-lifetime: 1800000
         connection-timeout: 30000
-  
+
   # ===================================================================
   # 2. H2 데이터베이스 콘솔 설정
   # ===================================================================
@@ -77,7 +77,7 @@ spring:
           dialect: org.hibernate.dialect.PostgreSQLDialect
           default_schema: oath
       show-sql: true
-  
+
   # 메일 발송(SMTP) 설정
   mail:
     host: smtp.gmail.com
@@ -118,6 +118,10 @@ oauth:
     client-secret: 91300c17719891f842dabc2d15acae66
     redirect-uri: http://localhost:3000/oauth/facebook/redirect
 
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
 
 notification:
   policy:

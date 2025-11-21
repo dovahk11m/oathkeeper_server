@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.geo.Point;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -97,10 +96,8 @@ public class PlanTestApiController {
                         .getId(),
                 participant.getMember()
                         .getUsername(),
-                new Point(
-                        lng,
-                        lat
-                ),
+                lat, // lat
+                lng, // lng
                 LocalDateTime.now()
                         .minusMinutes(durationMinutes),
                 durationMinutes
@@ -133,10 +130,8 @@ public class PlanTestApiController {
                         .getId(),
                 participant.getMember()
                         .getUsername(),
-                new Point(
-                        lng,
-                        lat
-                ),
+                lat, // lat
+                lng, // lng
                 LocalDateTime.now()
         ));
         return ResponseEntity.ok(CommonResponse.success(

@@ -48,8 +48,8 @@ public class GpsStationaryListener {
                         "현재 위치: 위도 %.4f, 경도 %.4f\n" +
                         "약속에 늦지 않도록 확인해주세요!",
                 event.getStationaryDurationMinutes(),
-                event.getLastKnownLocation().getY(), // 위도
-                event.getLastKnownLocation().getX()  // 경도
+                event.getLat(), // 위도
+                event.getLng()  // 경도
         );
 
         // 2. 알림 DTO 생성 (기존 알림 발송용)
@@ -66,7 +66,8 @@ public class GpsStationaryListener {
                 event.getParticipantId(),
                 event.getMemberId(),
                 event.getUsername(),
-                event.getLastKnownLocation(),
+                event.getLat(), // lat
+                event.getLng(), // lng
                 event.getStationaryStartTime(),
                 event.getStationaryDurationMinutes(),
                 content // 알림 메시지를 DTO에 포함

@@ -74,12 +74,12 @@ public class PlanFacade {
 
         switch (plan.getSummaryStatus()) {
             case NONE:
-                plan.setSummaryStatus(SummaryStatus.IN_PROGRESS);
+                plan.setSummaryStatus(SummaryStatus.PROCESSING); // IN_PROGRESS -> PROCESSING
                 planJpaRepository.save(plan);
                 aiService.generateAndSaveSummary(planId);
                 return null; // 처리 중 상태로 변경 후 null 반환
 
-            case IN_PROGRESS:
+            case PROCESSING: // IN_PROGRESS -> PROCESSING
                 return null; // 여전히 처리 중이므로 null 반환
 
             case COMPLETED:

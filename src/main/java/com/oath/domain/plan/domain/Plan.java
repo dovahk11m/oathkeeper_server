@@ -4,7 +4,7 @@ import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.plan.Status;
-import com.oath.domain.plan.SummaryStatus;
+import com.oath.domain.plan.SummaryStatus; // SummaryStatus import
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -82,7 +82,7 @@ public class Plan {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "summary_status", nullable = false)
-    @ColumnDefault("'NONE'")
+    // @Builder.Default // 이 줄을 제거합니다.
     private SummaryStatus summaryStatus = SummaryStatus.NONE;
 
     // 참가자 목록

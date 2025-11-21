@@ -51,7 +51,8 @@ public class ParticipantArrivedListener {
                 event.getParticipantId(),
                 event.getMemberId(),
                 event.getUsername(),
-                event.getArrivalLocation(),
+                event.getLat(), // lat
+                event.getLng(), // lng
                 event.getArrivalTime(),
                 messageContent
         );
