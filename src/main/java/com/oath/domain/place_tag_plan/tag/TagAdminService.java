@@ -20,6 +20,7 @@ public class TagAdminService {
     public Tag createTag(TagRequestDto.CreateTagDto requestDto) {
         Tag tag = Tag.builder()
                 .name(requestDto.getName())
+                .imageUrl(requestDto.getImageUrl()) // imageUrl 필드 추가
                 .createdAt(LocalDateTime.now())
                 .build();
         return tagRepository.save(tag);
@@ -32,6 +33,7 @@ public class TagAdminService {
                 .orElseThrow(() -> new EntityNotFoundException("Tag not found with id: " + tagId));
 
         tag.setName(requestDto.getName());
+        tag.setImageUrl(requestDto.getImageUrl()); // imageUrl 필드 추가
 
         return tagRepository.save(tag);
     }

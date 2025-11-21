@@ -34,8 +34,10 @@ public class LocationTrack {
 
     // FG/BG
     @Column(length = 2)
+    @Builder.Default
     private String source = "BG";
 
+    @Builder.Default
     private Boolean isMockLocation = false;
 
     @CreationTimestamp

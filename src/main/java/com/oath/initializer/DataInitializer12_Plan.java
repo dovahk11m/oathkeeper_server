@@ -9,6 +9,7 @@ import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRepository;
 import com.oath.domain.plan.ArrivalStatus;
+import com.oath.domain.plan.MovementStatus; // MovementStatus import 추가
 import com.oath.domain.plan.ParticipantStatus;
 import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Participant;
@@ -41,6 +42,7 @@ public class DataInitializer12_Plan {
     public void initialize(String... args) {
         createCompletedPlanScenario();
         createOngoingPlanScenario();
+        createPendingPlanScenario(); // 새로운 시나리오 추가
     }
 
     private void createCompletedPlanScenario() {
@@ -66,10 +68,11 @@ public class DataInitializer12_Plan {
                 .build();
         planJpaRepository.save(completedPlan);
 
-        Participant p1 = createParticipant(completedPlan, user1, completedPlan.getPlanDatetime().minusMinutes(10));
-        Participant p2 = createParticipant(completedPlan, user2, completedPlan.getPlanDatetime().plusMinutes(5));
-        Participant p3 = createParticipant(completedPlan, user3, completedPlan.getPlanDatetime());
-        Participant p4 = createParticipant(completedPlan, user4, completedPlan.getPlanDatetime().plusMinutes(15));
+        // 완료된 약속이므로 모두 도착 상태로 설정
+        Participant p1 = createParticipant(completedPlan, user1, completedPlan.getPlanDatetime().minusMinutes(10), MovementStatus.ARRIVED, false);
+        Participant p2 = createParticipant(completedPlan, user2, completedPlan.getPlanDatetime().plusMinutes(5), MovementStatus.ARRIVED, false);
+        Participant p3 = createParticipant(completedPlan, user3, completedPlan.getPlanDatetime(), MovementStatus.ARRIVED, false);
+        Participant p4 = createParticipant(completedPlan, user4, completedPlan.getPlanDatetime().plusMinutes(15), MovementStatus.ARRIVED, false);
 
         createLocationTracks(p1, 35.2335, 129.0814, seomyeon.getLat(), seomyeon.getLng());
         createLocationTracks(p2, 35.1577, 129.0591, seomyeon.getLat(), seomyeon.getLng());
@@ -102,10 +105,11 @@ public class DataInitializer12_Plan {
                 .build();
         planJpaRepository.save(ongoingPlan);
 
-        Participant p1 = createParticipant(ongoingPlan, user1, null); // 아직 도착 안함
-        Participant p2 = createParticipant(ongoingPlan, user2, ongoingPlan.getPlanDatetime().minusMinutes(5));
-        Participant p3 = createParticipant(ongoingPlan, user3, ongoingPlan.getPlanDatetime());
-        Participant p4 = createParticipant(ongoingPlan, user4, ongoingPlan.getPlanDatetime().plusMinutes(2));
+        // p1은 아직 도착 안함 (이동 중), 나머지는 도착 상태
+        Participant p1 = createParticipant(ongoingPlan, user1, null, MovementStatus.MOVING, true); // 아직 도착 안함, 이동 중, 위치 공유
+        Participant p2 = createParticipant(ongoingPlan, user2, ongoingPlan.getPlanDatetime().minusMinutes(5), MovementStatus.ARRIVED, false);
+        Participant p3 = createParticipant(ongoingPlan, user3, ongoingPlan.getPlanDatetime(), MovementStatus.ARRIVED, false);
+        Participant p4 = createParticipant(ongoingPlan, user4, ongoingPlan.getPlanDatetime().plusMinutes(2), MovementStatus.ARRIVED, false);
 
         createLocationTracks(p1, 35.2335, 129.0814, seomyeon.getLat(), seomyeon.getLng());
         createLocationTracks(p2, 35.1577, 129.0591, seomyeon.getLat(), seomyeon.getLng());
@@ -115,12 +119,52 @@ public class DataInitializer12_Plan {
         log.info("👷‍♂️ plan2 '진행중인 약속' 데이터 생성 완료 (Plan ID: {}). user1(participantId:{}) 도착 시 COMPLETED 상태로 변경됩니다.", ongoingPlan.getId(), p1.getId());
     }
 
-    private Participant createParticipant(Plan plan, Member member, LocalDateTime arrivalDt) {
+    private void createPendingPlanScenario() {
+        log.info("👷‍♂️ plan3 '대기중인 약속' 샘플 데이터 생성 시작 (4인, 모두 이동중)");
+
+        Member user1 = memberRepository.findByEmail("user1@test.com").orElseThrow();
+        Member user2 = memberRepository.findByEmail("user2@test.com").orElseThrow();
+        Member user3 = memberRepository.findByEmail("user3@test.com").orElseThrow();
+        Member user4 = memberRepository.findByEmail("user4@test.com").orElseThrow();
+        Group sampleGroup = groupRepository.findByName("샘플 그룹").orElseThrow(() -> new RuntimeException("샘플 그룹을 찾을 수 없습니다."));
+        Place seomyeon = placeRepository.findByName("서면역").orElseThrow(() -> new RuntimeException("서면역 장소를 찾을 수 없습니다."));
+
+        Plan pendingPlan = Plan.builder()
+                .creatorMember(user1)
+                .group(sampleGroup)
+                .title("주말 점심 식사")
+                .planDatetime(LocalDateTime.now().plusHours(2)) // 2시간 후 약속
+                .status(Status.CONFIRMED)
+                .placeName(seomyeon.getName())
+                .placeLatitude(seomyeon.getLat())
+                .placeLongitude(seomyeon.getLng())
+                .lateFineAmount(500L)
+                .build();
+        planJpaRepository.save(pendingPlan);
+
+        // 모든 참가자가 이동 중인 상태로 설정
+        Participant p1 = createParticipant(pendingPlan, user1, null, MovementStatus.MOVING, true); // 아직 도착 안함, 이동 중, 위치 공유
+        Participant p2 = createParticipant(pendingPlan, user2, null, MovementStatus.MOVING, true); // 아직 도착 안함, 이동 중, 위치 공유
+        Participant p3 = createParticipant(pendingPlan, user3, null, MovementStatus.MOVING, true); // 아직 도착 안함, 이동 중, 위치 공유
+        Participant p4 = createParticipant(pendingPlan, user4, null, MovementStatus.MOVING, true); // 아직 도착 안함, 이동 중, 위치 공유
+
+        // 각 참여자의 시작 위치를 다르게 설정하여 이동 경로 시뮬레이션
+        createLocationTracks(p1, 35.20, 129.00, seomyeon.getLat(), seomyeon.getLng()); // 북서쪽에서 출발
+        createLocationTracks(p2, 35.10, 129.10, seomyeon.getLat(), seomyeon.getLng()); // 남동쪽에서 출발
+        createLocationTracks(p3, 35.18, 129.05, seomyeon.getLat(), seomyeon.getLng()); // 서쪽에서 출발
+        createLocationTracks(p4, 35.12, 129.08, seomyeon.getLat(), seomyeon.getLng()); // 남쪽에서 출발
+
+        log.info("👷‍♂️ plan3 '대기중인 약속' 샘플 데이터 생성 완료 (Plan ID: {})", pendingPlan.getId());
+    }
+
+    private Participant createParticipant(Plan plan, Member member, LocalDateTime arrivalDt, MovementStatus movementStatus, Boolean isShareLocation) {
         Participant.ParticipantBuilder builder = Participant.builder()
                 .plan(plan)
                 .member(member)
                 .participantStatus(ParticipantStatus.ACCEPTED)
-                .actualArrivalTime(arrivalDt);
+                .actualArrivalTime(arrivalDt)
+                .movementStatus(movementStatus) // MovementStatus 설정
+                .isShareLocation(isShareLocation); // isShareLocation 설정
 
         if (arrivalDt != null) {
             long minutesDiff = ChronoUnit.MINUTES.between(plan.getPlanDatetime(), arrivalDt);

@@ -1,4 +1,4 @@
-package com.oath.domain.alarms.strategies.alarmlocals;
+package com.oath.domain.alarms.localAlarms;
 
 import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AlarmLocalEntity {
+public class LocalAlarm {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

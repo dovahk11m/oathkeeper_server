@@ -11,6 +11,7 @@ import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberRequest;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.memberEvent.MemberSignupEvent;
+import com.oath.domain.members.memberEvent.PasswordResetEvent;
 import com.oath.domain.members.memberEvent.SocialSignupEvent;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.terms.TermService;
@@ -31,9 +32,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
+@Transactional("h2TransactionManager")
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -72,7 +73,6 @@ public class MemberService {
         return savedMember;
     }
 
-    @Transactional
     public void verifyEmail(String token) {
         Member member = memberRepository.findByEmailVerificationToken(token)
                 .orElseThrow(() -> new Exception404("유효하지 않은 인증 토큰입니다."));
@@ -84,6 +84,7 @@ public class MemberService {
         member.activate();
     }
 
+    @Transactional(readOnly = true)
     public Member login(MemberLoginDto memberLoginDto) {
         Member member = memberRepository.findByEmail(memberLoginDto.getEmail())
                 .orElseThrow(() -> new Exception401("이메일 또는 비밀번호가 일치하지 않습니다."));
@@ -126,6 +127,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
+    @Transactional(readOnly = true)
     public Member getMemberBySocialId(String socialId) {
         Member member = memberRepository.findBySocialId(socialId).orElse(null);
         return member;
@@ -177,6 +179,7 @@ public class MemberService {
 
     }
 
+    @Transactional(readOnly = true)
     public String findId(MemberRequest.FindId request) {
         Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
@@ -200,8 +203,8 @@ public class MemberService {
                             String tempPassword = generateTempPassword();
                             m.updatePassword(passwordEncoder.encode(tempPassword));
 
-                            // 이메일 발송
-                            // emailService.sendMail(...); // 이 부분도 이벤트 기반으로 변경 가능
+                            // 비밀번호 재설정 이벤트 발행
+                            eventPublisher.publishEvent(new PasswordResetEvent(m.getEmail(), m.getUsername(), tempPassword));
                         },
                         () -> {
                             throw new Exception404("일치하는 회원이 없습니다.");
@@ -209,7 +212,6 @@ public class MemberService {
                 );
     }
 
-    @Transactional
     public String uploadProfileImage(MultipartFile image, Long memberId) throws IOException {
 
         // 1. 회원 조회
@@ -253,6 +255,7 @@ public class MemberService {
 
     }
 
+    @Transactional(readOnly = true)
     public boolean checkPassword(Long memberId, String password) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));

@@ -1,10 +1,9 @@
-package com.oath.domain.alarms.listeners;
+package com.oath.domain.groups.groupEvent;
 
 import com.oath.domain.alarms.AlarmDTO;
 import com.oath.domain.alarms.AlarmFactory;
 import com.oath.domain.alarms.AlarmSender;
 import com.oath.domain.members.domain.Member;
-import com.oath.domain.groups.groupEvent.CreateGroupEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

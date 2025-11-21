@@ -9,11 +9,13 @@ public class TagRequestDto {
     @Setter
     public static class CreateTagDto {
         private String name;
+        private String imageUrl; // imageUrl 필드 추가
     }
 
     @Getter
     @Setter
     public static class UpdateTagDto {
         private String name;
+        private String imageUrl; // imageUrl 필드 추가
     }
 }

@@ -32,6 +32,7 @@ public class DataInitializer2_Member {
         createMember("user4@test.com", "최상혁", "1234", Role.USER, "부산광역시 수영구 광안동", 35.1531, 129.1187, "");
         createMember("user5@test.com", "정민지", "1234", Role.USER, "부산광역시 동래구 온천동", 35.2031, 129.0802, "");
         createMember("admin@test.com", "관리자", "1234", Role.ADMIN, "부산광역시청", 35.1796, 129.0756, "");
+        createMember("choongechobiz@gmail.com", "조충희", "1234", Role.ADMIN, "부산광역시 연제구 연산동", 35.18, 129.07, ""); // 부산시청과 동일한 위도/경도 사용
 
         log.info("👷‍♂️ 샘플 사용자 데이터 생성 완료");
     }

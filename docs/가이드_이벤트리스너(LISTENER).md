@@ -1,11 +1,11 @@
-# 새로운 이벤트 리스너 작성 가이드
+# 새로운 이벤트 리스너 작성 가이드 (v2)
 
 이 문서는 우리 프로젝트에서 새로운 비동기 이벤트 리스너를 작성하는 방법을 안내합니다.
 `CreateGroupListener`를 예시로, 새로운 기능(예: "새로운 멤버가 그룹에 추가되었을 때 알림 보내기")을 구현하는 과정을 따라가 봅니다.
 
 ---
 
-### 1단계: 이벤트(Event) 정의
+## 1단계: 이벤트(Event) 정의
 
 먼저, 전달할 데이터를 담을 이벤트 클래스를 만듭니다. 이벤트는 특정 도메인(예: `groups`)의 `event` 패키지 안에 생성합니다.
 
@@ -31,7 +31,7 @@ public class NewMemberAddedEvent {
 
 ---
 
-### 2단계: 서비스에서 이벤트 발행(Publish)
+## 2단계: 서비스에서 이벤트 발행(Publish)
 
 핵심 비즈니스 로직이 성공적으로 완료된 후, `ApplicationEventPublisher`를 사용하여 이벤트를 발행합니다.
 
@@ -57,20 +57,19 @@ public void addMembers() {
 
 ---
 
-### 3단계: 리스너(Listener) 작성
+## 3단계: 리스너(Listener) 작성
 
-`alarms/listeners` 패키지 안에, 발행된 이벤트를 수신하여 실제 알림 로직을 처리할 리스너 클래스를 작성합니다.
+**리스너는 이벤트를 발행한 도메인과 동일한 `event` 패키지 안에 작성합니다.** 이는 도메인의 응집도를 높이기 위한 새로운 규칙입니다.
 
 - **규칙**: 아래 템플릿의 모든 어노테이션과 구조를 그대로 따르는 것을 권장합니다.
 
 **예시: `NewMemberAddedListener.java` (템플릿)**
 ```java
-package com.oath.domain.alarms.listeners;
+package com.oath.domain.groups.groupEvent; // 리스너 위치 변경
 
 import com.oath.domain.alarms.AlarmDTO;
 import com.oath.domain.alarms.AlarmFactory;
 import com.oath.domain.alarms.AlarmSender;
-import com.oath.domain.groups.groupEvent.NewMemberAddedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -118,7 +117,7 @@ public class NewMemberAddedListener {
 
 ---
 
-### 4단계: `application.yml` 설정 (선택 사항)
+## 4단계: `application.yml` 설정 (선택 사항)
 
 만약 이 이벤트에 대해 기본 알림 방식(`default`)과 다른 방식을 사용하고 싶다면, `application.yml`에 설정을 추가합니다.
 

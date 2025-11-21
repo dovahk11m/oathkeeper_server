@@ -16,6 +16,11 @@ import com.oath.domain.plan.request.PlanRequest;
 import com.oath.domain.plan.request.PlanResponse;
 import com.oath.domain.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter; // Parameter 임포트
+import io.swagger.v3.oas.annotations.media.Content; // Content 임포트
+import io.swagger.v3.oas.annotations.media.ExampleObject; // ExampleObject 임포트
+import io.swagger.v3.oas.annotations.media.Schema; // Schema 임포트
+import io.swagger.v3.oas.annotations.parameters.RequestBody; // RequestBody 임포트
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,6 +28,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.Point;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -100,7 +106,7 @@ public class PlanRestController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> getPlan(
-            @PathVariable("id") Long id,
+            @Parameter(description = "조회할 플랜의 ID", example = "2") @PathVariable("id") Long id, // example 추가
             HttpServletRequest request
     ) {
         Member currentMember = getCurrentMember(request);
@@ -110,6 +116,39 @@ public class PlanRestController {
         );
         PlanResponse.CreatePlan dto = planFacade.getPlanById(id);
         return ResponseEntity.ok(CommonResponse.success(dto));
+    }
+
+    @Auth
+    @Operation(summary = "AI 요약 보고서 제공 API", description = "AI가 생성한 약속 요약 보고서를 제공합니다. (폴링 방식)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AI 요약 보고서 조회 성공"),
+            @ApiResponse(responseCode = "202", description = "AI 요약 보고서 생성 중"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "AI 요약 생성 실패")
+    })
+    @GetMapping("/{planId}/summary")
+    public ResponseEntity<CommonResponse<PlanResponse.Summary>> getPlanSummary(
+            @Parameter(description = "요약 보고서를 조회할 플랜의 ID", example = "1") @PathVariable("planId") Long planId, // example 추가
+            HttpServletRequest request
+    ) {
+        Member currentMember = getCurrentMember(request);
+        planFacade.validatePlanAccess(
+                planId,
+                currentMember.getId()
+        );
+        PlanResponse.Summary summary = planFacade.getPlanSummary(planId);
+
+        if (summary == null) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(CommonResponse.success(
+                            null,
+                            "AI 요약 보고서가 생성 중입니다. 잠시 후 다시 시도해주세요."
+                    ));
+        } else {
+            return ResponseEntity.ok(CommonResponse.success(summary));
+        }
     }
 
     private Status parseStatusOrThrow(
@@ -169,7 +208,7 @@ public class PlanRestController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> updatePlan(
-            @PathVariable("id") Long id,
+            @Parameter(description = "수정할 플랜의 ID", example = "1") @PathVariable("id") Long id, // example 추가
             @RequestBody PlanRequest.UpdatePlanRequest req,
             HttpServletRequest request
     ) {
@@ -205,7 +244,7 @@ public class PlanRestController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<CommonResponse<Object>> deletePlan(
-            @PathVariable("id") Long id,
+            @Parameter(description = "삭제할 플랜의 ID", example = "1") @PathVariable("id") Long id, // example 추가
             HttpServletRequest request
     ) {
         Member currentMember = getCurrentMember(request);
@@ -231,7 +270,7 @@ public class PlanRestController {
     })
     @PostMapping("/{planId}/participants")
     public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(
-            @PathVariable(name = "planId") Long planId,
+            @Parameter(description = "참가자를 추가할 플랜의 ID", example = "1") @PathVariable(name = "planId") Long planId, // example 추가
             @RequestBody PlanRequest.ParticipantAddRequest req,
             HttpServletRequest request
     ) {
@@ -255,7 +294,7 @@ public class PlanRestController {
     })
     @DeleteMapping("/{planId}/participants/{participantId}")
     public ResponseEntity<CommonResponse<Object>> removeParticipant(
-            @PathVariable Long participantId,
+            @Parameter(description = "삭제할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
             HttpServletRequest request
     ) {
         Member currentMember = getCurrentMember(request);
@@ -281,7 +320,7 @@ public class PlanRestController {
     })
     @PutMapping("/participants/{participantId}/status")
     public ResponseEntity<CommonResponse<ParticipantResponse>> changeParticipantStatus(
-            @PathVariable Long participantId,
+            @Parameter(description = "상태를 변경할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
             @RequestBody PlanRequest.ParticipantStatusRequest req,
             HttpServletRequest request
     ) {
@@ -311,7 +350,7 @@ public class PlanRestController {
     })
     @GetMapping("/{planId}/participants")
     public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(
-            @PathVariable Long planId,
+            @Parameter(description = "참가자 목록을 조회할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
             HttpServletRequest request
     ) {
         Member currentMember = getCurrentMember(request);
@@ -334,7 +373,7 @@ public class PlanRestController {
     })
     @PostMapping("/participants/{participantId}/departure")
     public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(
-            @PathVariable Long participantId,
+            @Parameter(description = "출발 시간을 기록할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
             @RequestBody PlanRequest.TimeRecordRequest req,
             HttpServletRequest request
     ) {
@@ -360,8 +399,8 @@ public class PlanRestController {
     })
     @PostMapping("/participants/{participantId}/arrival")
     public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(
-            @PathVariable Long participantId,
-            @RequestBody PlanRequest.TimeRecordRequest req,
+            @Parameter(description = "도착 시간을 기록할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            @RequestBody(content = @Content(examples = @ExampleObject(value = "{\"time\": \"2025-11-21T18:00:00\"}"))) PlanRequest.TimeRecordRequest req, // example 추가
             HttpServletRequest request
     ) {
         Member currentMember = getCurrentMember(request);
@@ -386,7 +425,7 @@ public class PlanRestController {
     })
     @PostMapping("/participants/{participantId}/suggest-departure")
     public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(
-            @PathVariable Long participantId,
+            @Parameter(description = "예상 출발 시간을 제안할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
             @RequestBody PlanRequest.SuggestDepartureRequest req,
             HttpServletRequest request
     ) {
@@ -410,7 +449,7 @@ public class PlanRestController {
     })
     @GetMapping("/participants/{participantId}/late-fine")
     public ResponseEntity<CommonResponse<Long>> getLateFine(
-            @PathVariable Long participantId,
+            @Parameter(description = "지각 벌금을 조회할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
             HttpServletRequest request
     ) {
         Member currentMember = getCurrentMember(request);
@@ -432,7 +471,7 @@ public class PlanRestController {
     })
     @PostMapping("/{planId}/confirm-place")
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(
-            @PathVariable Long planId,
+            @Parameter(description = "장소를 확정할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
             @RequestBody PlanRequest.ConfirmPlaceRequest req,
             HttpServletRequest request
     ) {
@@ -465,7 +504,7 @@ public class PlanRestController {
     })
     @PostMapping("/{planId}/confirm")
     public ResponseEntity<?> confirmPlan(
-            @PathVariable Long planId,
+            @Parameter(description = "최종 확정할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
             HttpServletRequest request
     ) {
         Plan confirmedPlan = planFacade.confirmFinalPlan(
@@ -481,10 +520,19 @@ public class PlanRestController {
     // 약속 완료 (생성자만 수동 완료 가능)
     @Auth
     @PostMapping("/{planId}/complete")
-    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> completePlan(@PathVariable Long planId, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> completePlan(
+            @Parameter(description = "완료할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        Plan completedPlan = planService.completePlan(planId, currentMember.getId());
+        Plan completedPlan = planService.completePlan(
+                planId,
+                currentMember.getId()
+        );
         PlanResponse.CreatePlan dto = planFacade.getPlanById(completedPlan.getId());
-        return ResponseEntity.ok(CommonResponse.success(dto, "약속이 완료되었습니다."));
+        return ResponseEntity.ok(CommonResponse.success(
+                dto,
+                "약속이 완료되었습니다."
+        ));
     }
 }
