@@ -1,0 +1,201 @@
+{{> layout/header}}
+<link rel="stylesheet" href="/css/placepage.css">
+
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=8168fe817ae0d61fedd845fb08b5c805&libraries=services&autoload=false"></script>
+
+<div class="wrapper" style="width:100%; margin:30px auto;">
+  <h2 style="margin-bottom:20px; color:#333;">장소 관리</h2>
+
+  <!-- 검색창 -->
+  <div id="search-container">
+    <input type="text" id="keyword" placeholder="장소 검색">
+    <button id="searchBtn">검색</button>
+  </div>
+
+  <!-- 지도 -->
+  <div id="map">지도 영역</div>
+
+  <!-- 장소 리스트 -->
+  <div id="place-list-container">
+      <ul id="place-list"></ul>
+  </div>
+</div>
+
+<script>
+let map = null;
+let ps = null;
+let openedInfowindow = null;
+
+window.onload = function() {
+  kakao.maps.load(function(){
+    const mapContainer = document.getElementById('map');
+    const mapOption = {
+      center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+      level: 3
+    };
+
+    map = new kakao.maps.Map(mapContainer, mapOption);
+    ps = new kakao.maps.services.Places();
+
+    // 검색 버튼
+    document.getElementById('searchBtn').addEventListener('click', searchPlaces);
+
+    // 지도 클릭 시 말풍선 닫기
+    kakao.maps.event.addListener(map, 'click', function() {
+      if (openedInfowindow) {
+        openedInfowindow.close();
+        openedInfowindow = null;
+      }
+    });
+
+    // 초기 장소 리스트 렌더링
+    loadPlaceList();
+  });
+};
+
+// 장소 검색
+function searchPlaces() {
+  const keyword = document.getElementById('keyword').value.trim();
+  if (!keyword) {
+    alert('검색어를 입력하세요.');
+    return;
+  }
+  ps.keywordSearch(keyword, placesSearchCB);
+}
+
+// 검색 결과 콜백
+function placesSearchCB(data, status) {
+  if (status === kakao.maps.services.Status.OK) {
+    const bounds = new kakao.maps.LatLngBounds();
+    for (let i = 0; i < data.length; i++) {
+      displayMarker(data[i]);
+      bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x));
+    }
+    map.setBounds(bounds);
+  } else {
+    alert('검색 결과가 없습니다.');
+  }
+}
+
+// 마커 표시
+function displayMarker(place) {
+  const marker = new kakao.maps.Marker({
+    map: map,
+    position: new kakao.maps.LatLng(place.y, place.x)
+  });
+
+  const infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
+
+  kakao.maps.event.addListener(marker, 'click', function() {
+    if (openedInfowindow) {
+      openedInfowindow.close();
+    }
+
+    const content = `
+      <div style="padding:5px;font-size:12px;">
+        ${place.place_name} <br>
+        <button onclick="savePlace('${place.place_name}','${place.address_name}', '${place.y}', '${place.x}')">저장</button>
+      </div>
+    `;
+    infowindow.setContent(content);
+    infowindow.open(map, marker);
+    openedInfowindow = infowindow;
+  });
+}
+
+// 장소 저장
+function savePlace(name, address, lat, lng) {
+  fetch('/api/admin/places/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, address, lat, lng })
+  })
+  .then(res => res.json())
+  .then(savedPlace => {
+    alert(savedPlace.name + ' 장소가 저장되었습니다!');
+    addPlaceToList(savedPlace); // 바로 리스트에 추가
+  });
+}
+
+// 장소 리스트 불러오기
+function loadPlaceList() {
+  fetch('/api/admin/place')
+    .then(res => res.json())
+    .then(places => {
+      places.sort((a,b)=>b.id - a.id); // ID 역순
+      const list = document.getElementById('place-list');
+      list.innerHTML = '';
+      places.forEach(p => {
+        addPlaceToList(p, false); // false = append, 초기 로딩
+      });
+    });
+}
+
+// 리스트에 항목 추가 (기존/새로 저장된 장소)
+function addPlaceToList(place, prepend = true) {
+  const list = document.getElementById('place-list');
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <div class="place-item">
+      <div class="col id">${place.id}</div>
+      <div class="col name"><strong>${place.name}</strong></div>
+      <div class="col desc">
+        <small class="desc-text">${place.description || ''}</small>
+        <input class="desc-input" type="text" value="${place.description || ''}">
+      </div>
+      <button class="edit-btn">${place.description ? '수정' : '추가'}</button>
+      <button class="delete-btn">삭제</button>
+    </div>
+  `;
+  if(prepend) list.prepend(li); else list.appendChild(li);
+
+  setupEditButton(li);
+  setupDeleteButton(li);
+}
+
+// 수정/추가 버튼 이벤트 설정
+function setupEditButton(li) {
+  const editBtn = li.querySelector('.edit-btn');
+  const descText = li.querySelector('.desc-text');
+  const descInput = li.querySelector('.desc-input');
+
+  editBtn.addEventListener('click', () => {
+    if(editBtn.textContent === '수정' || editBtn.textContent === '추가') {
+      descText.style.display = 'none';
+      descInput.style.display = 'inline';
+      editBtn.textContent = '저장';
+    } else {
+      descText.textContent = descInput.value;
+      descText.style.display = 'inline';
+      descInput.style.display = 'none';
+      editBtn.textContent = descInput.value ? '수정' : '추가';
+
+      // 서버 업데이트
+      const placeId = li.querySelector('.col.id').textContent;
+      fetch(`/api/admin/place/${placeId}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: descInput.value })
+      })
+      .then(res => res.json())
+      .then(data => console.log(data));
+    }
+  });
+}
+
+// 삭제 버튼 이벤트 설정
+function setupDeleteButton(li) {
+  const delBtn = li.querySelector('.delete-btn');
+  delBtn.addEventListener('click', () => {
+    const placeId = li.querySelector('.col.id').textContent;
+    fetch(`/api/admin/place/${placeId}/delete`, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        li.remove();
+        console.log('삭제 완료', data);
+      });
+  });
+}
+</script>
+</body>
+</html>

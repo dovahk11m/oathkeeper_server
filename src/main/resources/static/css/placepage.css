@@ -1,0 +1,124 @@
+    /* 장소 관리 스타일 */
+    #search-container {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    #search-container input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 5px 0 0 5px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    #search-container button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      background-color: #4CAF50;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #search-container button:hover {
+      background-color: #45a049;
+    }
+
+    #map {
+      width: 100%;
+      height: 300px;
+      background-color: #ddd;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #555;
+      font-size: 1.2rem;
+    }
+    #place-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #place-list li {
+      display: flex; /* 혹시 필요 없으면 제거 가능 */
+      flex-direction: column; /* 또는 제거 */
+      justify-content: flex-start; /* space-between 제거 */
+      align-items: stretch; /* 자식 폭 늘리기 */
+      background-color: #fff;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #place-list li button {
+      background-color: #ff4d4d;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #place-list li button:hover {
+      background-color: #e60000;
+    }
+
+/* 장소 리스트 스크롤 컨테이너 */
+#place-list-container {
+  max-height: 300px;   /* 원하는 높이 */
+  overflow-y: auto;    /* 세로 스크롤 */
+  padding-right: 5px;  /* 스크롤바 여백 */
+}
+
+.place-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.place-item .id {
+  flex: 0 0 40px;  /* shrink, grow, basis */
+}
+
+.place-item .name {
+  flex: 0 0 120px;
+}
+
+.place-item .desc {
+  flex: 1 1 auto;  /* 남은 공간 전부 사용 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 버튼을 오른쪽 끝으로 */
+.place-item > button {
+  margin-left: auto;
+}
+
+.desc-input {
+  display: none;
+  width: 400px; /* 원하는 길이로 조정 */
+  padding: 4px;
+  font-size: 12px;
+}
+
+.place-item {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 각 컬럼과 버튼 사이 간격 */
+  margin-bottom: 8px;
+}
+
+.place-item .col {
+  /* 컬럼들 기본 스타일 */
+  padding: 4px;
+}
+
+.place-item button {
+  margin-left: 5px; /* 버튼 사이 간격 */
+  padding: 2px 6px;
+  font-size: 12px;
+  cursor: pointer;
+}

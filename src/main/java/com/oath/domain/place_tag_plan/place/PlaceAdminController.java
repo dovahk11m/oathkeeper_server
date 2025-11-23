@@ -82,4 +82,6 @@ public class PlaceAdminController {
         Place place = placeAdminService.savePlace(requestDto);
         return ResponseEntity.ok(place);
     }
+
+
 }

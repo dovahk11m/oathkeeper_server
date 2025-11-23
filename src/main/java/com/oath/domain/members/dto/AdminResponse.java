@@ -6,6 +6,8 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.domain.Status;
+import com.oath.domain.place_tag_plan.place.Place;
+import com.oath.domain.place_tag_plan.tag.Tag;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -233,6 +235,33 @@ public class AdminResponse {
             this.username = username;
             this.count = count;
         }
+    }
+
+    @Data
+    public static class placeList {
+        private Long id;
+        private String name;
+        private String description;
+
+        public placeList(Place place) {
+            this.id = place.getId();
+            this.name = place.getName();
+            this.description = place.getDescription();
+        }
+    }
+
+    @Data
+    public static class tagList {
+        private String name;
+
+        public tagList(Tag tag) {
+            this.name = tag.getName();
+        }
+    }
+
+    @Data
+    public static class TagRequest {
+        private String name;
     }
 
 

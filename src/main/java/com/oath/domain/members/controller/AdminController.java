@@ -279,6 +279,48 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/dash-board")
+    public String getDashBoard() {
+        return "dashboard";
+    }
 
+    @GetMapping("/tag-page")
+    public String tagPage() {
+        return "tagpage";
+    }
+
+    @GetMapping("/tag")
+    @ResponseBody
+    public List<String> getTagList() {
+        List<String> tags = adminService.getTagList();
+        return tags;
+    }
+
+    @PostMapping("/tag")
+    public void addTag(@RequestBody AdminResponse.TagRequest req) {
+        adminService.addTag(req.getName());
+    }
+
+    @DeleteMapping("/tag/{name}")
+    public void deleteTag(@PathVariable String name) {
+        adminService.deleteTag(name);
+    }
+
+    @GetMapping("/place-page")
+    public String getPlaceBoard(Model model) {
+        return "placepage";
+    }
+
+    @GetMapping("/place")
+    @ResponseBody
+    public List<AdminResponse.placeList> getPlaceList() {
+        List<AdminResponse.placeList> places = adminService.getPlaceList();
+        return places;
+    }
+
+    @GetMapping("/place-tag")
+    public String getPlaceTag(Model model) {
+        return "placetag";
+    }
 
 }

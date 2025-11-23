@@ -1,0 +1,80 @@
+
+.places-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.place-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.place-title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  background: #e0e0e0;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+.tag span {
+  cursor: pointer;
+  color: #888;
+}
+button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #3498db;
+  color: #fff;
+}
+button:hover { background-color: #2980b9; }
+
+/* 모달 스타일 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+  background: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 12px;
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.modal-header {
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.modal-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.modal button {
+  margin-top: 12px;
+  width: 100%;
+}

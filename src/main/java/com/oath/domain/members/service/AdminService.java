@@ -14,8 +14,12 @@ import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.dto.MemberResponse;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.place_tag_plan.place.Place;
+import com.oath.domain.place_tag_plan.place.PlaceRepository;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTagRepository;
+import com.oath.domain.place_tag_plan.tag.Tag;
+import com.oath.domain.place_tag_plan.tag.TagRepository;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
@@ -28,10 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -53,7 +54,9 @@ public class AdminService {
 
     private final ParticipantRepository participantRepository;
 
+    private final PlaceRepository placeRepository;
 
+    private final TagRepository tagRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -198,7 +201,34 @@ public class AdminService {
         return activeCount;
     }
 
+    public List<AdminResponse.placeList> getPlaceList() {
+        List<Place> places = placeRepository.findAll();
+        List<AdminResponse.placeList> dtos = places.stream()
+                .map(p -> new AdminResponse.placeList(p))
+                .toList();
+        return dtos;
+    }
 
+    public List<String> getTagList() {
+        List<Tag> tags = tagRepository.findAll();
+        List<String> dtos = tags.stream()
+                .map(t -> t.getName())
+                .toList();
+        return dtos;
+    }
 
+    public void addTag(String name) {
+        Tag tag = Tag.builder()
+                .name(name)
+                .createdAt(LocalDateTime.now())
+                .build();
+        tagRepository.save(tag);
+    }
 
+    public void deleteTag(String name) {
+        Tag tag = tagRepository.findByName(name)
+                .orElseThrow(() -> new RuntimeException("해당이름의 태그가 없습니다"));
+
+        tagRepository.delete(tag);
+    }
 }
