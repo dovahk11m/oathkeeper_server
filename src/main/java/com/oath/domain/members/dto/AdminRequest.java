@@ -3,6 +3,8 @@ package com.oath.domain.members.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 
 public class AdminRequest {
 
@@ -22,6 +24,23 @@ public class AdminRequest {
 
             this.message = message;
         }
+    }
+
+    @Data
+    public static class updateDescription {
+        private String description;
+    }
+
+    @Data
+    public static class TagRequest {
+        private String name;
+    }
+
+    @Data
+    public static class PlaceTag {
+        private List<Long> placeIds;
+        private List<String> tags;
+
     }
 
 

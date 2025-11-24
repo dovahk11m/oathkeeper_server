@@ -172,7 +172,7 @@ function setupEditButton(li) {
 
       // 서버 업데이트
       const placeId = li.querySelector('.col.id').textContent;
-      fetch(`/api/admin/place/${placeId}/update`, {
+      fetch(`/api/admin/place/desc/${placeId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: descInput.value })

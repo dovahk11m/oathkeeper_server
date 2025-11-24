@@ -44,6 +44,10 @@ public class Place {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public void update(String description) {
+        this.description = description;
+    }
+
 }
 
 

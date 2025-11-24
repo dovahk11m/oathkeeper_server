@@ -25,7 +25,7 @@ public class PlaceTagAdminService {
     @Transactional
     public PlaceTag connectPlaceAndTag(PlaceTagRequestDto.ConnectDto requestDto) {
         // 이미 연결되어 있는지 확인하여 중복 방지
-        placeTagRepository.findByPlaceIdAndTagId(requestDto.getPlaceId(), requestDto.getTagId())
+        placeTagRepository.findByPlace_IdAndTag_Id(requestDto.getPlaceId(), requestDto.getTagId())
                 .ifPresent(pt -> {
                     throw new IllegalStateException("The connection already exists.");
                 });
@@ -51,7 +51,7 @@ public class PlaceTagAdminService {
     @Transactional
     public void disconnectPlaceAndTag(PlaceTagRequestDto.ConnectDto requestDto) {
         // 연결된 관계 조회
-        PlaceTag placeTag = placeTagRepository.findByPlaceIdAndTagId(requestDto.getPlaceId(), requestDto.getTagId())
+        PlaceTag placeTag = placeTagRepository.findByPlace_IdAndTag_Id(requestDto.getPlaceId(), requestDto.getTagId())
                 .orElseThrow(() -> new EntityNotFoundException("The connection does not exist."));
 
         // 관계 삭제

@@ -8,14 +8,13 @@ import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.Status;
-import com.oath.domain.members.dto.ActiveChartDto;
-import com.oath.domain.members.dto.AdminResponse;
-import com.oath.domain.members.dto.MemberLoginDto;
-import com.oath.domain.members.dto.MemberResponse;
+import com.oath.domain.members.dto.*;
 import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRepository;
+import com.oath.domain.place_tag_plan.place_tag.PlaceTag;
+import com.oath.domain.place_tag_plan.place_tag.PlaceTagRepository;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTagRepository;
 import com.oath.domain.place_tag_plan.tag.Tag;
@@ -57,6 +56,8 @@ public class AdminService {
     private final PlaceRepository placeRepository;
 
     private final TagRepository tagRepository;
+
+    private final PlaceTagRepository placeTagRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -230,5 +231,60 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("해당이름의 태그가 없습니다"));
 
         tagRepository.delete(tag);
+    }
+
+    public void updateDescription(Long id, AdminRequest.updateDescription req) {
+        Place place = placeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다"));
+        place.update(req.getDescription());
+    }
+
+    public List<AdminResponse.PlaceTag> getPlaceTag() {
+        List<AdminResponse.PlaceTag> placeTags = placeRepository.findAll().stream()
+                .map(p -> new AdminResponse.PlaceTag(
+                        p.getId(),
+                        p.getName(),
+                        p.getPlaceTags().stream()
+                                .map(pt -> {
+                                    Tag tag = pt.getTag();
+                                    return new AdminResponse.TagDto(tag.getId(), tag.getName());
+                                })
+                                .toList()
+                        ))
+                .toList();
+        return placeTags;
+    }
+
+    public List<String> getAllTags() {
+        return tagRepository.findAll().stream()
+                .map(t -> t.getName())
+                .toList();
+    }
+
+    public void addPlaceTag(AdminRequest.PlaceTag req) {
+        for(Long placeId : req.getPlaceIds()) {
+            Place place = placeRepository.findById(placeId)
+                    .orElseThrow(() -> new IllegalArgumentException("장소를 찾을 수 없습니다."));
+
+            for(String tagName : req.getTags()){
+                Tag tag = tagRepository.findByName(tagName)
+                        .orElseThrow(() -> new IllegalArgumentException("태그를 찾을 수 없습니다."));
+
+                boolean exists = placeTagRepository.existsByPlaceAndTag(place, tag);
+                if(!exists) {
+                    PlaceTag pt = new PlaceTag();
+                    pt.setPlace(place);
+                    pt.setTag(tag);
+                    placeTagRepository.save(pt);
+                }
+            }
+        }
+    }
+
+    public void deletePlaceTag(Long placeId, Long tagId) {
+        PlaceTag placeTag = placeTagRepository.findByPlace_IdAndTag_Id(placeId, tagId)
+                        .orElseThrow(() -> new IllegalArgumentException("장소-태그가 존재하지 않습니다."));
+
+        placeTagRepository.delete(placeTag);
     }
 }

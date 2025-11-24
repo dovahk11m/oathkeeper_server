@@ -1,14 +1,27 @@
-const tags = ["카페","공원","맛집","전시관","데이트","쇼핑","술집","책방"];
-const places = [
-  {id: 1, name: "스타벅스 강남점", tags: ["카페"]},
-  {id: 2, name: "서울숲", tags: ["공원"]},
-  {id: 3, name: "홍대 맛집", tags: ["맛집","술집"]},
-];
+let places = [];
+let tags = [];
+let selectedPlaces = [];
+
+async function loadData() {
+  // 태그 리스트
+  const tagRes = await fetch("/api/admin/tag");
+  tags = await tagRes.json();
+
+  // 장소 + 태그 리스트
+  const placeRes = await fetch("/api/admin/place-tag-list");
+  places = await placeRes.json();
+
+  renderPlaces();
+}
+
+window.onload = () => {
+  loadData();
+};
+
 
 const container = document.getElementById("places-container");
 const modal = document.getElementById("tagModal");
 const modalTags = document.getElementById("modal-tags");
-let selectedPlaces = [];
 
 // 랜더링
 function renderPlaces() {
@@ -31,14 +44,15 @@ function renderPlaces() {
     const tagContainer = document.createElement("div");
     tagContainer.className = "tags";
 
+    // 태그 객체로 변경됨
     place.tags.forEach(tag => {
       const tagEl = document.createElement("div");
       tagEl.className = "tag";
-      tagEl.textContent = tag;
+      tagEl.textContent = tag.name; // name 표시
 
       const removeSpan = document.createElement("span");
       removeSpan.textContent = "✖";
-      removeSpan.onclick = () => removeTag(place.id, tag);
+      removeSpan.onclick = () => removeTag(place.id, tag.id); // id로 삭제
       tagEl.appendChild(removeSpan);
 
       tagContainer.appendChild(tagEl);
@@ -52,14 +66,34 @@ function renderPlaces() {
   });
 }
 
-function removeTag(placeId, tagName) {
-  const place = places.find(p => p.id === placeId);
-  place.tags = place.tags.filter(t => t !== tagName);
-  renderPlaces();
+
+function removeTag(placeId, tagId) {
+  fetch(`/api/admin/place-tag/${placeId}/${tagId}`, {
+    method: "DELETE"
+  })
+  .then(res => {
+    if(!res.ok) throw new Error("삭제 실패");
+
+    const place = places.find(p => p.id === placeId);
+    place.tags = place.tags.filter(t => t.id !== tagId); // id로 제거
+    renderPlaces();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("삭제 중 오류 발생");
+  });
 }
 
+
+
 // 모달 열기
-document.getElementById("bulkAddBtn").onclick = () => {
+document.getElementById("bulkAddBtn").onclick = async () => {
+  // tags가 아직 로드되지 않았다면 다시 fetch
+  if(!Array.isArray(tags) || tags.length === 0){
+    const tagRes = await fetch("/api/admin/tags");
+    tags = await tagRes.json();
+  }
+
   if(selectedPlaces.length === 0){
     alert("태그를 추가할 장소를 선택해주세요.");
     return;
@@ -74,25 +108,66 @@ document.getElementById("bulkAddBtn").onclick = () => {
     label.appendChild(document.createTextNode(" " + tag));
     modalTags.appendChild(label);
   });
-  modal.style.display = "block";
+  modal.style.display = "flex";
 }
+// ----------------------
+// 모달 저장 로직 수정
+// ----------------------
+document.getElementById("saveTags").onclick = async () => {
+  const checkedTags = Array.from(modalTags.querySelectorAll("input:checked"))
+    .map(cb => cb.value);
 
-// 모달 저장
-document.getElementById("saveTags").onclick = () => {
-  const checkedTags = Array.from(modalTags.querySelectorAll("input:checked")).map(cb => cb.value);
-  selectedPlaces.forEach(id => {
-    const place = places.find(p => p.id === id);
-    checkedTags.forEach(tag => {
-      if(!place.tags.includes(tag)) place.tags.push(tag);
+  if (checkedTags.length === 0) {
+    alert("추가할 태그를 선택해주세요.");
+    return;
+  }
+
+  const payload = {
+    placeIds: selectedPlaces,
+    tags: checkedTags
+  };
+
+  try {
+    // 서버에 POST
+    const res = await fetch("/api/admin/place-tags", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
-  });
-  modal.style.display = "none";
-  renderPlaces();
-}
+
+    if (!res.ok) throw new Error("태그 저장 실패");
+
+    // 서버에서 새 태그 ID 포함해서 반환한다고 가정
+    const savedTags = await res.json();
+    // savedTags 예시: [{placeId:1, id:101, name:"카페"}, {placeId:2, id:102, name:"맛집"}]
+
+    // 프론트에서 places 배열 업데이트
+    selectedPlaces.forEach(placeId => {
+      const place = places.find(p => p.id === placeId);
+      place.tags = place.tags || [];
+
+      // 서버에서 온 태그만 추가
+      const newTagsForPlace = savedTags.filter(t => t.placeId === placeId);
+      newTagsForPlace.forEach(tag => {
+        // 중복 방지
+        if (!place.tags.some(t => t.id === tag.id)) {
+          place.tags.push(tag);
+        }
+      });
+    });
+
+    modal.style.display = "none";
+    renderPlaces();
+    alert("태그가 성공적으로 저장되었습니다.");
+
+  } catch (err) {
+    console.error(err);
+    alert("태그 저장 중 오류가 발생했습니다.");
+  }
+};
 
 // 모달 닫기 (배경 클릭)
 window.onclick = (event) => {
   if (event.target === modal) modal.style.display = "none";
 }
 
-renderPlaces();

@@ -260,9 +260,30 @@ public class AdminResponse {
     }
 
     @Data
-    public static class TagRequest {
+    public static class PlaceTag {
+        private Long id;
         private String name;
+        private List<TagDto> tags;
+
+        public PlaceTag(Long id, String name, List<TagDto> tags) {
+            this.id = id;
+            this.name = name;
+            this.tags = tags;
+        }
     }
+
+    @Data
+    public static class TagDto {
+        private Long id;
+        private String name;
+
+        public TagDto(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
+
 
 
 

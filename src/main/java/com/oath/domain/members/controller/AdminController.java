@@ -297,7 +297,7 @@ public class AdminController {
     }
 
     @PostMapping("/tag")
-    public void addTag(@RequestBody AdminResponse.TagRequest req) {
+    public void addTag(@RequestBody AdminRequest.TagRequest req) {
         adminService.addTag(req.getName());
     }
 
@@ -322,5 +322,30 @@ public class AdminController {
     public String getPlaceTag(Model model) {
         return "placetag";
     }
+
+    @PostMapping("/place/desc/{placeId}")
+    public void updateDescription (@PathVariable Long placeId, @RequestBody AdminRequest.updateDescription req) {
+        adminService.updateDescription(placeId, req);
+    }
+
+    @GetMapping("/place-tag-list")
+    @ResponseBody
+    public List<AdminResponse.PlaceTag> getPlaceTag() {
+        List<AdminResponse.PlaceTag> placeTags = adminService.getPlaceTag();
+        return placeTags;
+    }
+
+    @PostMapping("/place-tags")
+    @ResponseBody
+    public void addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
+        adminService.addPlaceTag(req);
+    }
+
+    @DeleteMapping("/place-tag/{placeId}/{tagId}")
+    @ResponseBody
+    public void deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
+        adminService.deletePlaceTag(placeId, tagId);
+    }
+
 
 }
