@@ -1,6 +1,9 @@
 package com.oath.domain.plan.repository;
 
+import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Plan;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,5 +25,8 @@ public interface PlanJpaRepository extends JpaRepository<Plan, Long> {
     @Query("select distinct p from Plan p left join fetch p.participants pm left join fetch pm.member " +
             "where p.creatorMember.id = :memberId or exists (select 1 from Participant pt where pt.plan = p and pt.member.id = :memberId)")
     List<Plan> findAllByCreatorOrParticipant(@Param("memberId") Long memberId);
+
+    @Query("SELECT p FROM Plan p WHERE p.group.id = :groupId AND p.status = :status ORDER BY p.planDatetime DESC")
+    Page<Plan> findByGroupIdAndStatus(@Param("groupId") Long groupId, @Param("status") Status status, Pageable pageable);
 
 }

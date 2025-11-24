@@ -100,6 +100,17 @@ public class GroupService {
     }
 
     /**
+     * 사용자가 특정 그룹의 멤버인지 확인합니다. 멤버가 아닐 경우 403 예외를 발생시킵니다.
+     * @param groupId 확인할 그룹 ID
+     * @param memberId 확인할 멤버 ID
+     */
+    public void validateGroupMember(Long groupId, Long memberId) {
+        if (!groupMemberRepository.existsByGroupIdAndMemberId(groupId, memberId)) {
+            throw new Exception403("해당 그룹의 멤버가 아닙니다.");
+        }
+    }
+
+    /**
      * 특정 그룹의 멤버 목록을 페이징하여 조회합니다.
      * (채팅방 참여자 목록과 동일한 의미)
      */
@@ -144,17 +155,11 @@ public class GroupService {
         // 1. 요청자 및 그룹 정보 조회
         Member requester = memberRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new Exception404("요청자 정보를 찾을 수 없습니다."));
-        Group group = groupRepository.findById(groupId)
+        groupRepository.findById(groupId)
                 .orElseThrow(() -> new Exception404("그룹을 찾을 수 없습니다."));
 
-        // 2. [수정] 요청자가 그룹의 멤버이기만 하면 누구나 초대할 수 있도록 변경
-        boolean isMember = groupMemberRepository.existsByGroupIdAndMemberId(
-                groupId,
-                requester.getId()
-        );
-        if (!isMember) {
-            throw new Exception403("그룹 멤버만 다른 사람을 초대할 수 있습니다.");
-        }
+        // 2. 요청자가 그룹의 멤버인지 권한을 검증합니다.
+        validateGroupMember(groupId, requester.getId());
 
         // 3. DB에서 추가할 멤버 목록을 한 번에 조회
         List<Member> membersToAdd = memberRepository.findByEmailIn(request.getMemberEmails());
@@ -176,7 +181,7 @@ public class GroupService {
         List<GroupMember> newGroupMembers = membersToAdd.stream()
                 .filter(member -> !existingMemberIds.contains(member.getId()))
                 .map(member -> GroupMember.of(
-                        group,
+                        groupRepository.getReferenceById(groupId), // 프록시 사용
                         member
                 ))
                 .toList();

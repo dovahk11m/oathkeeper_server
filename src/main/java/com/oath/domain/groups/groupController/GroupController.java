@@ -11,6 +11,11 @@ import com.oath.domain.groups.groupDTO.GroupListResponse;
 import com.oath.domain.groups.groupDTO.GroupMemberResponse;
 import com.oath.domain.groups.groupDTO.GroupMembersAddRequest;
 import com.oath.domain.groups.groupService.GroupService;
+import com.oath.domain.members.domain.Member;
+import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.plan.Status;
+import com.oath.domain.plan.facade.PlanFacade;
+import com.oath.domain.plan.request.PlanResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +35,8 @@ public class GroupController {
 
     private final GroupService groupService;
     private final ChatService chatService;
+    private final PlanFacade planFacade;
+    private final MemberRepository memberRepository;
 
     @Auth
     @Operation(summary = "새로운 그룹 생성", description = "새로운 그룹을 생성합니다. 그룹 생성 시, 해당 그룹의 채팅 기능도 함께 활성화됩니다.")
@@ -67,6 +74,23 @@ public class GroupController {
                 "그룹 목록 조회가 완료되었습니다."
         ));
     }
+
+    @Auth
+    @Operation(summary = "그룹 내 약속 목록 조회", description = "특정 그룹에 속한 약속 목록을 페이징하여 조회합니다. status 파라미터로 약속 상태(예: COMPLETED)를 필터링할 수 있습니다.")
+    @GetMapping("/{groupId}/plans")
+    public ResponseEntity<CommonResponse<PageResponseDTO<PlanResponse.SimplePlan>>> getPlansByGroup(
+            @Parameter(description = "약속 목록을 조회할 그룹의 ID", required = true) @PathVariable Long groupId,
+            @Parameter(description = "조회할 약속의 상태 (PLANNING, CONFIRMED, COMPLETED, CANCELLED)") @RequestParam(required = false) Status status,
+            @RequestAttribute("userEmail") String email,
+            @PageableDefault(size = 20, sort = "planDatetime", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        groupService.validateGroupMember(groupId, member.getId());
+
+        PageResponseDTO<PlanResponse.SimplePlan> plans = planFacade.getPlansByGroupAndStatus(groupId, status, pageable);
+        return ResponseEntity.ok(CommonResponse.success(plans, "그룹 내 약속 목록 조회가 완료되었습니다."));
+    }
+
 
     @Auth
     @Operation(summary = "그룹에서 탈퇴", description = "현재 로그인한 사용자가 특정 그룹에서 탈퇴합니다. 마지막 멤버가 탈퇴할 경우, 그룹과 모든 관련 데이터(채팅 내역 등)가 영구적으로 삭제됩니다.")
