@@ -153,5 +153,5 @@ ai:
     api-key: ${GEMINI_API_KEY:FAKE_AI_KEY}
   server:
     url: "http://192.168.0.3:8001/metrics/analyze"
-    summary-url: "http://192.168.0.3:8001/metrics/report/{planId}"
+    summary-url: "http://192.168.0.3:8001/metrics/report/{planId}/text"
     summary-fetch-delay-ms: 5000 # 5초

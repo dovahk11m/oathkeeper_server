@@ -6,6 +6,8 @@ import com.oath.domain.locationevents.domain.LocationTrack;
 import com.oath.domain.locationevents.repository.LocationTrackRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
+import com.oath.domain.metrics.service.MetricsPushService;
+import com.oath.domain.metrics.service.MetricsRollupService;
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRepository;
 import com.oath.domain.plan.ArrivalStatus;
@@ -37,6 +39,8 @@ public class DataInitializer12_Plan {
     private final ParticipantRepository participantRepository;
     private final LocationTrackRepository locationTrackRepository;
     private final PlaceRepository placeRepository;
+    private final MetricsRollupService rollupService; // 통계 계산 서비스 주입
+    private final MetricsPushService pushService;     // AI 서버 전송 서비스 주입
 
     @Transactional
     public void initialize(String... args) {
@@ -60,7 +64,7 @@ public class DataInitializer12_Plan {
                 .group(sampleGroup)
                 .title("주말 코딩 스터디")
                 .planDatetime(LocalDateTime.now().minusDays(3))
-                .status(Status.COMPLETED)
+                .status(Status.COMPLETED) // 처음부터 완료 상태로 생성
                 .placeName(seomyeon.getName())
                 .placeLatitude(seomyeon.getLat())
                 .placeLongitude(seomyeon.getLng())
@@ -80,6 +84,12 @@ public class DataInitializer12_Plan {
         createLocationTracks(p4, 35.1531, 129.1187, seomyeon.getLat(), seomyeon.getLng());
 
         log.info("👷‍♂️ plan1 '완료된 약속' 샘플 데이터 생성 완료 (Plan ID: {})", completedPlan.getId());
+
+        // [수정] 상태 변경 로직을 타지 않으므로, 수동으로 통계 계산 및 AI 서버 전송을 트리거
+        log.info("👷‍♂️ plan1에 대한 통계 계산 및 AI 서버 전송을 수동으로 실행합니다.");
+        rollupService.rebuildForPlan(completedPlan.getId());
+        pushService.pushPlan(completedPlan.getId());
+        log.info("👷‍♂️ plan1 수동 처리 완료.");
     }
 
     private void createOngoingPlanScenario() {

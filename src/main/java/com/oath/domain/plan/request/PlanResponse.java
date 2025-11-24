@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.data.geo.Point;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,6 +110,26 @@ public class PlanResponse {
             this.id = id;
             this.title = title;
             this.summary = summary;
+        }
+    }
+
+    // 그룹 내 약속 목록 조회를 위한 SimplePlan DTO
+    @Getter
+    @NoArgsConstructor
+    @ToString
+    public static class SimplePlan {
+        private Long planId;
+        private String title;
+        private LocalDateTime planDatetime;
+
+        public SimplePlan(Plan plan) {
+            this.planId = plan.getId();
+            this.title = plan.getTitle();
+            this.planDatetime = plan.getPlanDatetime();
+        }
+
+        public static SimplePlan of(Plan plan) {
+            return new SimplePlan(plan);
         }
     }
 }

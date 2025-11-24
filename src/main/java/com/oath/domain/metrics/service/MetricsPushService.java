@@ -1,9 +1,12 @@
 // src/main/java/com/oath/domain/metrics/service/MetricsPushService.java
 package com.oath.domain.metrics.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.common.exception.Exception404;
 import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
+import com.oath.domain.plan.SummaryStatus;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -146,23 +149,40 @@ public class MetricsPushService {
                 "[summary-fetch] AI 서버로부터 planId={}의 요약 보고서 수신을 시도합니다.",
                 planId
         );
-        // 1. GET 요청으로 AI 서버로부터 요약 보고서 수신
-        String summary = restTemplate.getForObject(
+        // 1. GET 요청으로 AI 서버로부터 요약 보고서 수신 (JSON 형태의 문자열)
+        String jsonResponse = restTemplate.getForObject(
                 aiServerSummaryUrl,
                 String.class,
                 planId
         );
         log.info(
-                "[summary-fetch] 수신된 요약: {}",
-                summary
+                "[summary-fetch] 수신된 요약 JSON: {}",
+                jsonResponse
         );
 
-        // 2. Plan 엔티티를 조회하여 summary 필드 업데이트
+        String summaryText;
+        try {
+            // 2. JSON 문자열을 파싱하여 'data' 필드의 텍스트만 추출
+            JsonNode rootNode = objectMapper.readTree(jsonResponse);
+            if (rootNode.path("success").asBoolean(false) && rootNode.has("data")) {
+                summaryText = rootNode.path("data").asText();
+            } else {
+                // 예상치 못한 형식일 경우, 원본 JSON을 그대로 저장 (안전장치)
+                log.warn("[summary-fetch] AI 서버 응답이 예상된 JSON 형식이 아닙니다. 원본을 저장합니다. response={}", jsonResponse);
+                summaryText = jsonResponse;
+            }
+        } catch (JsonProcessingException e) {
+            log.error("[summary-fetch] AI 서버 응답 JSON 파싱에 실패했습니다. 원본을 저장합니다. response={}", jsonResponse, e);
+            summaryText = jsonResponse; // 파싱 실패 시 원본 JSON 저장
+        }
+
+
+        // 3. Plan 엔티티를 조회하여 summary 필드와 status를 업데이트
         Plan plan = planJpaRepository.findById(planId)
                 .orElseThrow(() -> new Exception404("요약 보고서를 저장할 플랜을 찾을 수 없습니다: " + planId));
 
-        plan.setSummary(summary);
-        // @Transactional에 의해 메서드 종료 시 변경된 내용이 자동으로 DB에 반영(dirty-checking)
+        plan.setSummary(summaryText); // 순수 텍스트 요약 저장
+        plan.setSummaryStatus(SummaryStatus.COMPLETED);
 
         log.info(
                 "[summary-fetch] planId={}에 요약 보고서 저장을 완료했습니다.",

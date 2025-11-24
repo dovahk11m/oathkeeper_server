@@ -13,6 +13,8 @@ import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,6 +131,12 @@ public class PlanCoreService {
     @Transactional(readOnly = true)
     public List<Plan> listPlans(Long memberId) {
         return planJpaRepository.findAllByCreatorOrParticipant(memberId);
+    }
+
+    // 그룹 ID와 상태로 플랜 목록 조회 (페이징)
+    @Transactional(readOnly = true)
+    public Page<Plan> getPlansByGroupAndStatus(Long groupId, Status status, Pageable pageable) {
+        return planJpaRepository.findByGroupIdAndStatus(groupId, status, pageable);
     }
 
     // 장소 확정

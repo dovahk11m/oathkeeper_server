@@ -2,6 +2,7 @@ package com.oath.domain.plan.facade;
 
 import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception500;
+import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTagRepository;
 import com.oath.domain.place_tag_plan.tag.Tag;
@@ -17,6 +18,8 @@ import com.oath.domain.plan.service.PlanParticipantService;
 import com.oath.domain.plan.service.PlanTrackingService;
 import com.oath.recommend_domain.plan.PlanEmbeddingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +69,12 @@ public class PlanFacade {
         Plan plan = planJpaRepository.findByIdWithParticipants(planId)
                 .orElseThrow(() -> new com.oath.common.exception.Exception404("해당 플랜을 찾을 수 없습니다."));
         return PlanResponse.CreatePlan.of(plan);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponseDTO<PlanResponse.SimplePlan> getPlansByGroupAndStatus(Long groupId, Status status, Pageable pageable) {
+        Page<Plan> planPage = planCoreService.getPlansByGroupAndStatus(groupId, status, pageable);
+        return PageResponseDTO.from(planPage, PlanResponse.SimplePlan::of, 5);
     }
 
     public PlanResponse.Summary getPlanSummary(Long planId) {
