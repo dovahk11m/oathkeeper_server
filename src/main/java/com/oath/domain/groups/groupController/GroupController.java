@@ -2,6 +2,7 @@ package com.oath.domain.groups.groupController;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.auth.Auth;
+import com.oath.common.exception.Exception404;
 import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.chats.ChatResponse;
 import com.oath.domain.chats.ChatService;
@@ -84,7 +85,8 @@ public class GroupController {
             @RequestAttribute("userEmail") String email,
             @PageableDefault(size = 20, sort = "planDatetime", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
         groupService.validateGroupMember(groupId, member.getId());
 
         PageResponseDTO<PlanResponse.SimplePlan> plans = planFacade.getPlansByGroupAndStatus(groupId, status, pageable);

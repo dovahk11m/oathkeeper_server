@@ -26,7 +26,7 @@ public interface PlanJpaRepository extends JpaRepository<Plan, Long> {
             "where p.creatorMember.id = :memberId or exists (select 1 from Participant pt where pt.plan = p and pt.member.id = :memberId)")
     List<Plan> findAllByCreatorOrParticipant(@Param("memberId") Long memberId);
 
-    @Query("SELECT p FROM Plan p WHERE p.group.id = :groupId AND p.status = :status ORDER BY p.planDatetime DESC")
+    @Query("SELECT p FROM Plan p WHERE p.group.id = :groupId AND (:status IS NULL OR p.status = :status)")
     Page<Plan> findByGroupIdAndStatus(@Param("groupId") Long groupId, @Param("status") Status status, Pageable pageable);
 
 }
