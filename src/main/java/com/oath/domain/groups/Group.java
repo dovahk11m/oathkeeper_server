@@ -1,6 +1,6 @@
 package com.oath.domain.groups;
 
-import com.oath.domain.groups.groupDTO.GroupCreateRequest;
+import com.oath.domain.groups.dto.GroupCreateRequest;
 import com.oath.domain.plan.domain.Plan;
 import jakarta.persistence.*;
 import lombok.*;

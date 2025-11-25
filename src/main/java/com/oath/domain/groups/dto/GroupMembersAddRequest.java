@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupDTO;
+package com.oath.domain.groups.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

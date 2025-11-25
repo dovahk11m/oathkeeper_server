@@ -61,11 +61,7 @@ public class JwtTokenProvider {
 
     //토큰 유효성 검증
     public boolean validateToken(String token) {
-        if (token == null) { // null 토큰 체크 추가
-            log.warn("Token is null. Validation failed.");
-            return false;
-        }
-
+        if (token == null) return false;
         if (isBlacklisted(token)) {
             log.warn("Blacklisted token: {}", token);
             return false;
@@ -102,7 +98,7 @@ public class JwtTokenProvider {
     }
 
     private boolean isBlacklisted(String token) {
-        // token이 null이 아님을 validateToken에서 이미 확인했으므로 여기서는 추가 체크 불필요
+        if (token == null) return false;
         return cacheManager.getCache("blacklistedTokens").get(token) != null;
     }
 

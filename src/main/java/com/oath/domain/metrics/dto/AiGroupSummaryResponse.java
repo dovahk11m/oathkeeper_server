@@ -1,5 +1,6 @@
 package com.oath.domain.metrics.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty; // JsonProperty import 추가
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,16 +11,19 @@ import java.util.List;
 @Setter
 @Builder
 public class AiGroupSummaryResponse {
-    private Boolean success; // AI 서버 응답의 성공 여부
-    private ResponseData data; // 'data' 필드 추가
-    private String message; // AI 서버 응답 메시지 (예: 409 Conflict 시)
-    private List<String> warnings; // AI 서버 응답 경고 목록
+    private Boolean success;
+    private ResponseData data;
+    private String message;
+    private List<String> warnings;
 
-    @Getter // ResponseData에도 @Getter 추가
+    @Getter
     @Setter
     @Builder
-    public static class ResponseData { // 내부 클래스로 ResponseData 정의
-        private AiGroupSummaryStats group_summary; // AI 서버 응답 필드명과 일치
-        private String text_summary; // AI 서버 응답 필드명과 일치
+    public static class ResponseData {
+        @JsonProperty("group_summary") // JSON 필드명 매핑
+        private AiGroupSummaryStats groupSummary; // camelCase로 변경
+
+        @JsonProperty("text_summary") // JSON 필드명 매핑
+        private String textSummary; // camelCase로 변경
     }
 }

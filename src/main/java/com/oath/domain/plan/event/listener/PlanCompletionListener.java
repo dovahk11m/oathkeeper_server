@@ -1,6 +1,6 @@
 package com.oath.domain.plan.event.listener;
 
-import com.oath.domain.groups.groupService.MetricsGroupService;
+import com.oath.domain.groups.service.MetricsGroupService;
 import com.oath.domain.plan.event.PlanCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -12,8 +12,9 @@
 - **규칙**: 이벤트 객체는 `final` 필드를 가진 불변(Immutable) 객체로 설계합니다.
 
 **예시: `NewMemberAddedEvent.java`**
+
 ```java
-package com.oath.domain.groups.groupEvent;
+package com.oath.domain.groups.event;
 
 import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
@@ -64,8 +65,9 @@ public void addMembers() {
 - **규칙**: 아래 템플릿의 모든 어노테이션과 구조를 그대로 따르는 것을 권장합니다.
 
 **예시: `NewMemberAddedListener.java` (템플릿)**
+
 ```java
-package com.oath.domain.groups.groupEvent; // 리스너 위치 변경
+package com.oath.domain.groups.event; // 리스너 위치 변경
 
 import com.oath.domain.alarms.AlarmDTO;
 import com.oath.domain.alarms.AlarmFactory;
@@ -95,18 +97,35 @@ public class NewMemberAddedListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW) // 2. 새로운 트랜잭션 시작
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT) // 3. 이전 트랜잭션 커밋 후 실행
     public void handleNewMemberAddedEvent(NewMemberAddedEvent event) {
-        log.info("[신규 멤버 추가 이벤트 수신: 그룹명='{}', 신규멤버='{}']",
-                event.getGroup().getName(),
-                event.getNewMember().getUsername());
+        log.info(
+                "[신규 멤버 추가 이벤트 수신: 그룹명='{}', 신규멤버='{}']",
+                event.getGroup()
+                        .getName(),
+                event.getNewMember()
+                        .getUsername()
+        );
 
         // 1. 알림 내용 생성
-        String subject = String.format("'%s' 그룹에 초대되었습니다.", event.getGroup().getName());
-        String content = String.format("'%s'님이 당신을 '%s' 그룹에 초대했습니다.",
-                event.getInviter().getUsername(),
-                event.getGroup().getName());
+        String subject = String.format(
+                "'%s' 그룹에 초대되었습니다.",
+                event.getGroup()
+                        .getName()
+        );
+        String content = String.format(
+                "'%s'님이 당신을 '%s' 그룹에 초대했습니다.",
+                event.getInviter()
+                        .getUsername(),
+                event.getGroup()
+                        .getName()
+        );
 
         // 2. 알림 DTO 생성
-        AlarmDTO request = new AlarmDTO(event.getNewMember().getEmail(), subject, content);
+        AlarmDTO request = new AlarmDTO(
+                event.getNewMember()
+                        .getEmail(),
+                subject,
+                content
+        );
 
         // 3. 팩토리를 통해 적절한 Sender를 찾아 알림 발송
         AlarmSender sender = alarmFactory.findSender(notificationType);

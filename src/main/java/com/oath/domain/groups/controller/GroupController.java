@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupController;
+package com.oath.domain.groups.controller;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.auth.Auth;
@@ -8,13 +8,13 @@ import com.oath.domain.chats.ChatResponse;
 import com.oath.domain.chats.ChatService;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.SummaryStatus;
-import com.oath.domain.groups.groupDTO.GroupCreateRequest;
-import com.oath.domain.groups.groupDTO.GroupListResponse;
-import com.oath.domain.groups.groupDTO.GroupMemberResponse;
-import com.oath.domain.groups.groupDTO.GroupMembersAddRequest;
-import com.oath.domain.groups.groupDTO.GroupSummaryResponse; // GroupSummaryResponse import 추가
-import com.oath.domain.groups.groupService.GroupService;
-import com.oath.domain.groups.groupService.MetricsGroupService;
+import com.oath.domain.groups.dto.GroupCreateRequest;
+import com.oath.domain.groups.dto.GroupListResponse;
+import com.oath.domain.groups.dto.GroupMemberResponse;
+import com.oath.domain.groups.dto.GroupMembersAddRequest;
+import com.oath.domain.groups.groupDTO.GroupSummaryResponse;
+import com.oath.domain.groups.service.MetricsGroupService;
+import com.oath.domain.groups.service.GroupService;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.plan.Status;
@@ -24,14 +24,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // Slf4j import 추가
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.transaction.annotation.Transactional; // Transactional import 추가
 
 @Slf4j // Slf4j 어노테이션 추가
 @Tag(name = "Group API", description = "그룹 및 채팅 관련 API")
@@ -94,10 +94,20 @@ public class GroupController {
     ) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
-        groupService.validateGroupMember(groupId, member.getId());
+        groupService.validateGroupMember(
+                groupId,
+                member.getId()
+        );
 
-        PageResponseDTO<PlanResponse.SimplePlan> plans = planFacade.getPlansByGroupAndStatus(groupId, status, pageable);
-        return ResponseEntity.ok(CommonResponse.success(plans, "그룹 내 약속 목록 조회가 완료되었습니다."));
+        PageResponseDTO<PlanResponse.SimplePlan> plans = planFacade.getPlansByGroupAndStatus(
+                groupId,
+                status,
+                pageable
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                plans,
+                "그룹 내 약속 목록 조회가 완료되었습니다."
+        ));
     }
 
 
@@ -185,7 +195,10 @@ public class GroupController {
         // 1. 사용자 권한 확인 (그룹 멤버인지 확인)
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
-        groupService.validateGroupMember(groupId, member.getId());
+        groupService.validateGroupMember(
+                groupId,
+                member.getId()
+        );
 
         // 2. 그룹 정보 조회
         Group group = groupService.getGroupById(groupId);
@@ -205,7 +218,10 @@ public class GroupController {
             responseBuilder.message("그룹 요약 정보 생성 중입니다. 잠시 후 다시 시도해주세요.");
         } else {
             // 요약이 없거나 실패한 경우, 새로 요청
-            log.debug("Calling MetricsGroupService.requestGroupSummary for groupId: {}", groupId); // 디버그 로그 추가
+            log.debug(
+                    "Calling MetricsGroupService.requestGroupSummary for groupId: {}",
+                    groupId
+            ); // 디버그 로그 추가
             metricsGroupService.requestGroupSummary(groupId);
             responseBuilder.status(SummaryStatus.PENDING) // 요청했으므로 PENDING으로 간주
                     .message("그룹 요약 정보 생성을 요청했습니다. 잠시 후 다시 시도해주세요.");
@@ -213,7 +229,8 @@ public class GroupController {
 
         return ResponseEntity.ok(CommonResponse.success(
                 responseBuilder.build(),
-                responseBuilder.build().getMessage()
+                responseBuilder.build()
+                        .getMessage()
         ));
     }
 }

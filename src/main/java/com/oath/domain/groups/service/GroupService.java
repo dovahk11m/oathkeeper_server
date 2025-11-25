@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupService;
+package com.oath.domain.groups.service;
 
 import com.oath.common.exception.Exception403;
 import com.oath.common.exception.Exception404;
@@ -7,13 +7,13 @@ import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
-import com.oath.domain.groups.groupDTO.GroupCreateRequest;
-import com.oath.domain.groups.groupDTO.GroupListResponse;
-import com.oath.domain.groups.groupDTO.GroupMemberResponse;
-import com.oath.domain.groups.groupDTO.GroupMembersAddRequest;
-import com.oath.domain.groups.groupEvent.CreateGroupEvent;
-import com.oath.domain.groups.groupRepository.GroupMemberRepository;
-import com.oath.domain.groups.groupRepository.GroupRepository;
+import com.oath.domain.groups.dto.GroupCreateRequest;
+import com.oath.domain.groups.dto.GroupListResponse;
+import com.oath.domain.groups.dto.GroupMemberResponse;
+import com.oath.domain.groups.dto.GroupMembersAddRequest;
+import com.oath.domain.groups.event.CreateGroupEvent;
+import com.oath.domain.groups.repository.GroupMemberRepository;
+import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
