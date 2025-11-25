@@ -2,9 +2,9 @@ package com.oath.initializer;
 
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
-import com.oath.domain.groups.groupDTO.GroupCreateRequest;
-import com.oath.domain.groups.groupRepository.GroupMemberRepository;
-import com.oath.domain.groups.groupService.GroupService;
+import com.oath.domain.groups.dto.GroupCreateRequest;
+import com.oath.domain.groups.repository.GroupMemberRepository;
+import com.oath.domain.groups.service.GroupService;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

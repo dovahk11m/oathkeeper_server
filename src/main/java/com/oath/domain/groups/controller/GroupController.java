@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupController;
+package com.oath.domain.groups.controller;
 
 import com.oath.common.CommonResponse;
 import com.oath.common.auth.Auth;
@@ -7,11 +7,11 @@ import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.chats.ChatResponse;
 import com.oath.domain.chats.ChatService;
 import com.oath.domain.groups.Group;
-import com.oath.domain.groups.groupDTO.GroupCreateRequest;
-import com.oath.domain.groups.groupDTO.GroupListResponse;
-import com.oath.domain.groups.groupDTO.GroupMemberResponse;
-import com.oath.domain.groups.groupDTO.GroupMembersAddRequest;
-import com.oath.domain.groups.groupService.GroupService;
+import com.oath.domain.groups.dto.GroupCreateRequest;
+import com.oath.domain.groups.dto.GroupListResponse;
+import com.oath.domain.groups.dto.GroupMemberResponse;
+import com.oath.domain.groups.dto.GroupMembersAddRequest;
+import com.oath.domain.groups.service.GroupService;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.plan.Status;
@@ -19,6 +19,7 @@ import com.oath.domain.plan.facade.PlanFacade;
 import com.oath.domain.plan.request.PlanResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/groups")
+@SecurityRequirement(name = "Bearer Authentication")
 public class GroupController {
 
     private final GroupService groupService;

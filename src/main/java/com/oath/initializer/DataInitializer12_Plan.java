@@ -1,7 +1,7 @@
 package com.oath.initializer;
 
 import com.oath.domain.groups.Group;
-import com.oath.domain.groups.groupRepository.GroupRepository;
+import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.locationevents.domain.LocationTrack;
 import com.oath.domain.locationevents.repository.LocationTrackRepository;
 import com.oath.domain.members.domain.Member;

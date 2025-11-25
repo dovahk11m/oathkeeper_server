@@ -43,6 +43,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 3. 헤더에서 토큰 추출 및 검증 (early return)
         String token = resolveToken(request);
+        log.warn("HEADER AUTH => {}", request.getHeader("Authorization"));
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new Exception401("인증되지 않은 사용자입니다.");
         }

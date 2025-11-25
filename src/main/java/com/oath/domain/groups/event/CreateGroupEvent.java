@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupEvent;
+package com.oath.domain.groups.event;
 
 import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;

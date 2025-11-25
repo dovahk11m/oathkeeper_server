@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupRepository;
+package com.oath.domain.groups.repository;
 
 import com.oath.domain.groups.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
