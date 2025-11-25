@@ -29,4 +29,6 @@ public interface PlanJpaRepository extends JpaRepository<Plan, Long> {
     @Query("SELECT p FROM Plan p WHERE p.group.id = :groupId AND (:status IS NULL OR p.status = :status)")
     Page<Plan> findByGroupIdAndStatus(@Param("groupId") Long groupId, @Param("status") Status status, Pageable pageable);
 
+    @Query("SELECT p.id FROM Plan p WHERE p.group.id = :groupId AND p.status = 'COMPLETED'")
+    List<Long> findCompletedPlanIdsByGroupId(@Param("groupId") Long groupId);
 }

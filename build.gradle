@@ -63,7 +63,7 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
     // Webflux
-    implementation 'org.springframework:spring-webflux'
+    implementation 'org.springframework:spring-webflux' // spring-boot-starter-webflux 대신 spring-webflux 사용
 
     // QueryDSL
     implementation "com.querydsl:querydsl-jpa::jakarta"

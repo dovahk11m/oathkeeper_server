@@ -25,8 +25,9 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     List<GroupMember> findByGroupIdAndMemberIdIn(Long groupId, List<Long> memberIds);
 
     // 특정 멤버가 속한 그룹 목록을 페이징하여 조회합니다. (N+1 방지)
-    @Query("SELECT gm FROM GroupMember gm JOIN FETCH gm.group WHERE gm.member.id = :memberId")
-    Page<GroupMember> findByMemberIdWithGroup(@Param("memberId") Long memberId, Pageable pageable);
+    @Query(value = "SELECT gm FROM GroupMember gm JOIN FETCH gm.group WHERE gm.member.id = :memberId",
+           countQuery = "SELECT count(gm) FROM GroupMember gm WHERE gm.member.id = :memberId")
+    Page<GroupMember> findByMemberId(@Param("memberId") Long memberId, Pageable pageable);
 
     // 특정 그룹의 멤버 목록을 페이징하여 조회합니다. (N+1 방지)
     @Query(value = "SELECT gm FROM GroupMember gm JOIN FETCH gm.member WHERE gm.group.id = :groupId",

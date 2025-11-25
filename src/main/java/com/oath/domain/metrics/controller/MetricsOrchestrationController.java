@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier; // Qualifier import 추가
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class MetricsOrchestrationController {
 
     private final MetricsRollupService rollupService;
     private final MetricsPushService pushService;
+    @Qualifier("aiClient") // aiClient 빈을 명시적으로 주입
     private final WebClient aiClient; // http://localhost:8001
 
     @Operation(summary = "[전체 파이프라인 실행] 통계 계산 > AI 전송 > 결과 수신", description = "통계 계산부터 AI 서버 연동까지의 모든 과정을 순차적으로 실행합니다.")
