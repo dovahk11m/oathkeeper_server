@@ -68,7 +68,7 @@ public class GroupService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
 
-        Page<GroupMember> myGroupsPage = groupMemberRepository.findByMemberIdWithGroup(
+        Page<GroupMember> myGroupsPage = groupMemberRepository.findByMemberId(
                 member.getId(),
                 pageable
         );
@@ -97,6 +97,17 @@ public class GroupService {
                 },
                 5
         );
+    }
+
+    /**
+     * 그룹 ID로 그룹을 조회합니다.
+     * @param groupId 조회할 그룹 ID
+     * @return 조회된 Group 엔티티
+     * @throws Exception404 그룹을 찾을 수 없을 경우
+     */
+    public Group getGroupById(Long groupId) {
+        return groupRepository.findById(groupId)
+                .orElseThrow(() -> new Exception404("그룹을 찾을 수 없습니다."));
     }
 
     /**
