@@ -99,21 +99,21 @@ public class AdminController {
 
 
 
-    @GetMapping("/group-list")
-    public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        Page<AdminResponse.groupListDto> groupPage = adminService.getGroupList(pageable);
-
-        model.addAttribute("groups", groupPage.getContent());
-        model.addAttribute("currentPage", page);
-
-        List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())
-                .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
-                .collect(Collectors.toList());
-
-        model.addAttribute("pages", pages);
-        return "chatGrouptest";
-    }
+//    @GetMapping("/group-list")
+//    public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
+//        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+//        Page<AdminResponse.groupListDto> groupPage = adminService.getGroupList(pageable);
+//
+//        model.addAttribute("groups", groupPage.getContent());
+//        model.addAttribute("currentPage", page);
+//
+//        List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())
+//                .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
+//                .collect(Collectors.toList());
+//
+//        model.addAttribute("pages", pages);
+//        return "chatGrouptest";
+//    }
 
     @GetMapping("/chat-list/{groupId}")
     public String getChat(@PathVariable Long groupId, Model model) throws IOException {
@@ -356,5 +356,15 @@ public class AdminController {
     @ResponseBody
     public void deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
         adminService.deletePlaceTag(placeId, tagId);
+    }
+
+    @GetMapping("/group-list")
+    public String getGroupList() {
+        return "groupList";
+    }
+
+    @GetMapping("/chat-list")
+    public String getChatList() {
+        return "chatList";
     }
 }

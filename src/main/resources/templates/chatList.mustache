@@ -1,0 +1,64 @@
+{{> layout/header}}
+
+<link rel="stylesheet" href="/css/chatList.css">
+
+<div class="wrapper" style="width:100%; margin:30px auto;">
+<div class="container">
+
+    <!-- 항상 보이는 채팅 요약 -->
+    <div class="summary-box">
+        <strong>채팅 요약</strong>
+        <p>총 메시지: 25, 참여자: 5명, 최근 메시지: 10분 전</p>
+    </div>
+
+    <!-- 비밀번호 입력 -->
+    <div id="passwordSection">
+        <div class="password-box">
+            <input type="password" id="passwordInput" placeholder="비밀번호 입력">
+            <button onclick="checkPassword()">확인</button>
+        </div>
+        <div id="errorMsg" class="error"></div>
+    </div>
+
+    <!-- 채팅 화면 (처음에는 숨김) -->
+    <div id="chatSection" class="hidden chat-list">
+        <!-- 채팅 예시 -->
+        <div class="chat-item"><strong>홍길동:</strong> 안녕하세요!</div>
+        <div class="chat-item"><strong>김철수:</strong> 오늘 회의 언제죠?</div>
+        <div class="chat-item"><strong>이영희:</strong> 내일 오후 2시입니다.</div>
+    </div>
+
+</div>
+</div>
+
+<script>
+async function checkPassword() {
+    const password = document.getElementById('passwordInput').value;
+    const errorMsg = document.getElementById('errorMsg');
+
+    // 단순 예시: 서버에 POST 요청
+    try {
+        const res = await fetch('/api/verify-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({password})
+        });
+
+        const data = await res.json();
+
+        if(data.success) {
+            // 비밀번호 맞음 → 채팅 목록 표시
+            document.getElementById('passwordSection').classList.add('hidden');
+            document.getElementById('chatSection').classList.remove('hidden');
+        } else {
+            errorMsg.textContent = '비밀번호가 틀렸습니다.';
+        }
+    } catch(e) {
+        errorMsg.textContent = '서버 오류 발생';
+        console.error(e);
+    }
+}
+</script>
+
+</body>
+</html>
