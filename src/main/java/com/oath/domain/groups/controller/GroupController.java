@@ -7,10 +7,13 @@ import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.chats.ChatResponse;
 import com.oath.domain.chats.ChatService;
 import com.oath.domain.groups.Group;
+import com.oath.domain.groups.SummaryStatus;
 import com.oath.domain.groups.dto.GroupCreateRequest;
 import com.oath.domain.groups.dto.GroupListResponse;
 import com.oath.domain.groups.dto.GroupMemberResponse;
 import com.oath.domain.groups.dto.GroupMembersAddRequest;
+import com.oath.domain.groups.groupDTO.GroupSummaryResponse;
+import com.oath.domain.groups.service.MetricsGroupService;
 import com.oath.domain.groups.service.GroupService;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
@@ -19,27 +22,29 @@ import com.oath.domain.plan.facade.PlanFacade;
 import com.oath.domain.plan.request.PlanResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j // Slf4j 어노테이션 추가
 @Tag(name = "Group API", description = "그룹 및 채팅 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/groups")
-@SecurityRequirement(name = "Bearer Authentication")
 public class GroupController {
 
     private final GroupService groupService;
     private final ChatService chatService;
     private final PlanFacade planFacade;
     private final MemberRepository memberRepository;
+    private final MetricsGroupService metricsGroupService;
 
     @Auth
     @Operation(summary = "새로운 그룹 생성", description = "새로운 그룹을 생성합니다. 그룹 생성 시, 해당 그룹의 채팅 기능도 함께 활성화됩니다.")
@@ -89,10 +94,20 @@ public class GroupController {
     ) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
-        groupService.validateGroupMember(groupId, member.getId());
+        groupService.validateGroupMember(
+                groupId,
+                member.getId()
+        );
 
-        PageResponseDTO<PlanResponse.SimplePlan> plans = planFacade.getPlansByGroupAndStatus(groupId, status, pageable);
-        return ResponseEntity.ok(CommonResponse.success(plans, "그룹 내 약속 목록 조회가 완료되었습니다."));
+        PageResponseDTO<PlanResponse.SimplePlan> plans = planFacade.getPlansByGroupAndStatus(
+                groupId,
+                status,
+                pageable
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                plans,
+                "그룹 내 약속 목록 조회가 완료되었습니다."
+        ));
     }
 
 
@@ -166,6 +181,56 @@ public class GroupController {
         return ResponseEntity.ok(CommonResponse.success(
                 members,
                 "그룹 멤버 목록 조회가 완료되었습니다."
+        ));
+    }
+
+    @Auth
+    @Operation(summary = "그룹 요약 정보 조회", description = "특정 그룹의 AI 요약 정보를 조회합니다. 요약 정보가 없거나 오래된 경우, AI 서버에 요약을 요청합니다.")
+    @GetMapping("/{groupId}/metrics/summary")
+    @Transactional(readOnly = true) // <-- 이 부분을 추가합니다.
+    public ResponseEntity<CommonResponse<GroupSummaryResponse>> getGroupMetricsSummary(
+            @Parameter(description = "요약 정보를 조회할 그룹의 ID", required = true) @PathVariable Long groupId,
+            @RequestAttribute("userEmail") String email
+    ) {
+        // 1. 사용자 권한 확인 (그룹 멤버인지 확인)
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
+        groupService.validateGroupMember(
+                groupId,
+                member.getId()
+        );
+
+        // 2. 그룹 정보 조회
+        Group group = groupService.getGroupById(groupId);
+
+        // 3. 요약 상태에 따른 응답 처리
+        GroupSummaryResponse.GroupSummaryResponseBuilder responseBuilder = GroupSummaryResponse.builder()
+                .groupId(groupId)
+                .status(group.getSummaryStatus())
+                .lastUpdatedAt(group.getSummaryLastUpdatedAt());
+
+        if (group.getSummaryStatus() == SummaryStatus.COMPLETED && group.getSummary() != null) {
+            // 요약이 완료된 경우
+            responseBuilder.summary(group.getSummary())
+                    .message("그룹 요약 정보가 성공적으로 조회되었습니다.");
+        } else if (group.getSummaryStatus() == SummaryStatus.PENDING) {
+            // 요약이 진행 중인 경우
+            responseBuilder.message("그룹 요약 정보 생성 중입니다. 잠시 후 다시 시도해주세요.");
+        } else {
+            // 요약이 없거나 실패한 경우, 새로 요청
+            log.debug(
+                    "Calling MetricsGroupService.requestGroupSummary for groupId: {}",
+                    groupId
+            ); // 디버그 로그 추가
+            metricsGroupService.requestGroupSummary(groupId);
+            responseBuilder.status(SummaryStatus.PENDING) // 요청했으므로 PENDING으로 간주
+                    .message("그룹 요약 정보 생성을 요청했습니다. 잠시 후 다시 시도해주세요.");
+        }
+
+        return ResponseEntity.ok(CommonResponse.success(
+                responseBuilder.build(),
+                responseBuilder.build()
+                        .getMessage()
         ));
     }
 }

@@ -249,7 +249,9 @@ public class PlanTrackingService {
                     Status.COMPLETED
             ); // 약속 상태 완료로 변경
             planJpaRepository.save(plan);
-            eventPublisher.publishEvent(new PlanCompletedEvent(plan.getId())); // 이벤트 발행
+            if (plan.getGroup() != null) { // 그룹이 있는 경우에만 이벤트 발행
+                eventPublisher.publishEvent(new PlanCompletedEvent(this, plan.getId(), plan.getGroup().getId())); // 이벤트 발행
+            }
         }
     }
 
@@ -282,7 +284,9 @@ public class PlanTrackingService {
         Plan savedPlan = planJpaRepository.save(plan);
 
         // 5. 완료 이벤트 발행
-        eventPublisher.publishEvent(new PlanCompletedEvent(savedPlan.getId()));
+        if (savedPlan.getGroup() != null) { // 그룹이 있는 경우에만 이벤트 발행
+            eventPublisher.publishEvent(new PlanCompletedEvent(this, savedPlan.getId(), savedPlan.getGroup().getId()));
+        }
 
         return savedPlan;
     }
