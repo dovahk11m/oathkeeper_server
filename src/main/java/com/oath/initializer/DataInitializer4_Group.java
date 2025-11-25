@@ -40,19 +40,19 @@ public class DataInitializer4_Group implements CommandLineRunner {
         Member user1 = memberRepository.findByEmail("user1@test.com").orElseThrow();
         Member user2 = memberRepository.findByEmail("user2@test.com").orElseThrow();
 
-        Group sampleGroup = groupService.createGroup(
-                new GroupCreateRequest("샘플 그룹"),
-                user1.getEmail()
-        );
+        Group sampleGroup1 = groupService.createGroup(new GroupCreateRequest("샘플 그룹1"), user1.getEmail());
+        Group sampleGroup2 = groupService.createGroup(new GroupCreateRequest("샘플 그룹2"), user1.getEmail());
+        Group sampleGroup3 = groupService.createGroup(new GroupCreateRequest("샘플 그룹3"), user1.getEmail());
+        Group sampleGroup4 = groupService.createGroup(new GroupCreateRequest("샘플 그룹4"), user1.getEmail());
+        Group sampleGroup5 = groupService.createGroup(new GroupCreateRequest("샘플 그룹5"), user1.getEmail());
+        Group sampleGroup6 = groupService.createGroup(new GroupCreateRequest("샘플 그룹6"), user1.getEmail());
 
-        groupMemberRepository.save(GroupMember.of(
-                sampleGroup,
-                user2
-        ));
+        groupMemberRepository.save(GroupMember.of(sampleGroup1, user2));
+        groupMemberRepository.save(GroupMember.of(sampleGroup2, user2));
 
         chatRepository.save(new Chat(
                 null,
-                sampleGroup,
+                sampleGroup1,
                 user1,
                 "안녕하세요! 샘플 데이터입니다.",
                 null,
@@ -61,7 +61,7 @@ public class DataInitializer4_Group implements CommandLineRunner {
         ));
         chatRepository.save(new Chat(
                 null,
-                sampleGroup,
+                sampleGroup1,
                 user2,
                 "네, 반갑습니다!",
                 null,

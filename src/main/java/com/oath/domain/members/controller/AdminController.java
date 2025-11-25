@@ -11,6 +11,7 @@ import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.service.MemberService;
 import com.oath.domain.members.service.SummaryService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import com.oath.common.CommonResponse;
@@ -96,16 +97,7 @@ public class AdminController {
         return "member";
     }
 
-    @GetMapping("/popular-plan-tag")
-    @ResponseBody
-    public List<AdminResponse.popularPlanTag> getPopularPlanTag(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1);
 
-        List<AdminResponse.popularPlanTag> popularPlanTags = adminService.getPopularPlanTag(startDateTime, endDateTime);
-
-        return popularPlanTags;
-    }
 
     @GetMapping("/group-list")
     public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
@@ -148,6 +140,33 @@ public class AdminController {
 
         return chats;
     }
+
+    public String summarizeChat(@PathVariable Long roomId) throws IOException {
+        // DB에서 채팅 불러오기
+        List<Chat> chatEntities = chatRepository.findByGroupIdWithMember(roomId);
+        System.out.println(chatEntities);
+
+        // ChatMessage 로 변환
+        List<String> chats = chatEntities.stream()
+                .map(e -> e.getContent())
+                .filter(c -> c != null)
+                .collect(Collectors.toList());
+
+        String summary = summaryService.summarizeChats(chats);
+        return summary;
+    }
+
+    @GetMapping("/popular-plan-tag")
+    @ResponseBody
+    public List<AdminResponse.popularPlanTag> getPopularPlanTag(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1);
+
+        List<AdminResponse.popularPlanTag> popularPlanTags = adminService.getPopularPlanTag(startDateTime, endDateTime);
+
+        return popularPlanTags;
+    }
+
 
     @GetMapping("/active-chart")
     @ResponseBody
@@ -250,27 +269,18 @@ public class AdminController {
         return activeCount;
     }
 
-
-    public String summarizeChat(@PathVariable Long roomId) throws IOException {
-        // DB에서 채팅 불러오기
-        List<Chat> chatEntities = chatRepository.findByGroupIdWithMember(roomId);
-        System.out.println(chatEntities);
-
-        // ChatMessage 로 변환
-        List<String> chats = chatEntities.stream()
-                .map(e -> e.getContent())
-                .filter(c -> c != null)
-                .collect(Collectors.toList());
-
-        String summary = summaryService.summarizeChats(chats);
-        return summary;
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
 
+
     @PostMapping("/login")
-    public Member adminLogin(MemberLoginDto dto) {
+    @ResponseBody
+    public ResponseEntity<?> adminLogin(@RequestBody MemberLoginDto dto) {
         Member member = memberService.login(dto); // 공통 로그인 사용
         checkAdmin(member);
-        return member;
+        return new ResponseEntity<>(CommonResponse.success(member, "관리자 로그인 성공"), HttpStatus.OK);
     }
 
     private void checkAdmin(Member member) {
@@ -279,7 +289,7 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/dash-board")
+    @GetMapping("/dashboard")
     public String getDashBoard() {
         return "dashboard";
     }
@@ -335,10 +345,11 @@ public class AdminController {
         return placeTags;
     }
 
-    @PostMapping("/place-tags")
+    @PostMapping("/add/place-tags")
     @ResponseBody
-    public void addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
-        adminService.addPlaceTag(req);
+    public List<AdminResponse.AddedTagDto> addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
+        List<AdminResponse.AddedTagDto> tagDto = adminService.addPlaceTag(req);
+        return tagDto;
     }
 
     @DeleteMapping("/place-tag/{placeId}/{tagId}")
@@ -346,6 +357,4 @@ public class AdminController {
     public void deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
         adminService.deletePlaceTag(placeId, tagId);
     }
-
-
 }

@@ -42,27 +42,26 @@ public class DataInitializer15_Chat implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("💬 샘플 그룹멤버 및 채팅 데이터 생성 시작");
 
-        List<Group> groups = groupRepository.findAll();
+        // ★ 샘플 그룹 두 개만 가져오기 ★
+        Group sampleGroup1 = groupRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("샘플 그룹1 없음"));
+        Group sampleGroup2 = groupRepository.findById(2L)
+                .orElseThrow(() -> new RuntimeException("샘플 그룹2 없음"));
+
+        List<Group> groups = List.of(sampleGroup1, sampleGroup2);
+
         List<Member> members = memberRepository.findAll();
         List<Plan> plans = planRepository.findAll();
 
-        if (groups.isEmpty() || members.isEmpty()) {
-            log.warn("Group 또는 Member 데이터가 부족합니다. 채팅 생성 중단");
-            return;
-        }
-
         // --- 그룹 멤버 랜덤 생성 ---
         for (Group group : groups) {
-            // 각 그룹마다 최소 2명 이상 멤버 배정
             int memberCount = 2 + random.nextInt(Math.min(5, members.size() - 1));
             for (int i = 0; i < memberCount; i++) {
+
                 Member member = members.get(random.nextInt(members.size()));
 
-                // 이미 등록된 멤버는 중복 방지
-                boolean exists = groupMemberRepository.existsByGroupAndMember(group, member);
-                if (!exists) {
-                    GroupMember gm = GroupMember.of(group, member); // 생성자 또는 팩토리 메서드
-                    groupMemberRepository.save(gm);
+                if (!groupMemberRepository.existsByGroupAndMember(group, member)) {
+                    groupMemberRepository.save(GroupMember.of(group, member));
                 }
             }
         }
@@ -73,22 +72,19 @@ public class DataInitializer15_Chat implements CommandLineRunner {
         for (int i = 0; i < chatCount; i++) {
             Group group = groups.get(random.nextInt(groups.size()));
             List<Member> groupMembers = groupMemberRepository.findMembersByGroup(group.getId());
-
-            if (groupMembers.isEmpty()) continue; // 그룹에 멤버가 없으면 스킵
+            if (groupMembers.isEmpty()) continue;
 
             Member sender = groupMembers.get(random.nextInt(groupMembers.size()));
-
             Long planId = (plans.isEmpty() || random.nextBoolean())
                     ? null
                     : plans.get(random.nextInt(plans.size())).getId();
 
             String content = getRandomMessage(i);
 
-            Chat chat = Chat.of(group, sender, content, planId);
-            chatRepository.save(chat);
+            chatRepository.save(Chat.of(group, sender, content, planId));
         }
 
-        log.info("💬 샘플 그룹멤버 및 채팅 데이터 생성 완료 (채팅 {}개)", chatCount);
+        log.info("💬 샘플 그룹1/2 채팅 더미 생성 완료!");
     }
 
     private String getRandomMessage(int index) {

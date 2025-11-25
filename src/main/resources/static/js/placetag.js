@@ -129,7 +129,7 @@ document.getElementById("saveTags").onclick = async () => {
 
   try {
     // 서버에 POST
-    const res = await fetch("/api/admin/place-tags", {
+    const res = await fetch("/api/admin/add/place-tags", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)

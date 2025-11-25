@@ -134,4 +134,5 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
     List<AdminResponse.activeCount> getActiveCount(@Param("oneMonthAgo") LocalDateTime oneMonthAgo);
 
 
+
 }

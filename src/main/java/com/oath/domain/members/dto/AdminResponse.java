@@ -283,6 +283,19 @@ public class AdminResponse {
         }
     }
 
+    @Data
+    public static class AddedTagDto {
+        private Long placeId;
+        private Long id;
+        private String name;
+
+        public AddedTagDto(Long placeId, Long id, String name) {
+            this.placeId = placeId;
+            this.id = id;
+            this.name = name;
+        }
+    }
+
 
 
 

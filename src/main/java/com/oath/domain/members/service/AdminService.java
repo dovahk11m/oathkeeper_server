@@ -261,7 +261,9 @@ public class AdminService {
                 .toList();
     }
 
-    public void addPlaceTag(AdminRequest.PlaceTag req) {
+    public List<AdminResponse.AddedTagDto> addPlaceTag(AdminRequest.PlaceTag req) {
+        List<AdminResponse.AddedTagDto> addedTags = new ArrayList<>();
+
         for(Long placeId : req.getPlaceIds()) {
             Place place = placeRepository.findById(placeId)
                     .orElseThrow(() -> new IllegalArgumentException("장소를 찾을 수 없습니다."));
@@ -276,9 +278,18 @@ public class AdminService {
                     pt.setPlace(place);
                     pt.setTag(tag);
                     placeTagRepository.save(pt);
+
+                    addedTags.add(
+                            new AdminResponse.AddedTagDto(
+                                    place.getId(),
+                                    tag.getId(),
+                                    tag.getName()
+                            )
+                    );
                 }
             }
         }
+        return addedTags;
     }
 
     public void deletePlaceTag(Long placeId, Long tagId) {
