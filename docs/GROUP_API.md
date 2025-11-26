@@ -1,6 +1,6 @@
 # Group API 명세서
 
-- **최종 수정 일자:** 2025-11-25 (업데이트)
+- **최종 수정 일자:** 2025-11-26 (업데이트)
 
 `GroupController`에 구현된 그룹 및 채팅 관련 API의 최신 명세입니다.
 
@@ -116,13 +116,12 @@
 -   **URL**: `/api/groups/{groupId}/plans`
 -   **설명**: 특정 그룹에 속한 약속 목록을 페이징하여 조회합니다. 채팅방에서 '요약 보기' 버튼 클릭 시, 이 API를 호출하여 완료된 약속 목록을 사용자에게 보여주는 데 사용됩니다.
 -   **Path Variable**:
-    -   `groupId` (Long): 약속 목록을 조회할 그룹의 ID
+    -   `groupId` (Long, required): 약속 목록을 조회할 그룹의 ID
 -   **Query Parameters**:
-    -   `status` (String, optional): 조회할 약속의 상태. (예: `COMPLETED`). 지정하지 않으면 모든 상태의 약속을 조회합니다.
-        -   사용 가능한 값: `PLANNING`, `CONFIRMED`, `COMPLETED`, `CANCELLED`
-    -   `page` (int, optional, default: 0): 조회할 페이지 번호
-    -   `size` (int, optional, default: 20): 한 페이지에 보여줄 약속 수
-    -   `sort` (String, optional, default: `planDatetime,DESC`): 정렬 기준
+    -   `status` (String, optional): 조회할 약속의 상태. (사용 가능한 값: `PLANNING`, `CONFIRMED`, `COMPLETED`, `CANCELLED`). 지정하지 않으면 모든 상태의 약속을 조회합니다.
+    -   `page` (int, optional, default: 0): 조회할 페이지 번호.
+    -   `size` (int, optional, default: 20): 한 페이지에 보여줄 약속 수.
+    -   `sort` (String, optional, default: `planDatetime,DESC`): 정렬 기준. (예: `planDatetime,ASC`)
 -   **Success Response (200 OK)**:
     -   `data` 필드에는 `PageResponseDTO<SimplePlan>` 객체가 포함됩니다.
     ```json
@@ -169,15 +168,29 @@
         "groupId": 1,
         "summary": "분석된 4개의 약속에 따르면...",
         "status": "COMPLETED",
-        "lastUpdatedAt": "2025-11-25T10:05:00",
-        "message": "그룹 요약 정보가 성공적으로 조회되었습니다."
+        "lastUpdatedAt": "2025-11-26T10:05:00",
+        "reason": null
       },
       "message": "그룹 요약 정보가 성공적으로 조회되었습니다."
     }
     ```
+-   **Special Case Response (200 OK, PENDING)**:
+    ```json
+    {
+      "success": true,
+      "data": {
+        "groupId": 1,
+        "summary": null,
+        "status": "PENDING",
+        "lastUpdatedAt": "2025-11-26T10:04:00",
+        "reason": "그룹 요약 정보 생성 중입니다. 잠시 후 다시 시도해주세요."
+      },
+      "message": "그룹 요약 정보 생성 중입니다."
+    }
+    ```
 -   **클라이언트 고려사항**:
     -   이 API는 `METRIC_API.md`에 설명된 폴링(Polling) 방식으로 호출해야 합니다.
-    -   `status` 필드를 확인하여 `PENDING`일 경우 로딩 인디케이터를 표시하고 주기적으로 재요청하며, `COMPLETED`일 경우 `summary` 내용을 표시합니다. `FAILED`일 경우 사용자에게 오류 메시지를 보여줍니다.
+    -   `status` 필드를 확인하여 `PENDING`일 경우 로딩 인디케이터를 표시하고 주기적으로 재요청하며, `COMPLETED`일 경우 `summary` 내용을 표시합니다. `FAILED`일 경우 `reason` 필드의 내용을 사용자에게 오류 메시지로 보여줍니다.
 
 ---
 
@@ -281,7 +294,7 @@
     }
     ```
 -   **클라이언트 고려사항**:
-    -   받아온 메시지 목록을 채팅 UI에 표시합니다. `sort=sentAt,DESC`이므로 최신 메시지가 먼저 오므로, 일반적으로는 목록의 하단에 추가하고 스크롤을 최신 메시지로 이동시킵니다.
+    -   받아온 메시지 목록을 UI에 표시합니다. `sort=sentAt,DESC`이므로 최신 메시지가 먼저 오므로, 일반적으로는 목록의 하단에 추가하고 스크롤을 최신 메시지로 이동시킵니다.
     -   `isFirst` 필드를 사용하여 더 이상 이전 메시지가 없는 경우 추가 로딩을 중단합니다.
 
 ---

@@ -27,10 +27,10 @@ public class AIService {
         try {
             // MetricsPushService의 메소드를 호출하여 AI 서버로부터 요약 보고서를 가져와 저장합니다.
             // 이 메소드는 내부에 재시도 로직을 포함하고 있습니다.
-            metricsPushService.fetchAndSaveSummary(planId);
+            metricsPushService.fetchAndSavePlanSummary(planId);
 
         } catch (Exception e) {
-            // fetchAndSaveSummary의 모든 재시도가 실패하면 예외가 발생합니다.
+            // fetchAndSavePlanSummary의 모든 재시도가 실패하면 예외가 발생합니다.
             // 예외를 여기서 잡아서 Plan의 상태를 FAILED로 업데이트합니다.
             log.error("[summary-generation] AI 요약 생성 비동기 작업 최종 실패. planId={}", planId, e);
             Plan plan = planJpaRepository.findById(planId)

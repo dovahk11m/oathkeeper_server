@@ -1,4 +1,4 @@
-package com.oath.domain.groups.groupDTO;
+package com.oath.domain.groups.dto;
 
 import com.oath.domain.groups.SummaryStatus;
 import lombok.Builder;
@@ -15,5 +15,5 @@ public class GroupSummaryResponse {
     private String summary;
     private SummaryStatus status;
     private LocalDateTime lastUpdatedAt;
-    private String message; // 클라이언트에 전달할 추가 메시지
+    private String reason; // 요약 상태(PENDING, FAILED 등)에 대한 부가 설명
 }

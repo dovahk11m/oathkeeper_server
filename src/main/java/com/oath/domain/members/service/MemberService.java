@@ -1,7 +1,25 @@
 package com.oath.domain.members.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.oath.common.JwtTokenProvider;
-import com.oath.common.exception.*;
+import com.oath.common.exception.Exception400;
+import com.oath.common.exception.Exception401;
+import com.oath.common.exception.Exception404;
+import com.oath.common.exception.Exception409;
+import com.oath.common.exception.Exception500;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;
@@ -15,21 +33,9 @@ import com.oath.domain.members.memberEvent.PasswordResetEvent;
 import com.oath.domain.members.memberEvent.SocialSignupEvent;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.terms.TermService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +74,8 @@ public class MemberService {
         termService.agreeTerms(memberCreateDto.getAgreedTermIds(), savedMember);
 
         // 이메일 가입 이벤트 발행
-        eventPublisher.publishEvent(new MemberSignupEvent(savedMember.getEmail(), savedMember.getUsername(), savedMember.getEmailVerificationToken()));
+        eventPublisher.publishEvent(new MemberSignupEvent(savedMember.getEmail(), savedMember.getUsername(),
+                savedMember.getEmailVerificationToken()));
 
         return savedMember;
     }
@@ -98,7 +105,7 @@ public class MemberService {
         return member;
     }
 
-    //로그아웃
+    // 로그아웃
     public void logout(String token) {
         if (!jwtTokenProvider.validateToken(token)) {
             throw new Exception400("유효하지 않은 토큰입니다.");
@@ -106,7 +113,10 @@ public class MemberService {
 
         long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
 
-        cacheManager.getCache("blacklistedTokens").put(token, remainingExpiration);
+        var cache = cacheManager.getCache("blacklistedTokens");
+        if (cache != null) {
+            cache.put(token, remainingExpiration);
+        }
     }
 
     public void postLogin(Member member) {
@@ -158,14 +168,12 @@ public class MemberService {
         return new MemberResponse.DTO(member);
     }
 
-
     public MemberResponse.DTO updateMember(Long memberId, MemberRequest.Update request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         member.updateInfo(request.getUsername(), request.getProfileImageUrl(), request.getDefaultAddress());
         return new MemberResponse.DTO(member);
     }
-
 
     public void updatePassword(Long memberId, MemberRequest.PasswordUpdate request) {
         Member member = memberRepository.findById(memberId)
@@ -204,12 +212,12 @@ public class MemberService {
                             m.updatePassword(passwordEncoder.encode(tempPassword));
 
                             // 비밀번호 재설정 이벤트 발행
-                            eventPublisher.publishEvent(new PasswordResetEvent(m.getEmail(), m.getUsername(), tempPassword));
+                            eventPublisher
+                                    .publishEvent(new PasswordResetEvent(m.getEmail(), m.getUsername(), tempPassword));
                         },
                         () -> {
                             throw new Exception404("일치하는 회원이 없습니다.");
-                        }
-                );
+                        });
     }
 
     public String uploadProfileImage(MultipartFile image, Long memberId) throws IOException {

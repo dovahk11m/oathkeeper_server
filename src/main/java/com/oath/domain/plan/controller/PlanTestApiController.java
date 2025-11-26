@@ -3,11 +3,13 @@ package com.oath.domain.plan.controller;
 import com.oath.common.CommonResponse;
 import com.oath.domain.locationevents.event.GpsStationaryEvent;
 import com.oath.domain.locationevents.event.ParticipantArrivedEvent;
+import com.oath.domain.plan.MovementStatus;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.facade.PlanFacade;
 import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -137,6 +140,29 @@ public class PlanTestApiController {
         return ResponseEntity.ok(CommonResponse.success(
                 null,
                 "참가자 도착 이벤트 발생 성공"
+        ));
+    }
+
+    @Operation(summary = "[테스트용] 참가자 이동 상태 강제 변경", description = "특정 참가자의 이동 상태(MovementStatus)를 강제로 변경합니다. (Local 환경 전용)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "상태 변경 성공"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
+    @PostMapping("/{planId}/participants/{participantId}/test/force-movement-status")
+    @Transactional("h2TransactionManager") // 데이터 변경을 위한 트랜잭션 명시
+    public ResponseEntity<CommonResponse<String>> forceMovementStatus(
+            @PathVariable Long planId,
+            @PathVariable Long participantId,
+            @RequestParam @Parameter(description = "변경할 이동 상태 (HOME, DEPARTED, MOVING, STATIONARY, ARRIVED)") MovementStatus status
+    ) {
+        com.oath.domain.plan.domain.Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new com.oath.common.exception.Exception404("참가자를 찾을 수 없습니다: " + participantId));
+
+        participant.setMovementStatus(status);
+
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                String.format("참가자 %d의 상태가 %s로 변경되었습니다.", participantId, status)
         ));
     }
 }
