@@ -43,4 +43,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     List<Chat> findByGroupAndSenderWithFetch(@Param("groupId") Long groupId, @Param("senderId") Long senderId);
 
     boolean existsByGroupAndMember(Group group, Member member);
+
+    List<String> findMemberEmailsByGroupId(Long groupId);
+
 }

@@ -10,6 +10,7 @@ import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.tag.Tag;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -296,8 +297,20 @@ public class AdminResponse {
         }
     }
 
+    @Data
+    public static class GroupList {
+        private Long id;
+        private String name;
+        private String createdAt;
+        private Long memberCount;
+        private String sentAt;
 
-
-
-
+        public GroupList(Long id, String name, LocalDateTime createdAt, Long memberCount, LocalDateTime sentAt) {
+            this.id = id;
+            this.name = name;
+            this.createdAt = createdAt != null ? createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
+            this.memberCount = memberCount;
+            this.sentAt = sentAt != null ? sentAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
+        }
+    }
 }

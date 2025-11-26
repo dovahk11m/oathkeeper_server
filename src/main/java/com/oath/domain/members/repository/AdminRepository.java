@@ -4,6 +4,7 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.AdminResponse;
 import com.oath.domain.visitors.VisitorResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -134,5 +135,17 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
     List<AdminResponse.activeCount> getActiveCount(@Param("oneMonthAgo") LocalDateTime oneMonthAgo);
 
 
+    @Query("""
+    SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(
+        g.id, g.name, g.createdAt, COUNT(gm.id),
+        (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id)
+    )
+    FROM Group g
+    JOIN GroupMember gm
+    ON g.id = gm.group.id
+    GROUP BY g.id, g.name, g.createdAt
+    ORDER BY g.id DESC
+    """)
+    Page<AdminResponse.GroupList> getGroupList(Pageable pagable);
 
 }

@@ -35,3 +35,46 @@
 #search-container button:hover {
   background-color: #4338ca;
 }
+
+
+/* 채팅 그룹 리스트 */
+.chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 채팅 그룹 아이템 */
+.chat-item {
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chat-item:hover {
+    background-color: #f3f4f6;
+}
+
+/* 채팅 그룹 텍스트 */
+.chat-title {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.chat-members {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.chat-time {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}

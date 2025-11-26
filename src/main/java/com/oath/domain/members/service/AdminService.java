@@ -4,6 +4,7 @@ import com.oath.common.exception.Exception401;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
+import com.oath.domain.groups.groupRepository.GroupMemberRepository;
 import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
@@ -29,9 +30,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -58,6 +61,8 @@ public class AdminService {
     private final TagRepository tagRepository;
 
     private final PlaceTagRepository placeTagRepository;
+
+    private final GroupMemberRepository groupMemberRepository;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -110,11 +115,6 @@ public class AdminService {
         return PlanTagsPie;
     }
 
-    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {
-        Page<AdminResponse.groupListDto> groups = groupRepository.findAll(pageable)
-                .map(g -> new AdminResponse.groupListDto(g));
-        return groups;
-    }
 
     public List<ActiveChartDto> activeCharts() {
         List<ActiveChartDto> activeChart = adminRepository.activeChart();
@@ -298,4 +298,17 @@ public class AdminService {
 
         placeTagRepository.delete(placeTag);
     }
+
+    public Page<AdminResponse.GroupList> getGroupList(Pageable pageble) {
+        Page<AdminResponse.GroupList> groupLists = adminRepository.getGroupList(pageble);
+        return groupLists;
+
+    }
+
+//    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {
+//        Page<AdminResponse.groupListDto> groups = groupRepository.findAll(pageable)
+//                .map(g -> new AdminResponse.groupListDto(g));
+//        return groups;
+//    }
+
 }

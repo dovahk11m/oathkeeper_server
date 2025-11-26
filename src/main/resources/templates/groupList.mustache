@@ -8,7 +8,7 @@
     <div id="top-controls" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <!-- 총 그룹 수 -->
         <div id="group-count">
-            총 그룹: {{groups.length}}
+            총 그룹: {{groupCount}}
         </div>
 
         <!-- 검색창 + 버튼 -->
@@ -21,12 +21,12 @@
     <!-- 그룹 리스트 -->
     <ul id="chat-group-list" class="chat-list">
         {{#groups}}
-        <li class="chat-item" data-participants="{{participants}}">
+        <li class="chat-item">
             <div class="group-info">
                 <p class="chat-title">[{{id}}] {{name}}</p>
-                <p class="chat-members">참여자 수: {{members}}</p>
+                <p class="chat-members">참여자 수: {{memberCount}}</p>
             </div>
-            <div class="chat-time">{{lastMessage}}</div>
+            <div class="chat-time">{{sentAt}}</div>
         </li>
         {{/groups}}
     </ul>
@@ -38,7 +38,7 @@
                 <button class="page-btn" disabled>{{number}}</button>
             {{/isCurrent}}
             {{^isCurrent}}
-                <a href="/admin/group-list?page={{pageIndex}}">
+                <a href="/api/admin/group-list?page={{pageIndex}}">
                     <button class="page-btn">{{number}}</button>
                 </a>
             {{/isCurrent}}

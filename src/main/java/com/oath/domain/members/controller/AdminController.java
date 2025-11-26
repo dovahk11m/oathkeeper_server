@@ -5,6 +5,7 @@ import com.oath.common.exception.Exception401;
 import com.oath.domain.chatEntity.ChatEntity;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
+import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.MemberLoginDto;
@@ -50,6 +51,8 @@ public class AdminController {
     private final SummaryService summaryService;
 
     private final MemberService memberService;
+
+    private final GroupRepository groupRepository;
 
 
 //    @GetMapping("/member-list")
@@ -99,21 +102,24 @@ public class AdminController {
 
 
 
-//    @GetMapping("/group-list")
-//    public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
-//        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-//        Page<AdminResponse.groupListDto> groupPage = adminService.getGroupList(pageable);
-//
-//        model.addAttribute("groups", groupPage.getContent());
-//        model.addAttribute("currentPage", page);
-//
-//        List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())
-//                .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
-//                .collect(Collectors.toList());
-//
-//        model.addAttribute("pages", pages);
-//        return "chatGrouptest";
-//    }
+    @GetMapping("/group-list")
+    public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        Page<AdminResponse.GroupList> groupPage = adminService.getGroupList(pageable);
+        Long groupCount = groupRepository.getTotalGroupCount();
+
+        model.addAttribute("groups", groupPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("groupCount", groupCount);
+
+
+        List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())
+                .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
+                .collect(Collectors.toList());
+
+        model.addAttribute("pages", pages);
+        return "groupList";
+    }
 
     @GetMapping("/chat-list/{groupId}")
     public String getChat(@PathVariable Long groupId, Model model) throws IOException {
@@ -358,10 +364,10 @@ public class AdminController {
         adminService.deletePlaceTag(placeId, tagId);
     }
 
-    @GetMapping("/group-list")
-    public String getGroupList() {
-        return "groupList";
-    }
+//    @GetMapping("/group-list")
+//    public String getGroupList() {
+//        return "groupList";
+//    }
 
     @GetMapping("/chat-list")
     public String getChatList() {
