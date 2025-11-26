@@ -71,17 +71,7 @@ public class PlaceAdminController {
         return "redirect:/admin/places";
     }
 
-    @GetMapping("/search")
-    public String searchPlace(@RequestParam String keyword) {
-        PlaceResponseDto.PlaceDto place = placeAdminService.searchPlace(keyword);
-        return "place";
-    }
 
-    @PostMapping("/save")
-    public ResponseEntity<?> savePlace(@RequestBody PlaceRequestDto.PlaceDto requestDto) {
-        Place place = placeAdminService.savePlace(requestDto);
-        return ResponseEntity.ok(place);
-    }
 
 
 }

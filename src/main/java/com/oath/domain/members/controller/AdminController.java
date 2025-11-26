@@ -5,12 +5,16 @@ import com.oath.common.exception.Exception401;
 import com.oath.domain.chatEntity.ChatEntity;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
+import com.oath.domain.groups.groupRepository.GroupMemberRepository;
 import com.oath.domain.groups.groupRepository.GroupRepository;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.service.MemberService;
 import com.oath.domain.members.service.SummaryService;
+import com.oath.domain.place_tag_plan.place.Place;
+import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
+import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -53,6 +57,8 @@ public class AdminController {
     private final MemberService memberService;
 
     private final GroupRepository groupRepository;
+
+    private final GroupMemberRepository groupMemberRepository;
 
 
 //    @GetMapping("/member-list")
@@ -121,14 +127,14 @@ public class AdminController {
         return "groupList";
     }
 
-    @GetMapping("/chat-list/{groupId}")
-    public String getChat(@PathVariable Long groupId, Model model) throws IOException {
-        List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
-        String summary = summarizeChat(groupId);
-        model.addAttribute("chatMembers", chatMembers);
-        model.addAttribute("summary", summary);
-        return "chat";
-    }
+//    @GetMapping("/chat-list/{groupId}")
+//    public String getChat(@PathVariable Long groupId, Model model) throws IOException {
+//        List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
+//        String summary = summarizeChat(groupId);
+//        model.addAttribute("chatMembers", chatMembers);
+//        model.addAttribute("summary", summary);
+//        return "chat";
+//    }
 
     @GetMapping("/chat-list/{groupId}/detail")
     public String getChatDetail(@PathVariable Long groupId, Model model) {
@@ -364,13 +370,26 @@ public class AdminController {
         adminService.deletePlaceTag(placeId, tagId);
     }
 
+
+    @GetMapping("/search")
+    public String searchPlace(@RequestParam String keyword) {
+        PlaceResponseDto.PlaceDto place = adminService.searchPlace(keyword);
+        return "place";
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<?> savePlace(@RequestBody AdminRequest.PlaceDto requestDto) {
+        Place place = adminService.savePlace(requestDto);
+        return ResponseEntity.ok(place);
+    }
+
 //    @GetMapping("/group-list")
 //    public String getGroupList() {
 //        return "groupList";
 //    }
 
-    @GetMapping("/chat-list")
-    public String getChatList() {
+    @GetMapping("/chat-list/{groupId}")
+    public String getChatList(@PathVariable Long groupId) {
         return "chatList";
     }
 }

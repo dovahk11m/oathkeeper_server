@@ -138,7 +138,7 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
     @Query("""
     SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(
         g.id, g.name, g.createdAt, COUNT(gm.id),
-        (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id)
+        (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id), null
     )
     FROM Group g
     JOIN GroupMember gm

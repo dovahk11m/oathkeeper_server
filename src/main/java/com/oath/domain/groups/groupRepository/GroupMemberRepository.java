@@ -44,6 +44,12 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     boolean existsByGroupAndMember(Group group, Member member);
 
-    List<String> findMemberEmailsByGroupId(Long groupId);
+    @Query("""
+    SELECT gm.member.email
+    FROM GroupMember gm
+    WHERE gm.group.id = :groupId
+    """)
+    List<String> findMemberEmailsByGroupId(@Param("groupId") Long groupId);
+
 
 }

@@ -14,6 +14,8 @@ import com.oath.domain.members.repository.AdminRepository;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRepository;
+import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
+import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
 import com.oath.domain.place_tag_plan.place_tag.PlaceTag;
 import com.oath.domain.place_tag_plan.place_tag.PlaceTagRepository;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
@@ -24,13 +26,21 @@ import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriUtils;
 
 import java.awt.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -63,6 +73,11 @@ public class AdminService {
     private final PlaceTagRepository placeTagRepository;
 
     private final GroupMemberRepository groupMemberRepository;
+
+    @Value("${kakao.rest-api-key}")
+    private String kakaoApiKey;
+
+    private final RestTemplate restTemplate;
 
     public void banMember(Member member, int days) {
         LocalDateTime now = LocalDateTime.now();
@@ -300,9 +315,42 @@ public class AdminService {
     }
 
     public Page<AdminResponse.GroupList> getGroupList(Pageable pageble) {
-        Page<AdminResponse.GroupList> groupLists = adminRepository.getGroupList(pageble);
-        return groupLists;
+        Page<AdminResponse.GroupList> groupList = adminRepository.getGroupList(pageble);
 
+        groupList.forEach(dto -> {
+            List<String> emails = groupMemberRepository.findMemberEmailsByGroupId(dto.getId());
+            dto.setEmails(emails);
+        });
+
+        return groupList;
+
+    }
+
+    public PlaceResponseDto.PlaceDto searchPlace(String keyword) {
+        String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query="
+                + UriUtils.encode(keyword, StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<PlaceResponseDto.PlaceDto> response =
+                restTemplate.exchange(url, HttpMethod.GET, entity, PlaceResponseDto.PlaceDto.class);
+
+        return response.getBody();
+
+    }
+
+    public Place savePlace(AdminRequest.PlaceDto reqDto) {
+        Place place = Place.builder()
+                .name(reqDto.getName())
+                .address(reqDto.getAddress())
+                .lat(reqDto.getLat())
+                .lng(reqDto.getLng())
+                .build();
+
+        return placeRepository.save(place);
     }
 
 //    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {

@@ -23,10 +23,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class PlaceAdminService {
 
-    @Value("${kakao.rest-api-key}")
-    private String kakaoApiKey;
 
-    private final RestTemplate restTemplate;
 
     private final PlaceRepository placeRepository;
 
@@ -82,30 +79,5 @@ public class PlaceAdminService {
                 .orElseThrow(() -> new EntityNotFoundException("Place not found with id: " + placeId));
     }
 
-    public PlaceResponseDto.PlaceDto searchPlace(String keyword) {
-        String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query="
-                + UriUtils.encode(keyword, StandardCharsets.UTF_8);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<PlaceResponseDto.PlaceDto> response =
-                restTemplate.exchange(url, HttpMethod.GET, entity, PlaceResponseDto.PlaceDto.class);
-
-        return response.getBody();
-
-    }
-
-    public Place savePlace(PlaceRequestDto.PlaceDto reqDto) {
-        Place place = Place.builder()
-                .name(reqDto.getName())
-                .address(reqDto.getAddress())
-                .lat(reqDto.getLat())
-                .lng(reqDto.getLng())
-                .build();
-
-        return placeRepository.save(place);
-    }
 }

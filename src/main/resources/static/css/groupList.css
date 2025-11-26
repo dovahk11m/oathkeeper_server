@@ -78,3 +78,50 @@
     font-size: 0.875rem;
     color: #9ca3af;
 }
+/* 페이지네이션 영역 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 25px;
+    gap: 6px;
+}
+
+/* 페이지 버튼 기본 */
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+/* 현재 페이지 (비활성) */
+.page-btn[disabled] {
+    cursor: default;
+    background-color: #4a90e2;
+    color: #fff;
+    border-color: #4a90e2;
+    font-weight: bold;
+    opacity: 1;
+}
+
+/* Hover 효과 */
+.page-btn:not([disabled]):hover {
+    background-color: #f0f0f0;
+    border-color: #bbb;
+}
+
+/* 클릭 순간 효과 */
+.page-btn:active {
+    transform: scale(0.95);
+}
+
+/* 검색 결과 없을 때 */
+.no-result {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}

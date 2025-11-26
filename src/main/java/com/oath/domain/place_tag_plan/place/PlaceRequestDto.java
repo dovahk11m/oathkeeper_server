@@ -28,11 +28,4 @@ public class PlaceRequestDto {
         private String imageUrl;
     }
 
-    @Data
-    public static class PlaceDto {
-        private String name;
-        private String address;
-        private Double lat;
-        private Double lng;
-    }
 }
