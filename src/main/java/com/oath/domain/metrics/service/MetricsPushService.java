@@ -1,14 +1,8 @@
 package com.oath.domain.metrics.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oath.common.exception.Exception404;
-import com.oath.domain.metrics.dto.AiPlanSummaryResponse;
-import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
-import com.oath.domain.plan.SummaryStatus;
-import com.oath.domain.plan.domain.Plan;
-import com.oath.domain.plan.repository.PlanJpaRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,10 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oath.common.exception.Exception404;
+import com.oath.domain.metrics.dto.AiPlanSummaryResponse;
+import com.oath.domain.metrics.repository.ParticipantMetricsRepository;
+import com.oath.domain.plan.SummaryStatus;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.repository.PlanJpaRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -38,6 +37,12 @@ public class MetricsPushService {
 
     @Value("${ai.server.url}")
     private String aiServerUrl;
+
+    @Value("${ai.server.endpoints.participant}")
+    private String participantEndpoint;
+
+    @Value("${ai.server.endpoints.plan-summary}")
+    private String planSummaryEndpoint;
 
     public int pushPlan(Long planId) {
         var rows = metricsRepo.findAllByPlanId(planId);
@@ -53,8 +58,10 @@ public class MetricsPushService {
             body.put("member_id", m.getMemberId());
             body.put("distance_km", distKm);
             body.put("travel_minutes", tMin);
-            if (m.getLateMinutes() != null) body.put("late_minutes", m.getLateMinutes());
-            if (m.getWaitMinutes() != null) body.put("wait_minutes", m.getWaitMinutes());
+            if (m.getLateMinutes() != null)
+                body.put("late_minutes", m.getLateMinutes());
+            if (m.getWaitMinutes() != null)
+                body.put("wait_minutes", m.getWaitMinutes());
             body.put("created_at", LocalDateTime.now().toString());
 
             try {
@@ -64,31 +71,30 @@ public class MetricsPushService {
                 headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
                 HttpEntity<String> entity = new HttpEntity<>(json, headers);
 
-                // TODO: AI 서버에 참가자별 통계 데이터를 전송하는 정확한 엔드포인트 확인 필요 (현재는 기본 URL로만 전송)
-                String url = aiServerUrl + "/metrics/participant"; // 임시 엔드포인트
+                String url = aiServerUrl + participantEndpoint;
                 String resp = restTemplate.postForObject(url, entity, String.class);
 
-                log.info("[metrics-push] sent memberId={} body={} resp={}", m.getMemberId(), json, resp);
+                log.info("[metrics-push] sent memberId={} body={} resp={}", m.getMemberId(), json,
+                        resp);
                 ok++;
 
             } catch (HttpStatusCodeException e) {
-                log.error("[metrics-push] FAIL memberId={} status={} body={}", m.getMemberId(), e.getStatusCode(), e.getResponseBodyAsString());
+                log.error("[metrics-push] FAIL memberId={} status={} body={}", m.getMemberId(),
+                        e.getStatusCode(), e.getResponseBodyAsString());
             } catch (Exception e) {
-                log.error("[metrics-push] FAIL memberId={} reason={}", m.getMemberId(), e.toString());
+                log.error("[metrics-push] FAIL memberId={} reason={}", m.getMemberId(),
+                        e.toString());
             }
         }
         log.info("[metrics-push] done planId={} ok={}/{}", planId, ok, rows.size());
         return ok;
     }
 
-    @Retryable(
-            retryFor = {ResourceAccessException.class, HttpStatusCodeException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000)
-    )
+    @Retryable(retryFor = {ResourceAccessException.class, HttpStatusCodeException.class},
+            maxAttempts = 3, backoff = @Backoff(delay = 2000))
     @Transactional("h2TransactionManager")
     public void fetchAndSavePlanSummary(Long planId) {
-        String url = aiServerUrl + "/metrics/plan/" + planId + "/summary";
+        String url = aiServerUrl + planSummaryEndpoint.replace("{planId}", String.valueOf(planId));
         log.info("[plan-summary-fetch] AI 서버로 planId={}의 요약 보고서를 요청합니다. URL: {}", planId, url);
 
         HttpHeaders headers = new HttpHeaders();
@@ -100,15 +106,19 @@ public class MetricsPushService {
 
         String summaryText;
         try {
-            AiPlanSummaryResponse response = objectMapper.readValue(jsonResponse, AiPlanSummaryResponse.class);
-            if (response.getSuccess() && response.getData() != null && response.getData().getTextSummary() != null) {
+            AiPlanSummaryResponse response =
+                    objectMapper.readValue(jsonResponse, AiPlanSummaryResponse.class);
+            if (response.getSuccess() && response.getData() != null
+                    && response.getData().getTextSummary() != null) {
                 summaryText = response.getData().getTextSummary();
             } else {
-                log.warn("[plan-summary-fetch] AI 서버 응답이 예상된 JSON 형식이 아닙니다. 원본을 저장합니다. response={}", jsonResponse);
+                log.warn("[plan-summary-fetch] AI 서버 응답이 예상된 JSON 형식이 아닙니다. 원본을 저장합니다. response={}",
+                        jsonResponse);
                 summaryText = jsonResponse;
             }
         } catch (Exception e) {
-            log.error("[plan-summary-fetch] AI 서버 응답 JSON 파싱에 실패했습니다. 원본을 저장합니다. response={}", jsonResponse, e);
+            log.error("[plan-summary-fetch] AI 서버 응답 JSON 파싱에 실패했습니다. 원본을 저장합니다. response={}",
+                    jsonResponse, e);
             summaryText = jsonResponse;
         }
 
@@ -123,7 +133,8 @@ public class MetricsPushService {
 
     @Recover
     public void recoverFetchAndSavePlanSummary(Exception e, Long planId) {
-        log.error("[plan-summary-fetch][RECOVER] planId={}의 요약 보고서 수신에 최종 실패했습니다. 원인: {}", planId, e.getMessage());
+        log.error("[plan-summary-fetch][RECOVER] planId={}의 요약 보고서 수신에 최종 실패했습니다. 원인: {}", planId,
+                e.getMessage());
         planJpaRepository.findById(planId).ifPresent(plan -> {
             plan.setSummary("AI 요약 생성에 실패했습니다: " + e.getMessage());
             plan.setSummaryStatus(SummaryStatus.FAILED);
