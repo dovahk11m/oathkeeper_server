@@ -22,8 +22,7 @@
     <ul id="chat-group-list" class="chat-list">
         {{#groups}}
         <li class="chat-item"
-            data-group-id="{{id}}"
-            data-participants="{{emails}}">
+            data-group-id="{{id}}">
 
             <div class="group-info">
                 <p class="chat-title">[{{id}}] {{name}}</p>
@@ -66,26 +65,58 @@ list.addEventListener("click", (e) => {
     }
 });
 
-// 🔹 이메일 검색 필터링
-function filterList() {
-    const keyword = searchInput.value.trim().toLowerCase();
-    list.innerHTML = "";
+<!--// 🔹 서버로 검색 요청 보내기-->
+<!--async function searchGroups() {-->
+<!--    const keyword = searchInput.value.trim();-->
 
-    const filtered = originalItems.filter(item => {
-        const participants = item.dataset.participants.toLowerCase();
-        return participants.includes(keyword);
-    });
+<!--    try {-->
+<!--        // 서버에 GET 요청 (검색어를 쿼리 파라미터로 전달)-->
+<!--        const response = await fetch(`/api/admin/group-list?keyword=${encodeURIComponent(keyword)}`)-->
+<!--        .then(res => res.text())-->
+<!--        .then(console.log)-->
+<!--        if (!response.ok) throw new Error("서버 요청 실패");-->
 
-    // 결과 없는 경우 메시지 표시
-    if (filtered.length === 0) {
-        list.innerHTML = `<li class="no-result">검색 결과가 없습니다.</li>`;
-        return;
-    }
+<!--        const data = await response.json(); // 서버에서 JSON으로 반환한다고 가정-->
 
-    filtered.forEach(i => list.appendChild(i));
-}
+<!--        // 리스트 초기화-->
+<!--        list.innerHTML = "";-->
+
+<!--        if (data.groups.length === 0) {-->
+<!--            list.innerHTML = `<li class="no-result">검색 결과가 없습니다.</li>`;-->
+<!--            return;-->
+<!--        }-->
+
+<!--        // 결과 렌더링-->
+<!--        data.groups.forEach(group => {-->
+<!--            const li = document.createElement("li");-->
+<!--            li.classList.add("chat-item");-->
+<!--            li.dataset.groupId = group.id;-->
+
+<!--            li.innerHTML = `-->
+<!--                <div class="group-info">-->
+<!--                    <p class="chat-title">[${group.id}] ${group.name}</p>-->
+<!--                    <p class="chat-members">참여자 수: ${group.memberCount}</p>-->
+<!--                </div>-->
+<!--                <div class="chat-time">${group.sentAt}</div>-->
+<!--            `;-->
+<!--            list.appendChild(li);-->
+<!--        });-->
+<!--    } catch (error) {-->
+<!--        console.error(error);-->
+<!--        list.innerHTML = `<li class="no-result">검색 중 오류가 발생했습니다.</li>`;-->
+<!--    }-->
+<!--}-->
 
 // 🔹 검색 이벤트 등록
-searchInput.addEventListener("input", filterList);
-searchBtn.addEventListener("click", filterList);
+searchBtn.addEventListener("click", () => {
+    const keyword = searchInput.value.trim();
+    const currentPage = 0;
+    window.location.href = `/api/admin/group-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}`;
+});
+
+
+// 엔터 입력 시 검색
+searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchBtn.click();
+});
 </script>

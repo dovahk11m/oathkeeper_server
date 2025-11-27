@@ -4,6 +4,7 @@ import com.oath.common.exception.Exception401;
 import com.oath.common.exception.Exception403;
 import com.oath.common.JwtTokenProvider;
 import com.oath.domain.members.domain.Role;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,15 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
             return bearerToken.substring(BEARER_PREFIX.length());
         }
+
+        if (request.getCookies() != null) {
+            for(Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("accessToken")) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
         return null;
     }
 

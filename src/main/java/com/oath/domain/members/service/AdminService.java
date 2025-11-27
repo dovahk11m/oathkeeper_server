@@ -314,17 +314,7 @@ public class AdminService {
         placeTagRepository.delete(placeTag);
     }
 
-    public Page<AdminResponse.GroupList> getGroupList(Pageable pageble) {
-        Page<AdminResponse.GroupList> groupList = adminRepository.getGroupList(pageble);
 
-        groupList.forEach(dto -> {
-            List<String> emails = groupMemberRepository.findMemberEmailsByGroupId(dto.getId());
-            dto.setEmails(emails);
-        });
-
-        return groupList;
-
-    }
 
     public PlaceResponseDto.PlaceDto searchPlace(String keyword) {
         String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query="
@@ -353,10 +343,22 @@ public class AdminService {
         return placeRepository.save(place);
     }
 
+    public Page<AdminResponse.GroupList> searchGroupList(String keyword, Pageable pageable) {
+        Page<AdminResponse.GroupList> groups = adminRepository.getGroupListByKeyword(pageable, keyword);
+        return groups;
+    }
+
+
 //    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {
 //        Page<AdminResponse.groupListDto> groups = groupRepository.findAll(pageable)
 //                .map(g -> new AdminResponse.groupListDto(g));
 //        return groups;
 //    }
+
+    public Page<AdminResponse.GroupList> getGroupList(Pageable pageble) {
+        Page<AdminResponse.GroupList> groups = adminRepository.getGroupList(pageble);
+
+        return groups;
+    }
 
 }

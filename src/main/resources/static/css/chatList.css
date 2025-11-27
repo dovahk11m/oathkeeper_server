@@ -66,3 +66,7 @@
         color: red;
         margin-top: 10px;
     }
+
+    #chatSection {
+        margin-bottom: 20px; /* 원하는 간격 */
+    }

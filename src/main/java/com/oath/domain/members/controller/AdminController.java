@@ -1,6 +1,7 @@
 package com.oath.domain.members.controller;
 
 
+import com.oath.common.JwtTokenProvider;
 import com.oath.common.exception.Exception401;
 import com.oath.domain.chatEntity.ChatEntity;
 import com.oath.domain.chats.Chat;
@@ -15,8 +16,10 @@ import com.oath.domain.members.service.SummaryService;
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
 import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import com.oath.common.CommonResponse;
@@ -60,6 +63,8 @@ public class AdminController {
 
     private final GroupMemberRepository groupMemberRepository;
 
+    private final JwtTokenProvider jwtTokenProvider;
+
 
 //    @GetMapping("/member-list")
 //    public ResponseEntity<?> memberList() {
@@ -72,7 +77,7 @@ public class AdminController {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
         adminService.banMember(member, days);
-        return "redirect:/api/admin/members?page=" + page;
+        return "redirect:/api/admin/member-list?page=" + page;
     }
 
 //    @GetMapping("/members")
@@ -84,10 +89,10 @@ public class AdminController {
     @PostMapping("/update-role")
     public String updateRole(@RequestParam Long id, @RequestParam String role, @RequestParam int page) {
             adminService.updateRole(id, role);
-            return "redirect:/api/admin/members?page=" + page;
+            return "redirect:/api/admin/member-list?page=" + page;
     }
 
-    @GetMapping("/members")
+    @GetMapping("/member-list")
     public String getMembers(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
@@ -103,15 +108,25 @@ public class AdminController {
 
         model.addAttribute("pages", pages);
 
-        return "member";
+        return "memberList";
     }
 
 
 
     @GetMapping("/group-list")
-    public String getGroupList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
+    public String getGroupList(@RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "5") int size,
+                               @RequestParam(required = false) String keyword,
+                               Model model) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        Page<AdminResponse.GroupList> groupPage = adminService.getGroupList(pageable);
+        Page<AdminResponse.GroupList> groupPage;
+
+        if(keyword != null && !keyword.isEmpty()){
+            groupPage = adminService.searchGroupList(keyword, pageable);
+        }else {
+            groupPage = adminService.getGroupList(pageable);
+        }
+
         Long groupCount = groupRepository.getTotalGroupCount();
 
         model.addAttribute("groups", groupPage.getContent());
@@ -127,21 +142,23 @@ public class AdminController {
         return "groupList";
     }
 
-//    @GetMapping("/chat-list/{groupId}")
-//    public String getChat(@PathVariable Long groupId, Model model) throws IOException {
-//        List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
-//        String summary = summarizeChat(groupId);
-//        model.addAttribute("chatMembers", chatMembers);
-//        model.addAttribute("summary", summary);
-//        return "chat";
-//    }
+    @GetMapping("/chat-list/{groupId}")
+    public String getChat(@PathVariable Long groupId, Model model) throws IOException {
+        List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
+        List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
+        String summary = summarizeChat(groupId);
+        model.addAttribute("chatMembers", chatMembers);
+        model.addAttribute("summary", summary);
+        model.addAttribute("chats", chats);
+        return "chatList";
+    }
 
     @GetMapping("/chat-list/{groupId}/detail")
     public String getChatDetail(@PathVariable Long groupId, Model model) {
-        List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
+
         List<AdminResponse.PlanDto> plans = adminService.getPlanList(groupId);
         model.addAttribute("plans", plans);
-        model.addAttribute("chats", chats);
+
         return "chat";
     }
 
@@ -292,7 +309,31 @@ public class AdminController {
     public ResponseEntity<?> adminLogin(@RequestBody MemberLoginDto dto) {
         Member member = memberService.login(dto); // 공통 로그인 사용
         checkAdmin(member);
-        return new ResponseEntity<>(CommonResponse.success(member, "관리자 로그인 성공"), HttpStatus.OK);
+
+        String token = jwtTokenProvider.createToken(
+                member.getEmail(),
+                member.getRole(),
+                member.getId()
+        );
+
+        ResponseCookie cookie = ResponseCookie.from("accessToken", token)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(60 * 60)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(CommonResponse.success(
+                        Map.of(
+                            "memberId", member.getId(),
+                            "email", member.getEmail(),
+                            "role", member.getRole()
+                                ),
+                        "로그인 성공"
+                ));
     }
 
     private void checkAdmin(Member member) {
@@ -300,6 +341,25 @@ public class AdminController {
             throw new Exception401("관리자 권한이 없습니다.");
         }
     }
+
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(
+            @CookieValue("accessToken") String token,
+            @RequestBody Map<String, String> req) {
+
+        if(token == null || token.isEmpty()) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("success", false, "message", "로그인 필요"));
+        }
+
+        Long adminId = jwtTokenProvider.getMemberId(token); // JWT에서 ID 추출
+        String password = req.get("password");
+
+        boolean valid = memberService.checkPassword(adminId, password);
+
+        return ResponseEntity.ok(Map.of("success", valid));
+    }
+
 
     @GetMapping("/dashboard")
     public String getDashBoard() {
@@ -388,8 +448,8 @@ public class AdminController {
 //        return "groupList";
 //    }
 
-    @GetMapping("/chat-list/{groupId}")
-    public String getChatList(@PathVariable Long groupId) {
-        return "chatList";
-    }
+//    @GetMapping("/member-list")
+//    public String getMemberList() {
+//        return "memberList";
+//    }
 }

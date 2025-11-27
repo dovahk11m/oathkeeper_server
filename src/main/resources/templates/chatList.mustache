@@ -9,6 +9,7 @@
     <div class="summary-box">
         <strong>채팅 요약</strong>
         <p>총 메시지: 25, 참여자: 5명, 최근 메시지: 10분 전</p>
+        <div>{{summary}}</div>
     </div>
 
     <!-- 비밀번호 입력 -->
@@ -23,10 +24,12 @@
     <!-- 채팅 화면 (처음에는 숨김) -->
     <div id="chatSection" class="hidden chat-list">
         <!-- 채팅 예시 -->
-        <div class="chat-item"><strong>홍길동:</strong> 안녕하세요!</div>
-        <div class="chat-item"><strong>김철수:</strong> 오늘 회의 언제죠?</div>
-        <div class="chat-item"><strong>이영희:</strong> 내일 오후 2시입니다.</div>
+        {{#chats}}
+        <div class="chat-item"><strong>{{senderName}}:</strong> {{content}} {{sentAt}}</div>
+        {{/chats}}
     </div>
+
+    <button id="backToListBtn" onclick="goBackToList()">목록으로 돌아가기</button>
 
 </div>
 </div>
@@ -38,7 +41,7 @@ async function checkPassword() {
 
     // 단순 예시: 서버에 POST 요청
     try {
-        const res = await fetch('/api/verify-password', {
+        const res = await fetch('/api/admin/check-password', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password})
@@ -57,6 +60,10 @@ async function checkPassword() {
         errorMsg.textContent = '서버 오류 발생';
         console.error(e);
     }
+}
+
+function goBackToList() {
+    window.history.back();
 }
 </script>
 

@@ -1,0 +1,88 @@
+body {
+margin: 0;
+padding: 0;
+background: #f7f7f7;
+}
+
+
+.container {
+width: 95%;
+margin: 30px auto;
+}
+
+
+/* 카드 스타일 */
+.card {
+background: #fff;
+border-radius: 10px;
+overflow: hidden;
+box-shadow: 0 4px 12px rgba(0,0,0,0.05)
+margin-bottom: 20px;
+}
+
+
+.card-header {
+background: #007bff;
+color: #fff;
+padding: 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+
+.card-title {
+font-size: 18px;
+font-weight: bold;
+}
+
+
+/* 검색 input */
+.search-box {
+width: 200px;
+display: flex;
+}
+
+
+.search-box input {
+width: 100%;
+padding: 5px;
+border: 1px solid #ccc;
+border-radius: 5px 0 0 5px;
+outline: none;
+}
+
+
+.search-box button {
+padding: 5px 10px;
+border: none;
+background: #fff;
+border-radius: 0 5px 5px 0;
+cursor: pointer;
+}
+
+
+/* 테이블 */
+table {
+width: 100%;
+border-collapse: collapse;
+text-align: center;
+}
+
+
+thead {
+background: #cccccc
+color: white;
+}
+
+
+th, td {
+padding: 10px;
+border-bottom: 1px solid #ddd;
+}
+
+
+tbody tr:hover {
+background: #f1f1f1;
+}
+
