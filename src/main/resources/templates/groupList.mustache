@@ -13,9 +13,14 @@
 
         <!-- 검색창 + 버튼 -->
         <div id="search-container" style="display:flex; gap:5px;">
-            <input type="text" id="searchInput" placeholder="참여자 검색">
+            <select id="searchType">
+                <option value="member" {{#isMember}}selected{{/isMember}}>이메일</option>
+                <option value="group" {{#isGroup}}selected{{/isGroup}}>그룹명</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="검색어 입력">
             <button id="searchBtn">검색</button>
         </div>
+
     </div>
 
     <!-- 그룹 리스트 -->
@@ -110,8 +115,9 @@ list.addEventListener("click", (e) => {
 // 🔹 검색 이벤트 등록
 searchBtn.addEventListener("click", () => {
     const keyword = searchInput.value.trim();
+    const type = searchType.value;
     const currentPage = 0;
-    window.location.href = `/api/admin/group-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}`;
+    window.location.href = `/api/admin/group-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
 });
 
 

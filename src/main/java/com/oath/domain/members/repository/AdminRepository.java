@@ -138,7 +138,7 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
     @Query("""
     SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(
         g.id, g.name, g.createdAt, COUNT(gm.id),
-        (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id), null
+        (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id)
     )
     FROM Group g
     JOIN GroupMember gm
@@ -149,19 +149,33 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
     Page<AdminResponse.GroupList> getGroupList(Pageable pagable);
 
     @Query("""
-            SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(
-                g.id,
-                g.name,
-                g.createdAt,
-                (SELECT COUNT(gm2.id) FROM GroupMember gm2 WHERE gm2.group.id = g.id),
-                (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id),
-                null
-            )
-            FROM Group g
-            WHERE g.name LIKE %:keyword%
-               OR EXISTS (
-                   SELECT 1 FROM GroupMember gm WHERE gm.group.id = g.id AND gm.member.email LIKE %:keyword%
-               )
-            """)
-    Page<AdminResponse.GroupList> getGroupListByKeyword(Pageable pagable, String keyword);
+        SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(
+            g.id,
+            g.name,
+            g.createdAt,
+            (SELECT COUNT(gm2.id) FROM GroupMember gm2 WHERE gm2.group.id = g.id),
+            (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id)
+        )
+        FROM Group g
+        WHERE g.name LIKE %:keyword%
+        """)
+    Page<AdminResponse.GroupList> findByGroupName(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+        SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(
+            g.id,
+            g.name,
+            g.createdAt,
+            (SELECT COUNT(gm2.id) FROM GroupMember gm2 WHERE gm2.group.id = g.id),
+            (SELECT MAX(c.sentAt) FROM Chat c WHERE c.group.id = g.id)
+        )
+        FROM Group g
+        WHERE EXISTS (
+            SELECT 1 FROM GroupMember gm 
+             WHERE gm.group.id = g.id 
+               AND gm.member.email LIKE %:keyword%
+        )
+        """)
+    Page<AdminResponse.GroupList> findByMemberEmail(@Param("keyword") String keyword, Pageable pageable);
+
 }

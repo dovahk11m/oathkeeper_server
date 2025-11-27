@@ -117,12 +117,17 @@ public class AdminController {
     public String getGroupList(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size,
                                @RequestParam(required = false) String keyword,
+                               @RequestParam(defaultValue = "group") String type,
                                Model model) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         Page<AdminResponse.GroupList> groupPage;
 
         if(keyword != null && !keyword.isEmpty()){
-            groupPage = adminService.searchGroupList(keyword, pageable);
+            if ("member".equals(type)) {
+                groupPage = adminService.searchGroupListByMemberEmail(keyword, pageable);
+            } else { // type = group (기본)
+                groupPage = adminService.searchGroupList(keyword, pageable);
+            }
         }else {
             groupPage = adminService.getGroupList(pageable);
         }
@@ -132,6 +137,10 @@ public class AdminController {
         model.addAttribute("groups", groupPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("groupCount", groupCount);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("type", type);
+        model.addAttribute("isMember", "member".equals(type));
+        model.addAttribute("isGroup", "group".equals(type));
 
 
         List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())

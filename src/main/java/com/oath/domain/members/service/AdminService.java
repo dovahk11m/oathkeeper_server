@@ -343,10 +343,7 @@ public class AdminService {
         return placeRepository.save(place);
     }
 
-    public Page<AdminResponse.GroupList> searchGroupList(String keyword, Pageable pageable) {
-        Page<AdminResponse.GroupList> groups = adminRepository.getGroupListByKeyword(pageable, keyword);
-        return groups;
-    }
+
 
 
 //    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {
@@ -361,4 +358,13 @@ public class AdminService {
         return groups;
     }
 
+    public Page<AdminResponse.GroupList> searchGroupList(String keyword, Pageable pageable) {
+        Page<AdminResponse.GroupList> groups = adminRepository.findByGroupName(keyword, pageable);
+        return groups;
+    }
+
+    public Page<AdminResponse.GroupList> searchGroupListByMemberEmail(String keyword, Pageable pageable) {
+        Page<AdminResponse.GroupList> groups = adminRepository.findByMemberEmail(keyword, pageable);
+        return groups;
+    }
 }
