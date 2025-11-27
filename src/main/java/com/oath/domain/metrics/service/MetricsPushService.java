@@ -131,7 +131,9 @@ public class MetricsPushService {
         log.info("[plan-summary-fetch] planId={}에 요약 보고서 저장을 완료했습니다.", planId);
     }
 
+
     @Recover
+    @Transactional("h2TransactionManager")
     public void recoverFetchAndSavePlanSummary(Exception e, Long planId) {
         log.error("[plan-summary-fetch][RECOVER] planId={}의 요약 보고서 수신에 최종 실패했습니다. 원인: {}", planId,
                 e.getMessage());
