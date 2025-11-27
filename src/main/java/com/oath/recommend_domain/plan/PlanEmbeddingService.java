@@ -1,14 +1,13 @@
 package com.oath.recommend_domain.plan;
 
-import com.oath.common.exception.Exception404;
-import com.oath.common.exception.Exception500;
-import com.oath.domain.plan.domain.Plan;
-import com.oath.domain.plan.service.PlanCoreService;
-import com.oath.recommend_domain._common.dto.EmbeddingRequest;
-import com.oath.recommend_domain._common.dto.EmbeddingResponse;
-import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,7 +16,13 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import com.oath.common.exception.Exception404;
+import com.oath.common.exception.Exception500;
+import com.oath.domain.plan.domain.Plan;
+import com.oath.domain.plan.service.PlanCoreService;
+import com.oath.recommend_domain._common.dto.EmbeddingRequest;
+import com.oath.recommend_domain._common.dto.EmbeddingResponse;
+import com.oath.recommend_domain.plan.event_listener.PlanConfirmedEvent;
 
 @Service
 @Transactional("pgTransactionManager")
@@ -30,10 +35,10 @@ public class PlanEmbeddingService {
     private final String embeddingModel;
 
     public PlanEmbeddingService(PlanEmbeddingRepository planEmbeddingRepository,
-                                PlanCoreService planCoreService, // 의존성 변경
-                                @Value("${ai.gemini.api-key}") String apiKey,
-                                @Value("${ai.gemini.embedding-endpoint}") String embeddingEndpoint,
-                                @Value("${ai.gemini.embedding-model}") String embeddingModel) {
+            PlanCoreService planCoreService, // 의존성 변경
+            @Value("${ai.gemini.api-key}") String apiKey,
+            @Value("${ai.gemini.embedding-endpoint}") String embeddingEndpoint,
+            @Value("${ai.gemini.embedding-model}") String embeddingModel) {
 
         this.planEmbeddingRepository = planEmbeddingRepository;
         this.planCoreService = planCoreService; // 의존성 변경
@@ -59,8 +64,7 @@ public class PlanEmbeddingService {
             Plan plan = planCoreService.getPlanById(planId);
 
             PlanEmbedding planEmbedding = saveOrUpdateEmbedding(
-                    plan, null
-            );
+                    plan, null);
 
             String naturalLanguage = PlanEmbedding.getNaturalLanguage(planEmbedding, plan);
 
@@ -82,8 +86,7 @@ public class PlanEmbeddingService {
                         .planDatetime(plan.getPlanDatetime())
                         .placeLatitude(plan.getPlaceLatitude())
                         .placeLongitude(plan.getPlaceLongitude())
-                        .build()
-                );
+                        .build());
 
         planEmbedding.setEmbedding(vector);
         return planEmbeddingRepository.save(planEmbedding);
@@ -97,15 +100,18 @@ public class PlanEmbeddingService {
         headers.set("x-goog-api-key", apiKey);
 
         // HttpEntity에 요청 본문(embeddingRequest)과 헤더를 같이 담기
-        HttpEntity<EmbeddingRequest> entity = new HttpEntity<>(EmbeddingRequest.buildEmbeddingRequest(naturalLanguage, embeddingModel), headers);
+        HttpEntity<EmbeddingRequest> entity = new HttpEntity<>(
+                EmbeddingRequest.buildEmbeddingRequest(naturalLanguage, embeddingModel), headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<EmbeddingResponse> response = restTemplate.exchange(embeddingEndpoint, HttpMethod.POST, entity, EmbeddingResponse.class);
+        ResponseEntity<EmbeddingResponse> response = restTemplate.exchange(embeddingEndpoint, HttpMethod.POST, entity,
+                EmbeddingResponse.class);
 
-        if (response.getBody() == null)
+        EmbeddingResponse body = response.getBody();
+        if (body == null)
             throw new Exception404("응답 body가 비어있습니다.");
 
-        return response.getBody().getValues();
+        return body.getValues();
     }
 
     @Transactional(readOnly = true)

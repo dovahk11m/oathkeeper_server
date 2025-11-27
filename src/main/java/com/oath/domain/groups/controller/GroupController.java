@@ -12,7 +12,7 @@ import com.oath.domain.groups.dto.GroupCreateRequest;
 import com.oath.domain.groups.dto.GroupListResponse;
 import com.oath.domain.groups.dto.GroupMemberResponse;
 import com.oath.domain.groups.dto.GroupMembersAddRequest;
-import com.oath.domain.groups.groupDTO.GroupSummaryResponse;
+import com.oath.domain.groups.dto.GroupSummaryResponse;
 import com.oath.domain.groups.service.MetricsGroupService;
 import com.oath.domain.groups.service.GroupService;
 import com.oath.domain.members.domain.Member;
@@ -209,13 +209,17 @@ public class GroupController {
                 .status(group.getSummaryStatus())
                 .lastUpdatedAt(group.getSummaryLastUpdatedAt());
 
+        String topLevelMessage;
+
         if (group.getSummaryStatus() == SummaryStatus.COMPLETED && group.getSummary() != null) {
             // 요약이 완료된 경우
             responseBuilder.summary(group.getSummary())
-                    .message("그룹 요약 정보가 성공적으로 조회되었습니다.");
+                    .reason(null); // 성공 시에는 별도 사유 없음
+            topLevelMessage = "그룹 요약 정보가 성공적으로 조회되었습니다.";
         } else if (group.getSummaryStatus() == SummaryStatus.PENDING) {
             // 요약이 진행 중인 경우
-            responseBuilder.message("그룹 요약 정보 생성 중입니다. 잠시 후 다시 시도해주세요.");
+            responseBuilder.reason("그룹 요약 정보 생성 중입니다. 잠시 후 다시 시도해주세요.");
+            topLevelMessage = "그룹 요약 정보 생성 중입니다.";
         } else {
             // 요약이 없거나 실패한 경우, 새로 요청
             log.debug(
@@ -224,13 +228,13 @@ public class GroupController {
             ); // 디버그 로그 추가
             metricsGroupService.requestGroupSummary(groupId);
             responseBuilder.status(SummaryStatus.PENDING) // 요청했으므로 PENDING으로 간주
-                    .message("그룹 요약 정보 생성을 요청했습니다. 잠시 후 다시 시도해주세요.");
+                    .reason("그룹 요약 정보 생성을 요청했습니다. 잠시 후 다시 시도해주세요.");
+            topLevelMessage = "그룹 요약 정보 생성을 요청했습니다.";
         }
 
         return ResponseEntity.ok(CommonResponse.success(
                 responseBuilder.build(),
-                responseBuilder.build()
-                        .getMessage()
+                topLevelMessage
         ));
     }
 }
