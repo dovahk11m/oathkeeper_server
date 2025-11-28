@@ -11,6 +11,7 @@ import com.oath.domain.plan.Status;
 import com.oath.domain.plan.domain.Plan;
 
 import com.oath.domain.plan.repository.PlanJpaRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -20,6 +21,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -36,6 +38,7 @@ public class DataInitializer7_PlanRandom implements CommandLineRunner {
     private final PlanTagRepository planTagRepository;
     private final MemberRepository memberRepository;
     private final TagRepository tagRepository;
+    private final EntityManager entityManager;
 
     private final Random random = new Random();
 
@@ -43,6 +46,7 @@ public class DataInitializer7_PlanRandom implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 플랜 & 플랜태그 랜덤 데이터 생성 시작");
+
 
         List<Member> members = memberRepository.findAll();
         List<Tag> tags = tagRepository.findAll();
@@ -52,25 +56,31 @@ public class DataInitializer7_PlanRandom implements CommandLineRunner {
             return;
         }
 
-        int planCount = 15; // 생성할 플랜 수
-
-        for (int i = 0; i < planCount; i++) {
+        for (int i = 0; i < 20; i++) {
             Member creator = members.get(random.nextInt(members.size()));
-
             Plan plan = Plan.builder()
                     .creatorMember(creator)
                     .title("더미 플랜 " + (i + 1))
                     .planDatetime(LocalDateTime.now().plusDays(random.nextInt(30)))
                     .status(Status.PLANNING)
-                    .lateFineAmount(5000L + random.nextInt(10000))
+                    .lateFineAmount(1000L)
                     .build();
+
+            entityManager.persist(plan);
+            entityManager.flush(); // DB에 실제 insert 발생
+
+            // createdAt 값 강제 설정
+            LocalDateTime randomCreatedAt = LocalDateTime.now().minusDays(random.nextInt(60));
+            Field createdField = Plan.class.getDeclaredField("createdAt");
+            createdField.setAccessible(true);
+            createdField.set(plan, randomCreatedAt);
 
             // 랜덤 위치 (위도: 35~38, 경도: 126~129)
             double latitude = 35 + random.nextDouble() * 3;
             double longitude = 126 + random.nextDouble() * 3;
             plan.confirmPlace("장소 " + (i + 1), new Point(longitude, latitude));
 
-            planRepository.save(plan);
+            entityManager.merge(plan);
 
             // 랜덤 태그 1~4개 선택
             int tagCount = 1 + random.nextInt(4);

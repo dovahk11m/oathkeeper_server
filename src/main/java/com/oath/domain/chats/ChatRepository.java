@@ -28,5 +28,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     @Query("SELECT c FROM Chat c JOIN FETCH c.sender WHERE c.group.id = :groupId ORDER BY c.sentAt DESC")
     List<Chat> findByGroupIdWithMember(Long groupId);
 
+    long count();
+
 
 }

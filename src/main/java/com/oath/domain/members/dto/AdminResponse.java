@@ -10,6 +10,7 @@ import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.tag.Tag;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -313,6 +314,28 @@ public class AdminResponse {
             this.memberCount = memberCount;
             this.sentAt = sentAt != null ? sentAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
 
+        }
+    }
+
+    @Data
+    public static class PlanCount {
+        private String monthweek;
+        private BigDecimal count;
+
+        public PlanCount(String monthweek, BigDecimal count) {
+            this.monthweek = monthweek;
+            this.count = count;
+        }
+    }
+
+    @Data
+    public static class ParticipantCount {
+        private String monthweek;
+        private BigDecimal count;
+
+        public ParticipantCount(String monthweek, BigDecimal count) {
+            this.monthweek = monthweek;
+            this.count = count;
         }
     }
 

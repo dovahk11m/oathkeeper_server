@@ -22,4 +22,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findAll();
 
     Page<Member> findAll(Pageable pageable);
+
+    long count();
 }

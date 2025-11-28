@@ -13,4 +13,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     @Query("SELECT COUNT(g) FROM Group g")
     Long getTotalGroupCount();
+
+    long count();
 }

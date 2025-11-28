@@ -11,10 +11,7 @@
 <script>
     fetch("/api/admin/monthly-count")
     .then(res => res.json())
-
-
     .then(data => {
-
 
     const ctx = document.getElementById('myBarChart').getContext('2d');
 

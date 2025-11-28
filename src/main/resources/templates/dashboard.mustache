@@ -24,9 +24,9 @@
       <div class="col-12 col-sm-6 col-md-3">
         <div class="small-box bg-p1 top-card d-flex justify-content-between align-items-center">
           <div>
-            <div class="label">Followers</div>
-            <div class="value">125,282</div>
-            <div class="text-success small">+0.02%</div>
+            <div class="label">회원수</div>
+            <div class="value">{{member}}</div>
+
           </div>
           <div class="icon-circle bg-white"><i class="fa-solid fa-users fa-lg" style="color:#7c3aed"></i></div>
         </div>
@@ -34,9 +34,9 @@
       <div class="col-12 col-sm-6 col-md-3">
         <div class="small-box bg-p2 top-card d-flex justify-content-between align-items-center">
           <div>
-            <div class="label">Likes</div>
-            <div class="value">2,815</div>
-            <div class="text-danger small">-0.65%</div>
+            <div class="label">플랜수</div>
+            <div class="value">{{plan}}</div>
+
           </div>
           <div class="icon-circle bg-white"><i class="fa-solid fa-heart fa-lg" style="color:#ef4444"></i></div>
         </div>
@@ -44,9 +44,9 @@
       <div class="col-12 col-sm-6 col-md-3">
         <div class="small-box bg-p3 top-card d-flex justify-content-between align-items-center">
           <div>
-            <div class="label">Comments</div>
-            <div class="value">26</div>
-            <div class="text-success small">+100%</div>
+            <div class="label">그룹수</div>
+            <div class="value">{{group}}</div>
+
           </div>
           <div class="icon-circle bg-white"><i class="fa-solid fa-comments fa-lg" style="color:#059669"></i></div>
         </div>
@@ -54,9 +54,9 @@
       <div class="col-12 col-sm-6 col-md-3">
         <div class="small-box bg-p4 top-card d-flex justify-content-between align-items-center">
           <div>
-            <div class="label">Posts</div>
-            <div class="value">165</div>
-            <div class="text-danger small">-0.61%</div>
+            <div class="label">채팅수</div>
+            <div class="value">{{chat}}</div>
+
           </div>
           <div class="icon-circle bg-white"><i class="fa-solid fa-file-image fa-lg" style="color:#f97316"></i></div>
         </div>
@@ -68,21 +68,21 @@
 
       <div class="col-12 col-md-4">
         <div class="card card-custom p-3 h-100">
-          <h6 class="mb-2">Followers by time</h6>
+          <h6 class="mb-2">누적 참여자 수</h6>
           <canvas id="chartFollowers" height="300"></canvas>
         </div>
       </div>
 
       <div class="col-12 col-md-4">
         <div class="card card-custom p-3 h-100">
-          <h6 class="mb-2">Likes by time</h6>
+          <h6 class="mb-2">누적 플랜 수</h6>
           <canvas id="chartLikes" height="300"></canvas>
         </div>
       </div>
 
       <div class="col-12 col-md-4">
         <div class="card card-custom p-3 h-100">
-          <h6 class="mb-2">Top Hashtags</h6>
+          <h6 class="mb-2">태그 비중</h6>
           <canvas id="chartTags" height="130"></canvas>
         </div>
       </div>
@@ -93,39 +93,64 @@
 </div>
 
 <script>
-// Line Chart - Followers
-new Chart(document.getElementById('chartFollowers'), {
-  type: 'line',
-  data: {
-    labels: ['9AM','10AM','11AM','12PM','1PM','2PM'],
-    datasets: [{
-      data: [200, 300, 450, 500, 700, 950],
-      borderWidth: 2,
-      tension: 0.4
-    }]
-  },
-  options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-});
+    // Followers Chart
+    fetch('/api/admin/par-count')
+      .then(res => res.json())
+      .then(json => {
 
-// Bar Chart - Likes
-new Chart(document.getElementById('chartLikes'), {
-  type: 'bar',
-  data: {
-    labels: ['9AM','11AM','1PM','3PM','5PM'],
-    datasets: [{ data: [120, 300, 200, 400, 350] }]
-  },
-  options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-});
+        const labels = json.map(item => item.monthweek);
+        const count = json.map(item => item.count);
 
-// Pie Chart - Tags
-new Chart(document.getElementById('chartTags'), {
-  type: 'pie',
-  data: {
-    labels: ['Tech','News','Travel','Photo','Music'],
-    datasets: [{ data: [30,20,15,25,10] }]
-  }
-});
+        new Chart(document.getElementById('chartFollowers'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: count,
+              borderWidth: 2,
+              tension: 0.4
+            }]
+          },
+          options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+        });
+      });
+
+    // Likes Chart
+    fetch('/api/admin/plan-count')
+      .then(res => res.json())
+      .then(json => {
+
+        const labels = json.map(item => item.monthweek);
+        const partcount = json.map(item => item.count);
+
+        new Chart(document.getElementById('chartLikes'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{ data: partcount }]
+          },
+          options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+        });
+      });
+
+    // Tags Chart
+    fetch('/api/admin/plan-tag-pie')
+      .then(res => res.json())
+      .then(json => {
+
+        const labels = json.map(item => item.tagName);
+        const count = json.map(item => item.planCount);
+
+        new Chart(document.getElementById('chartTags'), {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{ data: count}]
+          }
+        });
+      });
 </script>
+
 
 </body>
 </html>

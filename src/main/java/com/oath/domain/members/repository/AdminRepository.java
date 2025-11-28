@@ -178,4 +178,47 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
         """)
     Page<AdminResponse.GroupList> findByMemberEmail(@Param("keyword") String keyword, Pageable pageable);
 
+    @Query(
+            value = """
+    SELECT
+        monthWeek,
+        SUM(planCount) OVER (ORDER BY minDate) AS PlanCount
+    FROM (
+        SELECT
+            CONCAT(MONTH(p.created_at), '월 ', FLOOR((DAY(p.created_at)-1)/7)+1, '주') AS monthWeek,
+            COUNT(DISTINCT p.id) AS planCount,
+            MIN(p.created_at) AS minDate
+        FROM plan_tb p
+        WHERE p.created_at >= DATEADD('MONTH', -2, CURRENT_DATE())
+        GROUP BY monthWeek
+    ) AS weekly
+    ORDER BY minDate
+    """,
+            nativeQuery = true
+    )
+    List<AdminResponse.PlanCount> getPlanCount();
+
+    @Query(
+            value = """
+    SELECT
+        monthWeek,
+        SUM(participantCount) OVER (ORDER BY minDate) AS ParticipantCount
+    FROM (
+        SELECT
+            CONCAT(MONTH(p.created_at), '월 ', FLOOR((DAY(p.created_at)-1)/7)+1, '주') AS monthWeek,
+            COUNT(pp.id) AS participantCount,
+            MIN(p.created_at) AS minDate
+        FROM plan_tb p
+        LEFT JOIN plan_participants_tb pp
+            ON p.id = pp.plan_id
+        WHERE p.created_at >= DATEADD('MONTH', -2, CURRENT_DATE())
+        GROUP BY monthWeek
+    ) AS weekly
+    ORDER BY minDate
+    """,
+            nativeQuery = true
+    )
+    List<AdminResponse.ParticipantCount> getParticipantCount();
+
+
 }

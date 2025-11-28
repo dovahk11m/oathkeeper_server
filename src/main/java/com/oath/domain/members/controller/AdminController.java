@@ -16,6 +16,7 @@ import com.oath.domain.members.service.SummaryService;
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
 import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
+import com.oath.domain.plan.repository.PlanJpaRepository;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,8 @@ public class AdminController {
     private final GroupMemberRepository groupMemberRepository;
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    private final PlanJpaRepository planJpaRepository;
 
 
 //    @GetMapping("/member-list")
@@ -239,15 +242,8 @@ public class AdminController {
 
     @GetMapping("/plan-tag-pie")
     @ResponseBody
-    public List<AdminResponse.PlanTagPie> PlanTagPie(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        if (startDate == null) startDate = LocalDate.now().minusDays(7);
-        if (endDate == null) endDate = LocalDate.now();
-
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1);
-
-        List<AdminResponse.PlanTagPie> PlanTagsPie = adminService.PlanTagPie(startDateTime, endDateTime);
-
+    public List<AdminResponse.PlanTagPie> PlanTagPie() {
+        List<AdminResponse.PlanTagPie> PlanTagsPie = adminService.PlanTagPie();
         return PlanTagsPie;
     }
 
@@ -294,6 +290,7 @@ public class AdminController {
         return new AdminResponse.DailyTagCount(dates, dailyTags);
     }
 
+    //막대그래프
     @GetMapping("/monthly-count")
     @ResponseBody
     public List<AdminResponse.MonthlyCount> getMonthlyCount() {
@@ -371,7 +368,17 @@ public class AdminController {
 
 
     @GetMapping("/dashboard")
-    public String getDashBoard() {
+    public String getDashBoard(Model model) {
+        Long member= memberRepository.count();
+        Long group= groupRepository.count();
+        Long chat= chatRepository.count();
+        Long plan = planJpaRepository.count();
+
+        model.addAttribute("member", member);
+        model.addAttribute("group", group);
+        model.addAttribute("chat", chat);
+        model.addAttribute("plan", plan);
+
         return "dashboard";
     }
 
@@ -452,13 +459,17 @@ public class AdminController {
         return ResponseEntity.ok(place);
     }
 
-//    @GetMapping("/group-list")
-//    public String getGroupList() {
-//        return "groupList";
-//    }
+    @GetMapping("/plan-count")
+    @ResponseBody
+    public List<AdminResponse.PlanCount> getPlanCount() {
+        List<AdminResponse.PlanCount> planCount = adminService.getPlanCount();
+        return planCount;
+    }
 
-//    @GetMapping("/member-list")
-//    public String getMemberList() {
-//        return "memberList";
-//    }
+    @GetMapping("/par-count")
+    @ResponseBody
+    public List<AdminResponse.ParticipantCount> getParticipantCount() {
+        List<AdminResponse.ParticipantCount> participantCount = adminService.getParticipantCount();
+        return participantCount;
+    }
 }

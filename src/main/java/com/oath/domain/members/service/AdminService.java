@@ -124,7 +124,10 @@ public class AdminService {
         return popularPlanTags;
     }
 
-    public List<AdminResponse.PlanTagPie> PlanTagPie(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<AdminResponse.PlanTagPie> PlanTagPie() {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(1);
+
         PageRequest topTen = PageRequest.of(0, 10);
         List<AdminResponse.PlanTagPie> PlanTagsPie = adminRepository.PlanTagPie(startDate, endDate, topTen);
         return PlanTagsPie;
@@ -366,5 +369,15 @@ public class AdminService {
     public Page<AdminResponse.GroupList> searchGroupListByMemberEmail(String keyword, Pageable pageable) {
         Page<AdminResponse.GroupList> groups = adminRepository.findByMemberEmail(keyword, pageable);
         return groups;
+    }
+
+    public List<AdminResponse.PlanCount> getPlanCount() {
+        List<AdminResponse.PlanCount> planCount = adminRepository.getPlanCount();
+        return planCount;
+    }
+
+    public List<AdminResponse.ParticipantCount> getParticipantCount() {
+        List<AdminResponse.ParticipantCount> participantCount = adminRepository.getParticipantCount();
+        return participantCount;
     }
 }
