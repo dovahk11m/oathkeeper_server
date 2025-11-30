@@ -91,12 +91,13 @@ function displayMarker(place) {
       openedInfowindow.close();
     }
 
-    const content = `
-      <div style="padding:5px;font-size:12px;">
-        ${place.place_name} <br>
-        <button onclick="savePlace('${place.place_name}','${place.address_name}', '${place.y}', '${place.x}')">저장</button>
-      </div>
-    `;
+const content = `
+  <div style="padding:5px;font-size:12px; display:flex; flex-direction:column; gap:5px; max-width:150px; word-break:break-all;">
+    <span>${place.place_name}</span>
+    <button onclick="savePlace('${place.place_name}','${place.address_name}', '${place.y}', '${place.x}')">저장</button>
+  </div>
+`;
+
     infowindow.setContent(content);
     infowindow.open(map, marker);
     openedInfowindow = infowindow;
@@ -105,7 +106,7 @@ function displayMarker(place) {
 
 // 장소 저장
 function savePlace(name, address, lat, lng) {
-  fetch('/api/admin/places/save', {
+  fetch('/api/admin/save', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, address, lat, lng })

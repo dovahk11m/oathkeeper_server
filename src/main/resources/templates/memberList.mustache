@@ -50,7 +50,7 @@
                             {{^isAdmin}}<span class="badge bg-success">회원</span>{{/isAdmin}}
                         </td>
                         <td>
-                            <form action="/api/admin/update-role" method="post" style="display:flex; align-items:center;">
+                            <form action="/api/admin/update-role" method="post" style="display:flex; gap:5px; align-items:center;">
                                 <input type="hidden" name="id" value="{{id}}">
                                 <input type="hidden" name="page" value="{{currentPage}}">
                                 <label><input type="radio" name="role" value="USER"> 회원</label>

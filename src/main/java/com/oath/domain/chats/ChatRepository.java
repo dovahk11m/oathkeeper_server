@@ -23,7 +23,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     List<Chat> findByGroupIdOrderBySentAt(Long groupId);
 
-    List<Chat> findByGroup_IdAndSender_IdOrderBySentAt(Long groupId, Long senderId);
+
 
     @Query("SELECT c FROM Chat c JOIN FETCH c.sender WHERE c.group.id = :groupId ORDER BY c.sentAt DESC")
     List<Chat> findByGroupIdWithMember(Long groupId);

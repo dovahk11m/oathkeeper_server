@@ -121,12 +121,6 @@ public class AdminService {
         memberRepository.save(member);
     }
 
-    public List<AdminResponse.popularPlanTag> getPopularPlanTag(LocalDateTime startDate, LocalDateTime endDate) {
-        PageRequest topTen = PageRequest.of(0, 10);
-        List<AdminResponse.popularPlanTag> popularPlanTags = adminRepository.populrPlanTag(startDate, endDate, topTen);
-        return popularPlanTags;
-    }
-
     public List<AdminResponse.PlanTagPie> PlanTagPie() {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusMonths(1);
@@ -134,12 +128,6 @@ public class AdminService {
         PageRequest topTen = PageRequest.of(0, 10);
         List<AdminResponse.PlanTagPie> PlanTagsPie = adminRepository.PlanTagPie(startDate, endDate, topTen);
         return PlanTagsPie;
-    }
-
-
-    public List<ActiveChartDto> activeCharts() {
-        List<ActiveChartDto> activeChart = adminRepository.activeChart();
-        return activeChart;
     }
 
     public List<AdminResponse.ChatDto> chatList(Long groupId){
@@ -155,73 +143,11 @@ public class AdminService {
         return chatMembers;
     }
 
-    public List<AdminResponse.ChatDto> chatListByMember (Long groupId, Long memberId){
-        List<AdminResponse.ChatDto> chats = chatRepository.findByGroup_IdAndSender_IdOrderBySentAt(groupId, memberId)
-                .stream()
-                .map(m -> new AdminResponse.ChatDto(m))
-                .collect(Collectors.toList());
-        return chats;
-    }
-
-
-    public List<AdminResponse.PlanDto> getPlanList(Long groupId) {
-        List<AdminResponse.PlanDto> plans = adminRepository.getPlanList(groupId);
-        for (AdminResponse.PlanDto plan : plans) {
-            List<String> tagNames = planTagRepository.findByPlanId(plan.getPlanId())
-                    .stream()
-                    .map(pt -> pt.getTag().getName())
-                    .collect(Collectors.toList());
-            plan.setTags(tagNames);
-        }
-
-        for (AdminResponse.PlanDto plan : plans) {
-            List<String> profileImageUrls = participantRepository.findByPlanId(plan.getPlanId())
-                    .stream()
-                    .map(pp -> pp.getMember().getProfileImageUrl())
-                    .collect(Collectors.toList());
-            plan.setProfileImageUrl(profileImageUrls);
-        }
-
-        return plans;
-    }
-
-    public AdminResponse.DailyTagCount buildDailyTagCount(LocalDateTime startDate, LocalDateTime endDate) {
-
-        List<Object[]> rows = adminRepository.getDailyTagCount(startDate, endDate);
-
-        Map<String, List<Long>> tagToCounts = new LinkedHashMap<>();
-        List<String> dates = new ArrayList<>();
-
-        for (Object[] row : rows) {
-            String tag = (String) row[0];
-            String date = row[1].toString();
-            Long count = (Long) row[2];
-
-            if(!dates.contains(date)) {
-                dates.add(date);
-            }
-
-            tagToCounts.computeIfAbsent(tag, k-> new ArrayList<>());
-            tagToCounts.get(tag).add(count);
-        }
-
-        List<AdminResponse.DailyTagCount.DailyTag> dailyTags = tagToCounts.entrySet()
-                .stream()
-                .map(e -> new AdminResponse.DailyTagCount.DailyTag(e.getKey(), e.getValue()))
-                .toList();
-
-        return new AdminResponse.DailyTagCount(dates, dailyTags);
-    }
-
     public List<AdminResponse.MonthlyCount> getMonthlyCount() {
         return adminRepository.getMonthlyCount();
     }
 
-    public List<AdminResponse.activeCount> getActiveCount() {
-        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
-        List<AdminResponse.activeCount> activeCount = adminRepository.getActiveCount(oneMonthAgo);
-        return activeCount;
-    }
+
 
     public List<AdminResponse.placeList> getPlaceList() {
         List<Place> places = placeRepository.findAll();

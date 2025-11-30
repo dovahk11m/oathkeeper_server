@@ -122,8 +122,8 @@ body {
       <div class="d-flex align-items-center">
           <div class="fw-light fs-6 me-2">어서오세요, {{adminName}}님. 관리자 대시보드입니다.</div>
 
-          <button class="logout-btn" onclick="location.href='/logout'">
-            로그아웃
-          </button>
+        <form action="/api/admin/logout" method="POST">
+          <button class="logout-btn">로그아웃</button>
+        </form>
       </div>
     </div>
