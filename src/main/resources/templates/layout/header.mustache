@@ -9,16 +9,48 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body { background:#edf1f7; font-family:Inter, system-ui; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #f7f7f7;
+      font-family: Inter, system-ui;
+    }
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-wrapper {
+  display: flex;
+  gap: 20px;
+  max-width: 1400px;
+  width: 95%;
+  margin: 20px auto;
+  padding: 25px;
+
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+  /* flex 높이 유지 */
+  min-height: calc(100vh - 40px);
+  box-sizing: border-box; /* padding 포함 높이 계산 */
+}
 
     /* Sidebar */
-    .sidebar {
-      width: 230px;
-      background: #ffffff;
-      min-height: 100vh;
-      box-shadow: 3px 0 15px rgba(0,0,0,0.06);
-      padding: 20px;
-    }
+.sidebar {
+  width: 230px;
+  background: #ffffff;
+  box-shadow: 3px 0 15px rgba(0,0,0,0.06);
+  padding: 20px;
+  border-radius: 12px;
+
+  /* 이것만 남기기 — 높이는 자동으로 parent에 맞춰짐 */
+  height: auto;
+}
+
+
     .sidebar .menu-title { font-size: 0.8rem; color:#999; margin-top:20px; margin-bottom:10px; }
     .sidebar a {
       display:block; padding:10px 14px; margin-bottom:6px;
@@ -26,24 +58,42 @@
     }
     .sidebar a:hover { background:#f3e8ff; color:#7c3aed; }
 
-    /* Top Navbar */
-    .main-content { flex: 1; }
-    .topnav {
-      background:#7c3aed; padding:15px 20px;
-      display:flex; justify-content:space-between; align-items:center;
-      color:#fff;
+    /* Main content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
-    .page-wrapper {
-      background: white;
-      padding: 25px;
-      margin: 20px auto;
-      width: 95%;
-      max-width: 1400px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      display: flex;
-      gap: 20px;
+    /* Top Navbar */
+    .topnav {
+      background:#001f3f; padding:15px 20px;
+      display:flex; justify-content:space-between; align-items:center;
+      color:#fff;
+      border-radius: 12px;
+    }
+
+    .logout-btn {
+      background: #001f3f;
+      color: white;
+      border: 1px solid #ffffff;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.25s ease-in-out;
+    }
+
+    .logout-btn:hover {
+      background: #ffffff;
+      color: #001f3f;
+    }
+
+    /* Main content body (아래 내용) */
+    .content-body {
+      margin-top: 20px;
+      flex: 1; /* 남은 공간 차지 */
+      overflow: auto;
     }
 
   </style>
@@ -70,7 +120,10 @@
     <div class="topnav">
       <div class="fw-semibold fs-5">Dashboard Overview</div>
       <div class="d-flex align-items-center">
-          <div class="fw-light fs-6 me-2">어서오세요, {이름}님. 관리자 대시보드입니다.</div>
-        <i class="fa-regular fa-user-circle fa-2x"></i>
+          <div class="fw-light fs-6 me-2">어서오세요, {{adminName}}님. 관리자 대시보드입니다.</div>
+
+          <button class="logout-btn" onclick="location.href='/logout'">
+            로그아웃
+          </button>
       </div>
     </div>

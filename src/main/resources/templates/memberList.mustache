@@ -1,6 +1,7 @@
 {{> layout/header}}
 <link rel="stylesheet" href="/css/memberList.css">
 
+
 <div class="wrapper" style="width:100%; margin:30px auto;">
     <h2 style="margin-bottom:20px; color:#333;">회원 관리</h2>
 
@@ -13,6 +14,10 @@
 
         <!-- 검색창 + 버튼 -->
         <div id="search-container" style="display:flex; gap:5px;">
+            <select id="searchType">
+                <option value="email" {{#isMember}}selected{{/isMember}}>이메일</option>
+                <option value="username" {{#isName}}selected{{/isName}}>이름</option>
+            </select>
             <input type="text" id="searchInput" placeholder="참여자 검색">
             <button id="searchBtn">검색</button>
         </div>
@@ -87,3 +92,19 @@
 
     </div>
 </div>
+
+<script>
+// 🔹 검색 이벤트 등록
+searchBtn.addEventListener("click", () => {
+    const keyword = searchInput.value.trim();
+    const type = searchType.value;
+    const currentPage = 0;
+    window.location.href = `/api/admin/member-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
+});
+
+
+// 엔터 입력 시 검색
+searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchBtn.click();
+});
+</script>

@@ -96,3 +96,10 @@ button:hover { background-color: #2980b9; }
   align-self: flex-end;     /* 버튼 오른쪽 정렬 */
   padding: 6px 12px;
 }
+
+/* 장소 목록 스크롤 */
+#places-container {
+  max-height: 60vh; /* 화면 비율 기반 높이 */
+  overflow-y: auto;
+  padding-right: 6px;
+}

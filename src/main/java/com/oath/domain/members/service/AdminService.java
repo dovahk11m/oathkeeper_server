@@ -102,11 +102,14 @@ public class AdminService {
 //        return response;
 //    }
 
-    public Page<AdminResponse.MemberDto> getMembers(Pageable pageable) {
-        Page<AdminResponse.MemberDto> members = memberRepository.findAll(pageable)
-                .map(m -> new AdminResponse.MemberDto(m));
-
-
+    public Page<AdminResponse.MemberDto> getMembers(String type, String keyword, Pageable pageable) {
+        if (keyword == null || keyword.isBlank()) {
+            Page<AdminResponse.MemberDto> members = memberRepository.findAll(pageable)
+                    .map(m -> new AdminResponse.MemberDto(m));
+            return members;
+        }
+        Page<AdminResponse.MemberDto> members = adminRepository.searchMember(type, keyword, pageable)
+                    .map(m -> new AdminResponse.MemberDto(m));
         return members;
     }
 

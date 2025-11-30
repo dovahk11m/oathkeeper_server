@@ -171,8 +171,8 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
         )
         FROM Group g
         WHERE EXISTS (
-            SELECT 1 FROM GroupMember gm 
-             WHERE gm.group.id = g.id 
+            SELECT 1 FROM GroupMember gm
+             WHERE gm.group.id = g.id
                AND gm.member.email LIKE %:keyword%
         )
         """)
@@ -219,6 +219,19 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             nativeQuery = true
     )
     List<AdminResponse.ParticipantCount> getParticipantCount();
+
+    @Query("""
+    SELECT m
+    FROM Member m
+    WHERE (:type = 'username' AND m.username LIKE %:keyword%)
+       OR (:type = 'email' AND m.email LIKE %:keyword%)
+    """)
+    Page<Member> searchMember(
+            @Param("type") String type,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
 
 
 }

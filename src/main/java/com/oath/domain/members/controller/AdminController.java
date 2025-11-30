@@ -17,6 +17,8 @@ import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
 import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
 import com.oath.domain.plan.repository.PlanJpaRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -96,10 +98,14 @@ public class AdminController {
     }
 
     @GetMapping("/member-list")
-    public String getMembers(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size, Model model) {
+    public String getMembers(@RequestParam(defaultValue = "0") int page,
+                             @RequestParam(defaultValue = "5") int size,
+                             @RequestParam(required = false) String type,
+                             @RequestParam(required = false) String keyword,
+                             Model model) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        Page<AdminResponse.MemberDto> memberPage = adminService.getMembers(pageable);
+        Page<AdminResponse.MemberDto> memberPage = adminService.getMembers(type, keyword, pageable);
                 //memberRepository.findAll(pageable).map(member -> new AdminResponse.MemberDto(member));
 
         model.addAttribute("members", memberPage.getContent());
@@ -348,6 +354,18 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("accessToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // https 환경만
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // 쿠키 즉시 삭제
+
+        response.addCookie(cookie);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/check-password")
     public ResponseEntity<?> checkPassword(
             @CookieValue("accessToken") String token,
@@ -365,7 +383,6 @@ public class AdminController {
 
         return ResponseEntity.ok(Map.of("success", valid));
     }
-
 
     @GetMapping("/dashboard")
     public String getDashBoard(Model model) {

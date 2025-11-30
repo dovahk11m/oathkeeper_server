@@ -1,6 +1,7 @@
 {{> layout/header}}
 <link rel="stylesheet" href="/css/groupList.css">
 
+
 <div class="wrapper" style="width:100%; margin:30px auto;">
     <h2 style="margin-bottom:20px; color:#333;">채팅 그룹 관리</h2>
 
@@ -52,6 +53,8 @@
         {{/pages}}
     </div>
 </div>
+</div>
+</div>
 
 <script>
 const searchInput = document.getElementById("searchInput");
@@ -69,48 +72,6 @@ list.addEventListener("click", (e) => {
         window.location.href = `/api/admin/chat-list/${groupId}`;
     }
 });
-
-<!--// 🔹 서버로 검색 요청 보내기-->
-<!--async function searchGroups() {-->
-<!--    const keyword = searchInput.value.trim();-->
-
-<!--    try {-->
-<!--        // 서버에 GET 요청 (검색어를 쿼리 파라미터로 전달)-->
-<!--        const response = await fetch(`/api/admin/group-list?keyword=${encodeURIComponent(keyword)}`)-->
-<!--        .then(res => res.text())-->
-<!--        .then(console.log)-->
-<!--        if (!response.ok) throw new Error("서버 요청 실패");-->
-
-<!--        const data = await response.json(); // 서버에서 JSON으로 반환한다고 가정-->
-
-<!--        // 리스트 초기화-->
-<!--        list.innerHTML = "";-->
-
-<!--        if (data.groups.length === 0) {-->
-<!--            list.innerHTML = `<li class="no-result">검색 결과가 없습니다.</li>`;-->
-<!--            return;-->
-<!--        }-->
-
-<!--        // 결과 렌더링-->
-<!--        data.groups.forEach(group => {-->
-<!--            const li = document.createElement("li");-->
-<!--            li.classList.add("chat-item");-->
-<!--            li.dataset.groupId = group.id;-->
-
-<!--            li.innerHTML = `-->
-<!--                <div class="group-info">-->
-<!--                    <p class="chat-title">[${group.id}] ${group.name}</p>-->
-<!--                    <p class="chat-members">참여자 수: ${group.memberCount}</p>-->
-<!--                </div>-->
-<!--                <div class="chat-time">${group.sentAt}</div>-->
-<!--            `;-->
-<!--            list.appendChild(li);-->
-<!--        });-->
-<!--    } catch (error) {-->
-<!--        console.error(error);-->
-<!--        list.innerHTML = `<li class="no-result">검색 중 오류가 발생했습니다.</li>`;-->
-<!--    }-->
-<!--}-->
 
 // 🔹 검색 이벤트 등록
 searchBtn.addEventListener("click", () => {
