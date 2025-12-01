@@ -6,7 +6,9 @@ import com.oath.initializer.scenario.PlanScenario03_Pending;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>Plan 관련 데이터 초기화 오케스트레이터</h2>
@@ -30,7 +32,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
+@Order(12)
 public class DataInitializer12_Plan {
 
     private final PlanScenario01_Completed planScenario01;
@@ -43,5 +47,6 @@ public class DataInitializer12_Plan {
         planScenario02.create();
         planScenario03.create();
         log.info("=============== Plan 시나리오 데이터 초기화 완료 ===============");
+
     }
 }

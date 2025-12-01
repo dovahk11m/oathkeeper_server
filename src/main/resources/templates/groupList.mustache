@@ -1,0 +1,89 @@
+{{> layout/header}}
+<link rel="stylesheet" href="/css/groupList.css">
+
+
+<div class="wrapper" style="width:100%; margin:30px auto;">
+    <h2 style="margin-bottom:20px; color:#333;">채팅 그룹 관리</h2>
+
+    <!-- 상단 컨트롤 (총 그룹 수 + 검색) -->
+    <div id="top-controls" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <!-- 총 그룹 수 -->
+        <div id="group-count">
+            총 그룹: {{groupCount}}
+        </div>
+
+        <!-- 검색창 + 버튼 -->
+        <div id="search-container" style="display:flex; gap:5px;">
+            <select id="searchType">
+                <option value="member" {{#isMember}}selected{{/isMember}}>이메일</option>
+                <option value="group" {{#isGroup}}selected{{/isGroup}}>그룹명</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="검색어 입력">
+            <button id="searchBtn">검색</button>
+        </div>
+
+    </div>
+
+    <!-- 그룹 리스트 -->
+    <ul id="chat-group-list" class="chat-list">
+        {{#groups}}
+        <li class="chat-item"
+            data-group-id="{{id}}">
+
+            <div class="group-info">
+                <p class="chat-title">[{{id}}] {{name}}</p>
+                <p class="chat-members">참여자 수: {{memberCount}}</p>
+            </div>
+            <div class="chat-time">{{sentAt}}</div>
+        </li>
+        {{/groups}}
+    </ul>
+
+    <!-- 페이징 -->
+    <div class="pagination">
+        {{#pages}}
+            {{#isCurrent}}
+                <button class="page-btn" disabled>{{number}}</button>
+            {{/isCurrent}}
+            {{^isCurrent}}
+                <a href="/api/admin/group-list?page={{pageIndex}}">
+                    <button class="page-btn">{{number}}</button>
+                </a>
+            {{/isCurrent}}
+        {{/pages}}
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+const searchInput = document.getElementById("searchInput");
+const searchBtn = document.getElementById("searchBtn");
+const list = document.getElementById("chat-group-list");
+const originalItems = Array.from(list.querySelectorAll("li"));
+
+// 🔹 클릭 시 해당 채팅방 상세 페이지 이동
+list.addEventListener("click", (e) => {
+    const li = e.target.closest("li");
+    if (!li) return;
+
+    const groupId = li.dataset.groupId;
+    if (groupId) {
+        window.location.href = `/api/admin/chat-list/${groupId}`;
+    }
+});
+
+// 🔹 검색 이벤트 등록
+searchBtn.addEventListener("click", () => {
+    const keyword = searchInput.value.trim();
+    const type = searchType.value;
+    const currentPage = 0;
+    window.location.href = `/api/admin/group-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
+});
+
+
+// 엔터 입력 시 검색
+searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchBtn.click();
+});
+</script>

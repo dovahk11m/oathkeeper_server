@@ -1,0 +1,105 @@
+{{> layout/header}}
+
+<link rel="stylesheet" href="/css/tagpage.css">
+
+<div class="wrapper">
+  <div class="container">
+    <h2>태그 관리</h2>
+
+    <div class="input-area">
+      <input id="tagInput" type="text" placeholder="태그 입력" />
+      <input id="searchInput" type="text" placeholder="검색" />
+    </div>
+
+    <div id="tagList" class="tag-list"></div>
+  </div>
+</div>
+
+<script>
+let tags = [];
+
+// 🔹 페이지 로드하면 서버에서 태그 목록 불러오기
+async function loadTags() {
+    try {
+        const res = await fetch("/api/admin/tag");
+        const data = await res.json();   // 예: ["여행","맛집",...]
+        tags = data;
+        renderTags();
+    } catch (e) {
+        console.error("태그 로드 실패:", e);
+    }
+}
+
+function renderTags() {
+    const list = document.getElementById("tagList");
+    const search = document.getElementById("searchInput").value;
+
+    let filtered = tags
+      .filter(t => t.includes(search))
+      .sort((a, b) => a.localeCompare(b, "ko"));
+
+    list.innerHTML = "";
+    filtered.forEach(tag => {
+      const el = document.createElement("div");
+      el.className = "tag";
+      el.textContent = tag;
+
+      const remove = document.createElement("div");
+      remove.textContent = "×";
+      remove.className = "remove-btn";
+
+      remove.onclick = () => deleteTag(tag);
+      el.appendChild(remove);
+      list.appendChild(el);
+    });
+}
+
+async function addTag() {
+    const input = document.getElementById("tagInput");
+    const value = input.value.trim();
+    if (!value) return;
+
+    try {
+        await fetch("/api/admin/tag", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: value })
+        });
+
+        // 성공하면 새로 불러오기
+        await loadTags();
+
+    } catch (e) {
+        console.error("태그 추가 실패:", e);
+    }
+
+    input.value = "";
+}
+
+async function deleteTag(tag) {
+    try {
+        await fetch(`/api/admin/tag/${encodeURIComponent(tag)}`, {
+            method: "DELETE"
+        });
+
+        await loadTags();
+
+    } catch (e) {
+        console.error("태그 삭제 실패:", e);
+    }
+}
+
+document.getElementById("tagInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") addTag();
+});
+
+document.getElementById("searchInput").addEventListener("input", renderTags);
+
+// 🔹 최초 로딩
+loadTags();
+</script>
+
+
+
+</body>
+</html>

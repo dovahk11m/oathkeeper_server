@@ -1,0 +1,25 @@
+{{> layout/header}}
+
+<link rel="stylesheet" href="/css/placetag.css">
+
+<div class="wrapper" style="width:100%; margin:30px auto;">
+<h2 style="margin-bottom:20px; color:#333;">장소 태그 일괄 관리</h2>
+<div class="places-header">
+  <button id="bulkAddBtn">선택한 장소에 태그 추가</button>
+</div>
+
+<div id="places-container"></div>
+
+<!-- 모달 -->
+<div id="tagModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">태그 선택</div>
+    <div id="modal-tags" class="modal-tags"></div>
+    <button id="saveTags">저장</button>
+  </div>
+</div>
+</div>
+
+<script src="/js/placetag.js"></script>
+</body>
+</html>

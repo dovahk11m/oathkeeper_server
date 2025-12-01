@@ -1,6 +1,9 @@
 package com.oath.domain.groups.repository;
 
+import com.oath.domain.chats.Chat;
+import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
+import com.oath.domain.members.domain.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,4 +36,21 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     @Query(value = "SELECT gm FROM GroupMember gm JOIN FETCH gm.member WHERE gm.group.id = :groupId",
            countQuery = "SELECT count(gm) FROM GroupMember gm WHERE gm.group.id = :groupId")
     Page<GroupMember> findByGroupIdWithMember(@Param("groupId") Long groupId, Pageable pageable);
+
+    @Query("SELECT gm.member FROM GroupMember gm WHERE gm.group.id = :groupId")
+    List<Member> findMembersByGroup(@Param("groupId") Long groupId);
+
+    @Query("SELECT c FROM Chat c JOIN FETCH c.sender WHERE c.group.id = :groupId AND c.sender.id = :senderId ORDER BY c.sentAt")
+    List<Chat> findByGroupAndSenderWithFetch(@Param("groupId") Long groupId, @Param("senderId") Long senderId);
+
+    boolean existsByGroupAndMember(Group group, Member member);
+
+    @Query("""
+    SELECT gm.member.email
+    FROM GroupMember gm
+    WHERE gm.group.id = :groupId
+    """)
+    List<String> findMemberEmailsByGroupId(@Param("groupId") Long groupId);
+
+
 }

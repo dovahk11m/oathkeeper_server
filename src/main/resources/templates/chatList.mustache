@@ -1,0 +1,106 @@
+{{> layout/header}}
+
+<link rel="stylesheet" href="/css/chatList.css">
+
+<div class="wrapper" style="width:100%; margin:30px auto;">
+<div class="container">
+
+    <!-- 항상 보이는 채팅 요약 -->
+    <div class="summary-box">
+        <strong>채팅 요약</strong>
+        {{#chatLists}}
+        <p>총 메시지: {{chatCount}}, 참여자: {{memberCount}}명, 최근 메시지: <span class="time-ago" data-time="{{lastSentAt}}"></span></p>
+        {{/chatLists}}
+        <div>{{summary}}</div>
+    </div>
+
+    <!-- 비밀번호 입력 -->
+    <div id="passwordSection">
+        <div class="password-box">
+            <input type="password" id="passwordInput" placeholder="비밀번호 입력" data-group-id="{{groupId}}">
+            <button onclick="checkPassword()">확인</button>
+        </div>
+        <div id="errorMsg" class="error"></div>
+    </div>
+
+    <!-- 채팅 화면 (처음에는 숨김) -->
+    <div id="chatSection" class="hidden chat-list">
+        <!-- 채팅 예시 -->
+        {{#chats}}
+        <div class="chat-item"><strong>{{senderName}}:</strong> {{content}} {{sentAt}}</div>
+        {{/chats}}
+    </div>
+
+    <button id="backToListBtn" onclick="goBackToList()">목록으로 돌아가기</button>
+
+</div>
+</div>
+
+<script>
+async function checkPassword() {
+    const password = document.getElementById('passwordInput').value;
+    const groupId = document.querySelector('[data-group-id]').getAttribute('data-group-id');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // 단순 예시: 서버에 POST 요청
+    try {
+        const res = await fetch('/api/admin/check-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({password, groupId})
+        });
+
+        const data = await res.json();
+
+        if(data.success) {
+            // 비밀번호 맞음 → 채팅 목록 표시
+            document.getElementById('passwordSection').classList.add('hidden');
+            document.getElementById('chatSection').classList.remove('hidden');
+        } else {
+            errorMsg.textContent = '비밀번호가 틀렸습니다.';
+        }
+    } catch(e) {
+        errorMsg.textContent = '서버 오류 발생';
+        console.error(e);
+    }
+}
+
+function goBackToList() {
+    window.history.back();
+}
+
+function timeAgo(dateString) {
+    if (!dateString || dateString === "기록 없음") {
+        return "기록 없음";
+    }
+
+    const date = new Date(dateString.replace(" ", "T"));
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000); // 초 환산
+
+    if (diff < 60) return "방금 전";
+    const minutes = Math.floor(diff / 60);
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}일 전`;
+
+    return dateString; // 일주일 넘으면 그냥 날짜 표시
+}
+
+function updateTimes() {
+    document.querySelectorAll('.time-ago').forEach(el => {
+        el.textContent = timeAgo(el.getAttribute('data-time'));
+    });
+}
+
+// 처음 한 번 실행
+updateTimes();
+
+// 1분마다 자동 갱신
+setInterval(updateTimes, 60 * 1000);
+</script>
+
+</body>
+</html>

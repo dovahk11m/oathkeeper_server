@@ -1,0 +1,105 @@
+
+.places-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.place-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.place-title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  background: #e0e0e0;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+.tag span {
+  cursor: pointer;
+  color: #888;
+}
+button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #3498db;
+  color: #fff;
+}
+button:hover { background-color: #2980b9; }
+
+/* 모달 배경 */
+.modal {
+  display: none;          /* JS에서 flex로 바꿀 예정 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 50%;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;   /* 세로 정렬 */
+  gap: 16px;
+
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;          /* 가로 여러 줄 배치 */
+  gap: 10px;
+}
+
+.modal-tags label {
+  background: #f1f1f1;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.modal-tags label input {
+  margin-right: 5px;
+}
+
+.modal button {
+  align-self: flex-end;     /* 버튼 오른쪽 정렬 */
+  padding: 6px 12px;
+}
+
+/* 장소 목록 스크롤 */
+#places-container {
+  max-height: 60vh; /* 화면 비율 기반 높이 */
+  overflow-y: auto;
+  padding-right: 6px;
+}

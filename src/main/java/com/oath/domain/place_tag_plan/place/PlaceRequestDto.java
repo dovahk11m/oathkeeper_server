@@ -1,5 +1,6 @@
 package com.oath.domain.place_tag_plan.place;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +27,5 @@ public class PlaceRequestDto {
         private String description;
         private String imageUrl;
     }
+
 }

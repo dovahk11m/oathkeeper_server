@@ -1,0 +1,129 @@
+#top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+#group-count {
+  font-weight: 600;
+  color: #333;
+}
+
+#search-container {
+  display: flex;
+  gap: 5px;
+}
+
+#search-container input {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 200px; /* 전체가 아닌 적당한 크기 */
+}
+
+#search-container button {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #4f46e5;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#search-container button:hover {
+  background-color: #4338ca;
+}
+
+
+/* 채팅 그룹 리스트 */
+.chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 채팅 그룹 아이템 */
+.chat-item {
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chat-item:hover {
+    background-color: #f3f4f6;
+}
+
+/* 채팅 그룹 텍스트 */
+.chat-title {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.chat-members {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.chat-time {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+/* 페이지네이션 영역 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 25px;
+    gap: 6px;
+}
+
+/* 페이지 버튼 기본 */
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+/* 현재 페이지 (비활성) */
+.page-btn[disabled] {
+    cursor: default;
+    background-color: #4a90e2;
+    color: #fff;
+    border-color: #4a90e2;
+    font-weight: bold;
+    opacity: 1;
+}
+
+/* Hover 효과 */
+.page-btn:not([disabled]):hover {
+    background-color: #f0f0f0;
+    border-color: #bbb;
+}
+
+/* 클릭 순간 효과 */
+.page-btn:active {
+    transform: scale(0.95);
+}
+
+/* 검색 결과 없을 때 */
+.no-result {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}
+
+
