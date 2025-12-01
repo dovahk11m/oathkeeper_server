@@ -64,7 +64,6 @@ public class AdminService {
 
     private final PlaceTagRepository placeTagRepository;
 
-
     @Value("${kakao.rest-api-key}")
     private String kakaoApiKey;
 
@@ -180,12 +179,6 @@ public class AdminService {
                         ))
                 .toList();
         return placeTags;
-    }
-
-    public List<String> getAllTags() {
-        return tagRepository.findAll().stream()
-                .map(t -> t.getName())
-                .toList();
     }
 
     public List<AdminResponse.AddedTagDto> addPlaceTag(AdminRequest.PlaceTag req) {

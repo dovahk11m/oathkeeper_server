@@ -98,8 +98,7 @@ public class DataInitializer15_Chat implements CommandLineRunner {
                 "오늘 회의는 취소될 수도 있어요.",
                 "내일 일정 미리 조율해볼까요?",
                 "그 부분은 제가 맡을게요!",
-                "확인했습니다 🙌",
-                "전화번호는 010-1111-2222입니다."
+                "확인했습니다 🙌"
         };
         return samples[random.nextInt(samples.length)] + " (" + (index + 1) + ")";
     }

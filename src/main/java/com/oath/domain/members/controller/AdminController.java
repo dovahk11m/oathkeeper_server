@@ -197,7 +197,6 @@ public class AdminController {
         return "login";
     }
 
-
     @PostMapping("/login")
     @ResponseBody
     public ResponseEntity<?> adminLogin(@RequestBody MemberLoginDto dto) {
