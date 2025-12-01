@@ -12,14 +12,17 @@ import com.oath.domain.plan.domain.Plan;
 
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -28,8 +31,8 @@ import java.util.Random;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 @Profile("local")
 @Order(7)
 public class DataInitializer7_PlanRandom implements CommandLineRunner {

@@ -7,6 +7,7 @@ import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 @Profile("local")
+@Order(2)
 public class DataInitializer2_Member {
 
     private final MemberRepository memberRepository;

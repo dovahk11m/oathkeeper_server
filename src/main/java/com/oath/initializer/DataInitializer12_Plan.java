@@ -6,6 +6,7 @@ import com.oath.initializer.scenario.PlanScenario03_Pending;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 @Profile("local")
+@Order(12)
 public class DataInitializer12_Plan {
 
     private final PlanScenario01_Completed planScenario01;

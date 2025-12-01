@@ -5,6 +5,7 @@ import com.oath.domain.place_tag_plan.tag.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 @Profile("local")
+@Order(6)
 public class DataInitializer6_Tag {
 
     private final TagRepository tagRepository;

@@ -22,6 +22,7 @@ public class HttpClientConfig {
         return HttpClients.createDefault();
     }
 
+    @Bean
     public HttpClient httpClient() {
         return HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_2)

@@ -9,6 +9,7 @@ import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Profile("local")
+@Order(5)
 public class DataInitializer5_Chat {
 
     private final MemberRepository memberRepository;
@@ -35,7 +37,12 @@ public class DataInitializer5_Chat {
         Member user3 = memberRepository.findByEmail("user3@test.com").orElseThrow(); // 박민철
         Member user4 = memberRepository.findByEmail("user4@test.com").orElseThrow(); // 최상혁
         Group sampleGroup = groupRepository.findByName("샘플 그룹")
-                .orElseThrow(() -> new RuntimeException("샘플 그룹을 찾을 수 없습니다. DataInitializer4_Group이 먼저 실행되었는지 확인하세요."));
+                .orElseGet(() -> groupRepository.save(Group.builder()
+                        .name("샘플 그룹")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+                ));
+
 
         // 2. 채팅 데이터 생성
         List<Chat> chats = List.of(

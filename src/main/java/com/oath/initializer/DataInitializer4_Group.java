@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 // import org.springframework.boot.CommandLineRunner; // 제거
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 @Profile("local")
+@Order(4)
 public class DataInitializer4_Group {
 
     private final MemberRepository memberRepository;
@@ -50,6 +52,7 @@ public class DataInitializer4_Group {
 
         groupMemberRepository.save(GroupMember.of(sampleGroup1, user2));
         groupMemberRepository.save(GroupMember.of(sampleGroup2, user2));
+        groupMemberRepository.flush();
 
         groupMemberRepository.saveAll(
                 memberList.stream().map((member) -> GroupMember.of(sampleGroup1, member)).toList()

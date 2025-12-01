@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("local")
-@Order(1)
+@Profile("prod")
+@Order(0)
 public class DataInitializer0_Cleanup implements CommandLineRunner {
 
     private final PlanEmbeddingRepository planEmbeddingRepository;

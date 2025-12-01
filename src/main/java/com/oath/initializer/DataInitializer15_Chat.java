@@ -3,9 +3,9 @@ package com.oath.initializer;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
-import com.oath.domain.groups.groupRepository.GroupRepository;
+import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.groups.GroupMember;
-import com.oath.domain.groups.groupRepository.GroupMemberRepository; // 새로 필요
+import com.oath.domain.groups.repository.GroupMemberRepository; // 새로 필요
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.plan.domain.Plan;

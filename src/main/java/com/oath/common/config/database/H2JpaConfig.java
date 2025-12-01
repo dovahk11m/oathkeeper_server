@@ -32,6 +32,7 @@ public class H2JpaConfig {
         return new JpaProperties();
     }
 
+    @Primary
     @Bean(name = "h2EntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean h2EntityManagerFactory(
             @Qualifier("h2DataSourceCustom") DataSource h2DataSource,

@@ -1,28 +1,21 @@
 package com.oath.domain.members.controller;
 
-
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.exception.Exception401;
-import com.oath.domain.chatEntity.ChatEntity;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
-import com.oath.domain.groups.groupRepository.GroupMemberRepository;
-import com.oath.domain.groups.groupRepository.GroupRepository;
+import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.members.domain.Role;
-import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.service.MemberService;
 import com.oath.domain.members.service.SummaryService;
 import com.oath.domain.place_tag_plan.place.Place;
-import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
 import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.visitors.VisitorService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,8 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,7 +62,6 @@ public class AdminController {
 
     private final VisitorService visitorService;
 
-
     @PostMapping("/ban-member")
     public String banMember(@RequestParam Long id, @RequestParam int days, @RequestParam int page){
         Member member = memberRepository.findById(id)
@@ -95,7 +85,6 @@ public class AdminController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         Page<AdminResponse.MemberDto> memberPage = adminService.getMembers(type, keyword, pageable);
-                //memberRepository.findAll(pageable).map(member -> new AdminResponse.MemberDto(member));
 
         model.addAttribute("members", memberPage.getContent());
         model.addAttribute("currentPage", page);
@@ -180,16 +169,16 @@ public class AdminController {
 
     @GetMapping("/plan-tag-pie")
     @ResponseBody
-    public List<AdminResponse.PlanTagPie> PlanTagPie() {
+    public ResponseEntity<?> PlanTagPie() {
         List<AdminResponse.PlanTagPie> PlanTagsPie = adminService.PlanTagPie();
-        return PlanTagsPie;
+        return ResponseEntity.ok(PlanTagsPie);
     }
 
-    //막대그래프
     @GetMapping("/monthly-count")
     @ResponseBody
-    public List<AdminResponse.MonthlyCount> getMonthlyCount() {
-        return adminService.getMonthlyCount();
+    public ResponseEntity<?> getMonthlyCount() {
+        List<AdminResponse.MonthlyCount> dtos = adminService.getMonthlyCount();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/login")
@@ -265,7 +254,7 @@ public class AdminController {
 
         visitorService.saveVisitor(groupId, adminId);
 
-        return ResponseEntity.ok(Map.of("success", valid));
+        return ResponseEntity.ok(valid);
     }
 
     @GetMapping("/dashboard")
@@ -290,19 +279,21 @@ public class AdminController {
 
     @GetMapping("/tag")
     @ResponseBody
-    public List<String> getTagList() {
+    public ResponseEntity<?> getTagList() {
         List<String> tags = adminService.getTagList();
-        return tags;
+        return ResponseEntity.ok(tags);
     }
 
     @PostMapping("/tag")
-    public void addTag(@RequestBody AdminRequest.TagRequest req) {
+    public ResponseEntity<?> addTag(@RequestBody AdminRequest.TagRequest req) {
         adminService.addTag(req.getName());
+        return ResponseEntity.ok(CommonResponse.success(null, "태그가 추가되었습니다."));
     }
 
     @DeleteMapping("/tag/{name}")
-    public void deleteTag(@PathVariable String name) {
+    public ResponseEntity<?> deleteTag(@PathVariable String name) {
         adminService.deleteTag(name);
+        return ResponseEntity.ok(CommonResponse.success(null, "태그가 삭제되었습니다."));
     }
 
     @GetMapping("/place-page")
@@ -312,9 +303,9 @@ public class AdminController {
 
     @GetMapping("/place")
     @ResponseBody
-    public List<AdminResponse.placeList> getPlaceList() {
+    public ResponseEntity<?> getPlaceList() {
         List<AdminResponse.placeList> places = adminService.getPlaceList();
-        return places;
+        return ResponseEntity.ok(places);
     }
 
     @GetMapping("/place-tag")
@@ -323,30 +314,31 @@ public class AdminController {
     }
 
     @PostMapping("/place/desc/{placeId}")
-    public void updateDescription (@PathVariable Long placeId, @RequestBody AdminRequest.updateDescription req) {
+    public ResponseEntity<?> updateDescription (@PathVariable Long placeId, @RequestBody AdminRequest.updateDescription req) {
         adminService.updateDescription(placeId, req);
+        return ResponseEntity.ok(CommonResponse.success(null, "장소 상세가 수정되었습니다."));
     }
 
     @GetMapping("/place-tag-list")
     @ResponseBody
-    public List<AdminResponse.PlaceTag> getPlaceTag() {
+    public ResponseEntity<?> getPlaceTag() {
         List<AdminResponse.PlaceTag> placeTags = adminService.getPlaceTag();
-        return placeTags;
+        return ResponseEntity.ok(placeTags);
     }
 
     @PostMapping("/add/place-tags")
     @ResponseBody
-    public List<AdminResponse.AddedTagDto> addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
+    public ResponseEntity<?> addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
         List<AdminResponse.AddedTagDto> tagDto = adminService.addPlaceTag(req);
-        return tagDto;
+        return ResponseEntity.ok(tagDto);
     }
 
     @DeleteMapping("/place-tag/{placeId}/{tagId}")
     @ResponseBody
-    public void deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
+    public ResponseEntity<?> deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
         adminService.deletePlaceTag(placeId, tagId);
+        return ResponseEntity.ok(CommonResponse.success(null, "장소-태그가 삭제되었습니다."));
     }
-
 
     @GetMapping("/search")
     public String searchPlace(@RequestParam String keyword) {
@@ -362,15 +354,15 @@ public class AdminController {
 
     @GetMapping("/plan-count")
     @ResponseBody
-    public List<AdminResponse.PlanCount> getPlanCount() {
+    public ResponseEntity<?> getPlanCount() {
         List<AdminResponse.PlanCount> planCount = adminService.getPlanCount();
-        return planCount;
+        return ResponseEntity.ok(planCount);
     }
 
     @GetMapping("/par-count")
     @ResponseBody
-    public List<AdminResponse.ParticipantCount> getParticipantCount() {
+    public ResponseEntity<?> getParticipantCount() {
         List<AdminResponse.ParticipantCount> participantCount = adminService.getParticipantCount();
-        return participantCount;
+        return ResponseEntity.ok(participantCount);
     }
 }

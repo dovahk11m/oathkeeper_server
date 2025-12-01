@@ -22,7 +22,6 @@ public class MasterDataInitializer implements CommandLineRunner {
     private final DataInitializer10_PlaceTag dataInitializer10_PlaceTag;
     private final DataInitializer12_Plan dataInitializer12_Plan;
     private final DataInitializer14_Review dataInitializer14_Review; // 새로 추가
-    private final DataInitializer22_Visitor dataInitializer22_Visitor;
     private final DataInitializer44_Term dataInitializer44_Term;
 
 
@@ -38,7 +37,6 @@ public class MasterDataInitializer implements CommandLineRunner {
         dataInitializer10_PlaceTag.initialize();
         dataInitializer12_Plan.initialize();
         dataInitializer14_Review.initialize(); // run(args) -> initialize()로 수정
-        dataInitializer22_Visitor.initialize();
         dataInitializer44_Term.initialize();
 
         log.info("========= MasterDataInitializer: 데이터 초기화 완료 =========");
