@@ -1,0 +1,70 @@
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        background: #fff;
+        width: 100%;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .summary-box {
+        background: #e3f2fd;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    .chat-list {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .chat-item {
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .chat-item:last-child {
+        border-bottom: none;
+    }
+
+    .password-box {
+        display: flex;
+        margin-bottom: 20px;
+    }
+
+    .password-box input {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .password-box button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+    .error {
+        color: red;
+        margin-top: 10px;
+    }
+
+    #chatSection {
+        margin-bottom: 20px; /* 원하는 간격 */
+    }

@@ -1,9 +1,10 @@
 package com.oath.domain.visitors;
 
+import com.oath.domain.members.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "visitor_tb")
@@ -19,9 +20,11 @@ public class Visitor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String ipAddress;
+    private Long groupId;
 
-    private LocalDate visitedDate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private Member admin;
 
-    private String userAgent;
+    private LocalDateTime readAt;
 }

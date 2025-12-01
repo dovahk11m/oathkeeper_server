@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 // import org.springframework.boot.CommandLineRunner; // 제거
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +20,15 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
+@Order(4)
 public class DataInitializer4_Group {
 
     private final MemberRepository memberRepository;
     private final GroupService groupService;
     private final GroupMemberRepository groupMemberRepository;
+
 
     // @Override 제거
     @Transactional
@@ -39,15 +43,22 @@ public class DataInitializer4_Group {
 
         List<Member> memberList = List.of(user2, user3, user4, user5);
 
-        Group sampleGroup = groupService.createGroup(
-                new GroupCreateRequest("샘플 그룹"),
-                user1.getEmail()
-        );
+        Group sampleGroup1 = groupService.createGroup(new GroupCreateRequest("샘플 그룹1"), user1.getEmail());
+        Group sampleGroup2 = groupService.createGroup(new GroupCreateRequest("샘플 그룹2"), user1.getEmail());
+        Group sampleGroup3 = groupService.createGroup(new GroupCreateRequest("샘플 그룹3"), user1.getEmail());
+        Group sampleGroup4 = groupService.createGroup(new GroupCreateRequest("샘플 그룹4"), user1.getEmail());
+        Group sampleGroup5 = groupService.createGroup(new GroupCreateRequest("샘플 그룹5"), user1.getEmail());
+        Group sampleGroup6 = groupService.createGroup(new GroupCreateRequest("샘플 그룹6"), user1.getEmail());
+
+        groupMemberRepository.save(GroupMember.of(sampleGroup1, user2));
+        groupMemberRepository.save(GroupMember.of(sampleGroup2, user2));
+        groupMemberRepository.flush();
 
         groupMemberRepository.saveAll(
-                memberList.stream().map((member) -> GroupMember.of(sampleGroup, member)).toList()
+                memberList.stream().map((member) -> GroupMember.of(sampleGroup1, member)).toList()
         );
 
         log.info("👷‍♂️ 샘플 그룹 데이터 생성 완료");
+
     }
 }

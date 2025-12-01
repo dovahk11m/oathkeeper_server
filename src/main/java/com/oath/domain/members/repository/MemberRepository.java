@@ -1,6 +1,8 @@
 package com.oath.domain.members.repository;
 
 import com.oath.domain.members.domain.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +22,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByEmailVerificationToken(String token);
 
     List<Member> findAll();
+
+    Page<Member> findAll(Pageable pageable);
+
+    long count();
 }

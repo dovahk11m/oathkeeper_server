@@ -1,6 +1,8 @@
 package com.oath.domain.plan.repository;
 
+import com.oath.domain.members.domain.Member;
 import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.domain.Plan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +19,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
            where p.plan.id = :planId
            """)
     List<MemberIdName> findMemberIdNameByPlanId(@Param("planId") Long planId);
+
+    boolean existsByPlanAndMember(Plan plan, Member member);
 
     interface MemberIdName {
         Long getId();

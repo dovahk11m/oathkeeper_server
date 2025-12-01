@@ -11,6 +11,10 @@ spring:
       username: sa # H2 DB 기본 사용자 이름
       password: # 비밀번호는 없음
       driver-class-name: org.h2.Driver # H2 드라이버 지정
+      hikari:
+        data-source-properties:
+          MODE: MySQL
+          DATABASE_TO_UPPER: false
 
     #    # 1-2. MySQL 설정 (local 환경에서 사용하지 않으므로 주석 처리)
     #    mysql:
@@ -27,7 +31,7 @@ spring:
       driver-class-name: org.postgresql.Driver
 
       hikari:
-        maximum-pool-size: 3
+        maximum-pool-size: 2
         minimum-idle: 1
         idle-timeout: 30000
         max-lifetime: 1800000
@@ -161,3 +165,13 @@ ai:
       plan-summary: "/metrics/plan/{planId}/summary"
     summary-url: "http://192.168.0.3:8001/metrics/report/{planId}/text"
     summary-fetch-delay-ms: 5000 # 5초
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  js-key: ${KAKAO_JS_KEY}
+
+huggingface:
+  api:
+    key: ${HUGGINGFACE_API_KEY}
+    url: "https://router.huggingface.co/hf-inference/models/eenzeenee/t5-base-korean-summarization"
+

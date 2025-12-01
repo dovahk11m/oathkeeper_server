@@ -9,6 +9,7 @@ import com.oath.domain.place_tag_plan.tag.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,16 +19,19 @@ import java.util.Random;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 @Profile("local")
-// @Order(10) 제거
+@Order(10)
 public class DataInitializer10_PlaceTag {
 
     private final PlaceRepository placeRepository;
     private final TagRepository tagRepository;
     private final PlaceTagRepository placeTagRepository;
 
+
     @Transactional
     public void initialize(String... args) throws Exception {
+
         log.info("👷‍♂️ 샘플 PlaceTag 데이터 생성 시작");
 
         List<Place> places = placeRepository.findAll();

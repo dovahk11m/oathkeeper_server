@@ -1,0 +1,110 @@
+{{> layout/header}}
+<link rel="stylesheet" href="/css/memberList.css">
+
+
+<div class="wrapper" style="width:100%; margin:30px auto;">
+    <h2 style="margin-bottom:20px; color:#333;">회원 관리</h2>
+
+    <!-- 상단 컨트롤 (총 그룹 수 + 검색) -->
+    <div id="top-controls" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <!-- 총 회원 수 -->
+        <div id="group-count">
+            총 회원수:
+        </div>
+
+        <!-- 검색창 + 버튼 -->
+        <div id="search-container" style="display:flex; gap:5px;">
+            <select id="searchType">
+                <option value="email" {{#isMember}}selected{{/isMember}}>이메일</option>
+                <option value="username" {{#isName}}selected{{/isName}}>이름</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="참여자 검색">
+            <button id="searchBtn">검색</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>이름</th>
+                    <th>이메일</th>
+                    <th>권한</th>
+                    <th>권한 선택</th>
+                    <th>상태</th>
+                    <th>마지막 로그인</th>
+                    <th>금지 만료</th>
+                    <th>금지 일자 설정</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#members}}
+                    <tr>
+                        <td>{{id}}</td>
+                        <td>{{username}}</td>
+                        <td>{{email}}</td>
+                        <td>
+                            {{#isAdmin}}<span class="badge bg-danger">관리자</span>{{/isAdmin}}
+                            {{^isAdmin}}<span class="badge bg-success">회원</span>{{/isAdmin}}
+                        </td>
+                        <td>
+                            <form action="/api/admin/update-role" method="post" style="display:flex; gap:5px; align-items:center;">
+                                <input type="hidden" name="id" value="{{id}}">
+                                <input type="hidden" name="page" value="{{currentPage}}">
+                                <label><input type="radio" name="role" value="USER"> 회원</label>
+                                <label><input type="radio" name="role" value="ADMIN"> 관리자</label>
+                                <button class="btn btn-primary btn-sm" type="submit">확인</button>
+                            </form>
+                        </td>
+                        <td>{{status}}</td>
+                        <td>{{lastLogin}}</td>
+                        <td>{{bannedUntil}}</td>
+                        <td>
+                            <form action="/api/admin/ban-member" method="post" style="display:flex; gap:5px; align-items:center;">
+                                <input type="hidden" name="id" value="{{id}}">
+                                <input type="hidden" name="page" value="{{currentPage}}">
+                                <input type="text" name="days" placeholder="일자" style="width:70px; padding:5px;">
+                                <button class="btn btn-primary btn-sm" type="submit">확인</button>
+                            </form>
+                        </td>
+                    </tr>
+                {{/members}}
+                </tbody>
+            </table>
+        </div>
+
+
+        <div style="display:flex; justify-content:center;">
+            <ul class="pagination">
+                {{#pages}}
+                    {{#isCurrent}}
+                        <li class="active"><span>{{number}}</span></li>
+                    {{/isCurrent}}
+                    {{^isCurrent}}
+                        <li><a href="/api/admin/member-list?page={{pageIndex}}">{{number}}</a></li>
+                    {{/isCurrent}}
+                {{/pages}}
+            </ul>
+        </div>
+
+
+    </div>
+</div>
+
+<script>
+// 🔹 검색 이벤트 등록
+searchBtn.addEventListener("click", () => {
+    const keyword = searchInput.value.trim();
+    const type = searchType.value;
+    const currentPage = 0;
+    window.location.href = `/api/admin/member-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
+});
+
+
+// 엔터 입력 시 검색
+searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchBtn.click();
+});
+</script>

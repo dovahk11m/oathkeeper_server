@@ -1,5 +1,8 @@
 package com.oath.domain.members.service;
 
+import com.oath.common.exception.Exception401;
+import com.oath.common.exception.Exception404;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,8 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.exception.Exception400;
-import com.oath.common.exception.Exception401;
-import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception409;
 import com.oath.common.exception.Exception500;
 import com.oath.domain.members.domain.Member;
@@ -80,6 +81,7 @@ public class MemberService {
         return savedMember;
     }
 
+
     public void verifyEmail(String token) {
         Member member = memberRepository.findByEmailVerificationToken(token)
                 .orElseThrow(() -> new Exception404("유효하지 않은 인증 토큰입니다."));
@@ -119,6 +121,7 @@ public class MemberService {
         }
     }
 
+
     public void postLogin(Member member) {
         if (member.getStatus() == Status.INACTIVE) {
             throw new Exception401("이메일 인증이 완료되지 않은 계정입니다. 이메일을 확인해주세요.");
@@ -130,7 +133,9 @@ public class MemberService {
         if (member.getLastLogin().isBefore(LocalDateTime.now().minusYears(1))) {
             member.setStatus(Status.INACTIVE);
             memberRepository.save(member);
+
             throw new Exception401("휴면계정입니다. 다시 로그인하여 활성화해주세요.");
+
         }
 
         member.setLastLogin(LocalDateTime.now());
@@ -177,19 +182,20 @@ public class MemberService {
 
     public void updatePassword(Long memberId, MemberRequest.PasswordUpdate request) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new Exception404("현재 비밀번호가 일치하지 않습니다."));
+                .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
-            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
+            throw new Exception401("현재 비밀번호가 일치하지 않습니다.");
         }
-
         member.updatePassword(passwordEncoder.encode(request.getNewPassword()));
 
     }
 
     @Transactional(readOnly = true)
     public String findId(MemberRequest.FindId request) {
+
         Member member = memberRepository.findByEmail(request.getEmail())
+
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
         return member.getUsername();
     }
@@ -215,6 +221,7 @@ public class MemberService {
                             eventPublisher
                                     .publishEvent(new PasswordResetEvent(m.getEmail(), m.getUsername(), tempPassword));
                         },
+
                         () -> {
                             throw new Exception404("일치하는 회원이 없습니다.");
                         });

@@ -1,0 +1,77 @@
+.wrapper {
+    background: #fff;
+    padding: 30px;
+    border-radius: 16px;
+    width: 1000px;
+    margin: 40px auto;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.container {
+    width: 100%;
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.input-area input {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    flex: 1;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tag {
+    padding: 8px 14px;
+    background: #f3e8ff;
+    border-radius: 50px;
+    position: relative;
+    cursor: default;
+    font-size: 14px;
+    font-weight: 500;
+    color: #7c3aed;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(124,58,237,0.15);
+}
+
+.tag .remove-btn {
+    display: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    background: #ff6b6b;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 18px;
+    flex-shrink: 0;
+}
+
+.tag:hover {
+    transform: scale(1.05);
+}
+
+.tag:hover .remove-btn {
+    display: flex;
+}
