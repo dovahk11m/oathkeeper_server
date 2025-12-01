@@ -158,4 +158,15 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             Pageable pageable
     );
 
+    @Query("""
+    SELECT new com.oath.domain.members.dto.AdminResponse$ChatListDto (
+        c.group.id, COUNT(DISTINCT c.id), COUNT(DISTINCT gm.member.id), MAX(c.sentAt)
+    )
+    FROM Chat c
+    JOIN GroupMember gm
+    ON c.group.id = gm.group.id
+    WHERE c.group.id = :groupId
+    GROUP BY c.group.id
+    """)
+    List<AdminResponse.ChatListDto> getChatList(@Param("groupId") Long groupId);
 }

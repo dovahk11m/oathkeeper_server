@@ -56,15 +56,7 @@ public class AdminService {
 
     private final MemberRepository memberRepository;
 
-    private final GroupRepository groupRepository;
-
     private final ChatRepository chatRepository;
-
-    private final PlanJpaRepository planJpaRepository;
-
-    private final PlanTagRepository planTagRepository;
-
-    private final ParticipantRepository participantRepository;
 
     private final PlaceRepository placeRepository;
 
@@ -72,7 +64,6 @@ public class AdminService {
 
     private final PlaceTagRepository placeTagRepository;
 
-    private final GroupMemberRepository groupMemberRepository;
 
     @Value("${kakao.rest-api-key}")
     private String kakaoApiKey;
@@ -90,17 +81,6 @@ public class AdminService {
         }
         memberRepository.save(member);
     }
-
-//    public AdminResponse.ListDto list() {
-//        List<AdminResponse.MemberDto> memberDtos = memberRepository.findAll().stream()
-//                .map(m -> new AdminResponse.MemberDto(m))
-//                .collect(Collectors.toList());
-//
-//        AdminResponse.ListDto response = new AdminResponse.ListDto();
-//        response.setMembers(memberDtos);
-//
-//        return response;
-//    }
 
     public Page<AdminResponse.MemberDto> getMembers(String type, String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
@@ -130,7 +110,7 @@ public class AdminService {
         return PlanTagsPie;
     }
 
-    public List<AdminResponse.ChatDto> chatList(Long groupId){
+    public List<AdminResponse.ChatDto> getChat(Long groupId){
         List<AdminResponse.ChatDto> chats = chatRepository.findByGroupIdOrderBySentAt(groupId)
                 .stream()
                 .map(m -> new AdminResponse.ChatDto(m))
@@ -246,8 +226,6 @@ public class AdminService {
         placeTagRepository.delete(placeTag);
     }
 
-
-
     public PlaceResponseDto.PlaceDto searchPlace(String keyword) {
         String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query="
                 + UriUtils.encode(keyword, StandardCharsets.UTF_8);
@@ -275,15 +253,6 @@ public class AdminService {
         return placeRepository.save(place);
     }
 
-
-
-
-//    public Page<AdminResponse.groupListDto> getGroupList(Pageable pageable) {
-//        Page<AdminResponse.groupListDto> groups = groupRepository.findAll(pageable)
-//                .map(g -> new AdminResponse.groupListDto(g));
-//        return groups;
-//    }
-
     public Page<AdminResponse.GroupList> getGroupList(Pageable pageble) {
         Page<AdminResponse.GroupList> groups = adminRepository.getGroupList(pageble);
 
@@ -308,5 +277,10 @@ public class AdminService {
     public List<AdminResponse.ParticipantCount> getParticipantCount() {
         List<AdminResponse.ParticipantCount> participantCount = adminRepository.getParticipantCount();
         return participantCount;
+    }
+
+    public List<AdminResponse.ChatListDto> chatList(Long groupId) {
+        List<AdminResponse.ChatListDto> chatListDtos = adminRepository.getChatList(groupId);
+        return chatListDtos;
     }
 }

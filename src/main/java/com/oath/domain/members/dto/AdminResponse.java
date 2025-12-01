@@ -56,11 +56,6 @@ public class AdminResponse {
     }
 
     @Data
-    public static class ListDto {
-        private List<MemberDto> members;
-    }
-
-    @Data
     public static class PageDto {
         private int number; // 화면에 표시될 페이지 번호 (1, 2, 3, ...)
         private int pageIndex; // URL에 사용될 페이지 인덱스 (0, 1, 2, ...)
@@ -73,31 +68,6 @@ public class AdminResponse {
         }
     }
 
-//    @Data
-//    public static class MemberIndexDto {
-//        private int index;
-//        private Member member;
-//
-//        public MemberIndexDto(int index, Member member) {
-//            this.index = index;
-//            this.member = member;
-//        }
-//    }
-
-    @Data
-    public static class popularPlanTag {
-        private Long tagId;
-        private String tagName;
-        private Long participantCount;
-        private Long planCount;
-
-        public popularPlanTag(Long tagId, String tagName, Long participantCount, Long planCount) {
-            this.tagId = tagId;
-            this.tagName = tagName;
-            this.participantCount = participantCount;
-            this.planCount = planCount;
-        }
-    }
 
     @Data
     public static class PlanTagPie {
@@ -107,38 +77,6 @@ public class AdminResponse {
         public PlanTagPie(String tagName, Long planCount) {
             this.tagName = tagName;
             this.planCount = planCount;
-        }
-    }
-
-    @Data
-    public static class popularPlaceTag {
-        private Long tagId;
-        private String tagName;
-        private Long placeCount;
-
-        public popularPlaceTag(Long tagId, String tagName, Long placeCount) {
-            this.tagId = tagId;
-            this.tagName = tagName;
-            this.placeCount = placeCount;
-        }
-    }
-
-    @Data
-    public static class groupListDto {
-        private Long id;
-        private String name;
-        private String description;
-        private String createdAt;
-
-        public groupListDto(Group group) {
-            this.id = group.getId();
-            this.name = group.getName();
-            this.description = group.getDescription() != null ? group.getDescription() : "설명없음";
-            this.createdAt = group.getCreatedAt() != null ? group.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
-        }
-
-        public static groupListDto from(Group group) {
-            return new groupListDto(group);
         }
     }
 
@@ -178,65 +116,10 @@ public class AdminResponse {
         }
     }
 
-    @Data
-    public static class PlanDto {
-        private Long planId;
-        private Long creatorId;
-        private String planDatetime;
-        private String placeName;
-        private String title;
-        private List<String> tags;
-        private List<String> profileImageUrl;
-
-
-        public PlanDto(Long planId, Long creatorId, LocalDateTime planDatetime, String placeName, String title, List<String> tags, List<String> profileImageUrl) {
-            this.planId = planId;
-            this.creatorId = creatorId;
-            this.planDatetime = planDatetime != null ? planDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
-            this.placeName = placeName != null ? placeName : "기록 없음";
-            this.title = title;
-            this.tags = tags != null ? tags : Collections.emptyList();
-            this.profileImageUrl = profileImageUrl;
-        }
-    }
-
-    @Data
-    public static class DailyTagCount {
-        private List<String> dates;
-        private List<DailyTag> dailyTags;
-
-        public DailyTagCount(List<String> dates, List<DailyTag> dailyTags) {
-            this.dates = dates;
-            this.dailyTags = dailyTags;
-        }
-
-        @Data
-        public static class DailyTag{
-            private String tagName;
-            private List<Long> count;
-
-            public DailyTag(String tagName, List<Long> count) {
-                this.tagName = tagName;
-                this.count = count;
-            }
-        }
-    }
-
     public interface MonthlyCount {
         String getMonth();
         Long getPlanCount();
         Long getParticipantCount();
-    }
-
-    @Data
-    public static class activeCount {
-        private String username;
-        private Long count;
-
-        public activeCount(String username, Long count) {
-            this.username = username;
-            this.count = count;
-        }
     }
 
     @Data
@@ -339,5 +222,19 @@ public class AdminResponse {
         }
     }
 
+    @Data
+    public static class ChatListDto {
+        private Long groupId;
+        private Long chatCount;
+        private Long memberCount;
+        private String lastSentAt;
+
+        public ChatListDto(Long groupId, Long chatCount, Long memberCount, LocalDateTime lastSentAt) {
+            this.groupId = groupId;
+            this.chatCount = chatCount;
+            this.memberCount = memberCount;
+            this.lastSentAt = lastSentAt != null ? lastSentAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "기록 없음";
+        }
+    }
 
 }

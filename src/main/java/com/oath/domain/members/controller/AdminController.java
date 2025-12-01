@@ -17,6 +17,7 @@ import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.place.PlaceRequestDto;
 import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
 import com.oath.domain.plan.repository.PlanJpaRepository;
+import com.oath.domain.visitors.VisitorService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -67,6 +68,8 @@ public class AdminController {
     private final JwtTokenProvider jwtTokenProvider;
 
     private final PlanJpaRepository planJpaRepository;
+
+    private final VisitorService visitorService;
 
 
     @PostMapping("/ban-member")
@@ -147,8 +150,12 @@ public class AdminController {
     @GetMapping("/chat-list/{groupId}")
     public String getChat(@PathVariable Long groupId, Model model) throws IOException {
         List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
-        List<AdminResponse.ChatDto> chats = adminService.chatList(groupId);
+        List<AdminResponse.ChatDto> chats = adminService.getChat(groupId);
+        List<AdminResponse.ChatListDto> chatLists = adminService.chatList(groupId);
+
         String summary = summarizeChat(groupId);
+        model.addAttribute("groupId", groupId);
+        model.addAttribute("chatLists", chatLists);
         model.addAttribute("chatMembers", chatMembers);
         model.addAttribute("summary", summary);
         model.addAttribute("chats", chats);
@@ -253,8 +260,11 @@ public class AdminController {
 
         Long adminId = jwtTokenProvider.getMemberId(token); // JWT에서 ID 추출
         String password = req.get("password");
+        Long groupId = Long.valueOf(req.get("groupId"));
 
         boolean valid = memberService.checkPassword(adminId, password);
+
+        visitorService.saveVisitor(groupId, adminId);
 
         return ResponseEntity.ok(Map.of("success", valid));
     }
