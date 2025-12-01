@@ -86,3 +86,10 @@ tbody tr:hover {
 background: #f1f1f1;
 }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* li 사이 간격 */
+    list-style: none; /* 점 제거 */
+    padding: 0;
+}
