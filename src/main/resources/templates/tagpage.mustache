@@ -22,9 +22,14 @@ let tags = [];
 async function loadTags() {
     try {
         const res = await fetch("/api/admin/tag");
-        const data = await res.json();   // 예: ["여행","맛집",...]
-        tags = data;
-        renderTags();
+        const json = await res.json();   // { success: true, data: [...] }
+
+        if (json.success) {
+            tags = json.data;            // 실제 태그 배열
+            renderTags();
+        } else {
+            console.error("태그 로드 실패:", json);
+        }
     } catch (e) {
         console.error("태그 로드 실패:", e);
     }
@@ -60,15 +65,18 @@ async function addTag() {
     if (!value) return;
 
     try {
-        await fetch("/api/admin/tag", {
+        const res = await fetch("/api/admin/tag", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name: value })
         });
+        const json = await res.json();
 
-        // 성공하면 새로 불러오기
-        await loadTags();
-
+        if (json.success) {
+            await loadTags();  // 성공하면 새로 불러오기
+        } else {
+            console.error("태그 추가 실패:", json);
+        }
     } catch (e) {
         console.error("태그 추가 실패:", e);
     }
@@ -78,17 +86,22 @@ async function addTag() {
 
 async function deleteTag(tag) {
     try {
-        await fetch(`/api/admin/tag/${encodeURIComponent(tag)}`, {
+        const res = await fetch(`/api/admin/tag/${encodeURIComponent(tag)}`, {
             method: "DELETE"
         });
+        const json = await res.json();
 
-        await loadTags();
-
+        if (json.success) {
+            await loadTags();
+        } else {
+            console.error("태그 삭제 실패:", json);
+        }
     } catch (e) {
         console.error("태그 삭제 실패:", e);
     }
 }
 
+// 🔹 이벤트 등록
 document.getElementById("tagInput").addEventListener("keydown", e => {
     if (e.key === "Enter") addTag();
 });

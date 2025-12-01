@@ -94,62 +94,66 @@
 </div>
 
 <script>
-    // Followers Chart
-    fetch('/api/admin/par-count')
-      .then(res => res.json())
-      .then(json => {
+// Followers Chart
+fetch('/api/admin/par-count')
+  .then(res => res.json())
+  .then(json => {
+    const data = json.data; // CommonResponse 적용!
 
-        const labels = json.map(item => item.monthweek);
-        const count = json.map(item => item.count);
+    const labels = data.map(item => item.monthweek);
+    const count = data.map(item => item.count);
 
-        new Chart(document.getElementById('chartFollowers'), {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: count,
-              borderWidth: 2,
-              tension: 0.4
-            }]
-          },
-          options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-        });
-      });
+    new Chart(document.getElementById('chartFollowers'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: count,
+          borderWidth: 2,
+          tension: 0.4
+        }]
+      },
+      options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  });
 
-    // Likes Chart
-    fetch('/api/admin/plan-count')
-      .then(res => res.json())
-      .then(json => {
+// Likes Chart
+fetch('/api/admin/plan-count')
+  .then(res => res.json())
+  .then(json => {
+    const data = json.data; // 👈 수정
 
-        const labels = json.map(item => item.monthweek);
-        const partcount = json.map(item => item.count);
+    const labels = data.map(item => item.monthweek);
+    const partcount = data.map(item => item.count);
 
-        new Chart(document.getElementById('chartLikes'), {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{ data: partcount }]
-          },
-          options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-        });
-      });
+    new Chart(document.getElementById('chartLikes'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ data: partcount }]
+      },
+      options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  });
 
-    // Tags Chart
-    fetch('/api/admin/plan-tag-pie')
-      .then(res => res.json())
-      .then(json => {
+// Tags Chart
+fetch('/api/admin/plan-tag-pie')
+  .then(res => res.json())
+  .then(json => {
+    const data = json.data; // 👈 수정
 
-        const labels = json.map(item => item.tagName);
-        const count = json.map(item => item.planCount);
+    const labels = data.map(item => item.tagName);
+    const count = data.map(item => item.planCount);
 
-        new Chart(document.getElementById('chartTags'), {
-          type: 'pie',
-          data: {
-            labels: labels,
-            datasets: [{ data: count}]
-          }
-        });
-      });
+    new Chart(document.getElementById('chartTags'), {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{ data: count }]
+      }
+    });
+  });
+
 </script>
 
 

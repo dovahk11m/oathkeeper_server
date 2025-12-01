@@ -116,11 +116,6 @@ public class AdminService {
         return chatMembers;
     }
 
-    public List<AdminResponse.MonthlyCount> getMonthlyCount() {
-        return adminRepository.getMonthlyCount();
-    }
-
-
 
     public List<AdminResponse.placeList> getPlaceList() {
         List<Place> places = placeRepository.findAll();

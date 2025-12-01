@@ -43,22 +43,7 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             """)
     List<AdminResponse.ChatMemberDto> chatMember(@Param("groupId") Long groupId);
 
-    @Query(
-        value = """
-        SELECT
-            FORMATDATETIME(p.created_at, 'yyyy-MM') AS "month",
-            COUNT(DISTINCT p.id) AS planCount,
-            COUNT(pp.id) AS participantCount
-        FROM plan_tb p
-        LEFT JOIN plan_participants_tb pp
-        ON p.id = pp.plan_id
-        WHERE p.created_at >= DATEADD('MONTH', -5, CURRENT_DATE())
-        GROUP BY "month"
-        ORDER BY "month"
-        """,
-        nativeQuery = true
-    )
-    List<AdminResponse.MonthlyCount> getMonthlyCount();
+
 
 
     @Query("""

@@ -116,12 +116,6 @@ public class AdminResponse {
         }
     }
 
-    public interface MonthlyCount {
-        String getMonth();
-        Long getPlanCount();
-        Long getParticipantCount();
-    }
-
     @Data
     public static class placeList {
         private Long id;

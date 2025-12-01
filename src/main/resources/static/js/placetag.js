@@ -3,15 +3,17 @@ let tags = [];
 let selectedPlaces = [];
 
 async function loadData() {
-  // 태그 리스트
-  const tagRes = await fetch("/api/admin/tag");
-  tags = await tagRes.json();
+    // 태그 리스트
+    const tagRes = await fetch("/api/admin/tag");
+    const tagJson = await tagRes.json();
+    tags = tagJson.data;
 
-  // 장소 + 태그 리스트
-  const placeRes = await fetch("/api/admin/place-tag-list");
-  places = await placeRes.json();
+    // 장소 + 태그 리스트
+    const placeRes = await fetch("/api/admin/place-tag-list");
+    const placeJson = await placeRes.json();
+    places = placeJson.data;
 
-  renderPlaces();
+    renderPlaces();
 }
 
 window.onload = () => {
@@ -91,7 +93,8 @@ document.getElementById("bulkAddBtn").onclick = async () => {
   // tags가 아직 로드되지 않았다면 다시 fetch
   if(!Array.isArray(tags) || tags.length === 0){
     const tagRes = await fetch("/api/admin/tags");
-    tags = await tagRes.json();
+    const tagJson = await tagRes.json();
+    tags = tagJson.data;
   }
 
   if(selectedPlaces.length === 0){
@@ -128,28 +131,24 @@ document.getElementById("saveTags").onclick = async () => {
   };
 
   try {
-    // 서버에 POST
     const res = await fetch("/api/admin/add/place-tags", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    if (!res.ok) throw new Error("태그 저장 실패");
+    const json = await res.json();
+    if (!json.success) throw new Error("태그 저장 실패");
 
-    // 서버에서 새 태그 ID 포함해서 반환한다고 가정
-    const savedTags = await res.json();
-    // savedTags 예시: [{placeId:1, id:101, name:"카페"}, {placeId:2, id:102, name:"맛집"}]
+    const savedTags = json.data;
+    // [{ placeId:1, id:101, name:"카페" }, ... ]
 
-    // 프론트에서 places 배열 업데이트
     selectedPlaces.forEach(placeId => {
       const place = places.find(p => p.id === placeId);
       place.tags = place.tags || [];
 
-      // 서버에서 온 태그만 추가
       const newTagsForPlace = savedTags.filter(t => t.placeId === placeId);
       newTagsForPlace.forEach(tag => {
-        // 중복 방지
         if (!place.tags.some(t => t.id === tag.id)) {
           place.tags.push(tag);
         }
