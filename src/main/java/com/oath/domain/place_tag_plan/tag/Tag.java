@@ -25,6 +25,9 @@ public class Tag {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Builder.Default
     @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlaceTag> placeTags = new ArrayList<>();

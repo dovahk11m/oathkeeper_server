@@ -2,6 +2,7 @@ package com.oath.domain.members.dto;
 
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
+import com.oath.domain.members.domain.SocialType;
 import com.oath.domain.members.domain.Status;
 import lombok.Data;
 
@@ -10,11 +11,13 @@ public class MemberResponse {
     @Data
     public static class DTO {
         private Long id;
+        private String profileImageUrl;
         private String username;
         private String email;
 
         public DTO(Member member) {
             this.id = member.getId();
+            this.profileImageUrl = member.getProfileImageUrl();
             this.username = member.getUsername();
             this.email = member.getEmail();
         }
@@ -32,11 +35,17 @@ public class MemberResponse {
 
         @Data
         public static class MemberInfo {
+            // 필수 필드
             private Long id;
             private String username;
             private String email;
             private Role role;
             private Status status;
+
+            // 선택 필드
+            private String profileImageUrl;
+            private SocialType socialType;
+            private boolean isPremium;
 
             public MemberInfo(Member member) {
                 this.id = member.getId();
@@ -44,6 +53,9 @@ public class MemberResponse {
                 this.email = member.getEmail();
                 this.role = member.getRole();
                 this.status = member.getStatus();
+                this.profileImageUrl = member.getProfileImageUrl();
+                this.socialType = member.getSocialType();
+                this.isPremium = member.isPremium();
             }
         }
     }

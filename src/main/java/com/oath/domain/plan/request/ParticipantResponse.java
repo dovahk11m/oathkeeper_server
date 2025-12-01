@@ -1,7 +1,8 @@
 package com.oath.domain.plan.request;
 
-import com.oath.domain.plan.domain.Participant;
+import com.oath.domain.plan.MovementStatus;
 import com.oath.domain.plan.ParticipantStatus;
+import com.oath.domain.plan.domain.Participant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -16,6 +17,8 @@ public class ParticipantResponse {
     private Long id;
     private Long memberId;
     private ParticipantStatus participantStatus;
+    private MovementStatus movementStatus;
+    private String memberNickname;
     private String transportMethod;
     private String startAddress;
     private Double startLatitude;
@@ -32,6 +35,8 @@ public class ParticipantResponse {
         this.id = pm.getId();
         if (pm.getMember() != null) this.memberId = pm.getMember().getId();
         this.participantStatus = pm.getParticipantStatus();
+        this.movementStatus = pm.getMovementStatus();
+        this.memberNickname = pm.getMember().getUsername();
         this.transportMethod = pm.getTransportMethod();
         this.startAddress = pm.getStartAddress();
         this.startLatitude = pm.getStartLatitude();
@@ -48,4 +53,3 @@ public class ParticipantResponse {
         return new ParticipantResponse(pm);
     }
 }
-

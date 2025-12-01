@@ -1,5 +1,6 @@
 package com.oath.domain.place_tag_plan.place_tag;
 
+
 import com.oath.domain.place_tag_plan.place.Place;
 import com.oath.domain.place_tag_plan.tag.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,5 @@ public interface PlaceTagRepository extends JpaRepository<PlaceTag, Long> {
     @Query("select pt from PlaceTag pt join fetch pt.tag")
     List<PlaceTag> findAllWithTags();
 
+    List<PlaceTag> findByTag(Tag tag);
 }

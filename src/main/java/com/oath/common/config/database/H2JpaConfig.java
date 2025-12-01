@@ -25,14 +25,13 @@ import javax.sql.DataSource;
 )
 public class H2JpaConfig {
 
-    @Primary
+    @Primary // Spring Boot 자동 설정이 JpaProperties Bean을 하나만 찾도록 하기 위해 Primary로 지정
     @Bean(name = "h2JpaProperties")
     @ConfigurationProperties(prefix = "spring.jpa.h2-props")
     public JpaProperties h2JpaProperties() {
         return new JpaProperties();
     }
 
-    @Primary
     @Bean(name = "h2EntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean h2EntityManagerFactory(
             @Qualifier("h2DataSourceCustom") DataSource h2DataSource,
@@ -46,7 +45,7 @@ public class H2JpaConfig {
                 .build();
     }
 
-    @Primary
+    @Primary // 여러 TransactionManager 중, 명시적 지정이 없을 때를 대비한 기본값으로 사용
     @Bean(name = "h2TransactionManager")
     public PlatformTransactionManager h2TransactionManager(
             @Qualifier("h2EntityManagerFactory") EntityManagerFactory h2EntityManagerFactory) {

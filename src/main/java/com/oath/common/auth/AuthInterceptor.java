@@ -1,5 +1,6 @@
 package com.oath.common.auth;
 
+
 import com.oath.common.exception.Exception401;
 import com.oath.common.exception.Exception403;
 import com.oath.common.JwtTokenProvider;
@@ -9,12 +10,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.Arrays;
+import org.springframework.lang.NonNull;
+
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.Arrays;
+import com.oath.common.JwtTokenProvider;
+import com.oath.common.exception.Exception401;
+import com.oath.common.exception.Exception403;
+import com.oath.domain.members.domain.Role;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -27,10 +39,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Object handler
-    ) throws Exception {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler) throws Exception {
         // 1. 요청 핸들러가 HandlerMethod가 아니면 통과 (e.g., 정적 리소스 요청)
         if (!(handler instanceof HandlerMethod handlerMethod)) {
             return true;
@@ -44,6 +55,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 3. 헤더에서 토큰 추출 및 검증 (early return)
         String token = resolveToken(request);
+        log.warn("HEADER AUTH => {}", request.getHeader("Authorization"));
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new Exception401("인증되지 않은 사용자입니다.");
         }
@@ -60,12 +72,10 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         request.setAttribute(
                 "userEmail",
-                email
-        );
+                email);
         request.setAttribute(
                 "memberId",
-                memberId
-        );
+                memberId);
 
         return true;
     }

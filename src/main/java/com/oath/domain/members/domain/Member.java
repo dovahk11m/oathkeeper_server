@@ -1,10 +1,15 @@
 package com.oath.domain.members.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oath.domain.members.OathkeeperRank;
+import com.oath.domain.terms.MemberAgreedTerm;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "members_tb")
@@ -12,7 +17,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "agreedTerms") // 순환 참조 방지
 @Builder
 public class Member {
 
@@ -23,9 +28,10 @@ public class Member {
     @Column(nullable = false)
     private String username;
 
+    @Lob
     private String profileImageUrl;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -43,7 +49,10 @@ public class Member {
 
     private String socialId;
 
-    private String defaultAddress;
+
+    private String defaultAddress; // 기본 주소
+    private Double defaultLat; // 기본 위도
+    private Double defaultLng; // 기본 경도
 
     @Enumerated(EnumType.STRING)
     private OathkeeperRank oathkeeperRank;
@@ -63,10 +72,18 @@ public class Member {
 
     private LocalDateTime bannedUntil;
 
+    private String emailVerificationToken;
+    private LocalDateTime emailVerificationTokenExpiry;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonManagedReference // 순환 참조 부모(정상 직렬화)
+    private List<MemberAgreedTerm> agreedTerms = new ArrayList<>();
+
     public void updateInfo(String username, String profileImageUrl, String defaultAddress) {
-        this.username = username;
-        this.profileImageUrl = profileImageUrl;
-        this.defaultAddress = defaultAddress;
+        if (username != null) this.username = username;
+        if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+        if (defaultAddress != null) this.defaultAddress = defaultAddress;
     }
 
     public void updatePassword(String encodedPassword) {
@@ -83,6 +100,8 @@ public class Member {
 
     public void activate() {
         this.status = Status.ACTIVE;
+        this.emailVerificationToken = null; // 인증 완료 후 토큰은 제거
+        this.emailVerificationTokenExpiry = null;
     }
 
     public void suspend() {
@@ -91,5 +110,10 @@ public class Member {
 
     public boolean isActive() {
         return this.status == Status.ACTIVE;
+    }
+
+    public void generateEmailVerificationToken() {
+        this.emailVerificationToken = UUID.randomUUID().toString();
+        this.emailVerificationTokenExpiry = LocalDateTime.now().plusHours(24); // 토큰 유효기간 24시간
     }
 }

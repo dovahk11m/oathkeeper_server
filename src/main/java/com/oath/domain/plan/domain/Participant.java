@@ -3,6 +3,7 @@ package com.oath.domain.plan.domain;
 
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.plan.ArrivalStatus;
+import com.oath.domain.plan.MovementStatus;
 import com.oath.domain.plan.ParticipantStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -39,7 +40,13 @@ public class Participant {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "participant_status", nullable = false)
-    private ParticipantStatus participantStatus; // 참가 상태 (PENDING/ACCEPTED/DECLINED)
+    @Builder.Default // PENDING을 기본값으로 설정
+    private ParticipantStatus participantStatus = ParticipantStatus.PENDING; // 참가 상태 (PENDING/ACCEPTED/DECLINED)
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "movement_status", nullable = false)
+    @Builder.Default
+    private MovementStatus movementStatus = MovementStatus.HOME; // 이동 상태 (HOME/DEPARTED/MOVING/STATIONARY/ARRIVED)
 
     @Column(name = "transport_method")
     private String transportMethod; // 이동 수단 (WALK/BIKE/CAR/TRANSIT)
@@ -80,7 +87,7 @@ public class Participant {
 
     @Builder.Default
     @Column(name = "departed")
-    private Boolean departed = false; // 출발 여부
+    private Boolean departed = false; // 출발 여부 (movementStatus로 대체 가능하지만, 기존 필드 유지)
 
     @Column(name = "last_live_ts")
     private LocalDateTime lastLiveTs; // 마지막 실시간 위치 수신 시각
@@ -93,13 +100,14 @@ public class Participant {
     public void markDeparted() {
         this.departed = true;
         this.actualDepartureTime = LocalDateTime.now();
+        this.movementStatus = MovementStatus.DEPARTED; // 이동 상태 업데이트
     }
 
     // 도착 처리
     public void markArrived(ArrivalStatus status, Integer offsetMinutes) {
-        this.actualArrivalTime = LocalDateTime.now();
         this.arrivalStatus = status;
         this.arrivalOffsetMinutes = offsetMinutes;
+        this.movementStatus = MovementStatus.ARRIVED; // 이동 상태 업데이트
     }
 
     // 실시간 위치 업데이트
@@ -107,4 +115,20 @@ public class Participant {
         this.lastLiveTs = LocalDateTime.now();
     }
 
+    // ParticipantStatus 변경 시 MovementStatus 초기화 또는 연동
+    public void setParticipantStatus(ParticipantStatus participantStatus) {
+        this.participantStatus = participantStatus;
+        // ACCEPTED 상태가 되면 이동 상태를 HOME으로 초기화
+        if (participantStatus == ParticipantStatus.ACCEPTED) {
+            this.movementStatus = MovementStatus.HOME;
+        }
+        // REJECTED 상태가 되면 이동 상태를 ARRIVED로 간주 (더 이상 이동하지 않음)
+        else if (participantStatus == ParticipantStatus.REJECTED) {
+            this.movementStatus = MovementStatus.ARRIVED;
+        }
+    }
+
+    public void setMovementStatus(MovementStatus movementStatus) {
+        this.movementStatus = movementStatus;
+    }
 }

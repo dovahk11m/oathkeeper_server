@@ -1,15 +1,25 @@
 package com.oath.domain.plan.facade;
 
+import com.oath.common.exception.Exception404;
+import com.oath.common.exception.Exception500;
+import com.oath.common.paging.PageResponseDTO;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTagRepository;
 import com.oath.domain.place_tag_plan.tag.Tag;
 import com.oath.domain.place_tag_plan.tag.TagRepository;
 import com.oath.domain.plan.Status;
+import com.oath.domain.plan.SummaryStatus;
 import com.oath.domain.plan.domain.Plan;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.plan.request.PlanResponse;
-import com.oath.domain.plan.service.PlanService;
+import com.oath.domain.plan.service.AIService;
+import com.oath.domain.plan.service.PlanCoreService;
+import com.oath.domain.plan.service.PlanParticipantService;
+import com.oath.domain.plan.service.PlanTrackingService;
+import com.oath.recommend_domain.plan.PlanEmbeddingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,19 +32,36 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Transactional("h2TransactionManager") // Facade의 기본 트랜잭션 관리자 지정
 public class PlanFacade {
 
-    private final PlanService planService;
+    private final PlanCoreService planCoreService;
+    private final PlanParticipantService planParticipantService;
+    private final PlanTrackingService planTrackingService;
     private final PlanJpaRepository planJpaRepository;
     private final TagRepository tagRepository;
     private final PlanTagRepository planTagRepository;
+    private final PlanEmbeddingService planEmbeddingService;
+    private final AIService aiService;
 
     @Transactional(readOnly = true)
     public List<PlanResponse.CreatePlan> listPlans(Long memberId) {
-        List<Plan> plans = planJpaRepository.findAllByCreatorOrParticipant(memberId);
+        List<Plan> plans = planCoreService.listPlans(memberId);
         return plans.stream()
                 .map(plan -> PlanResponse.CreatePlan.of(plan))
                 .collect(Collectors.toList());
+    }
+
+    // 이 메서드는 두 개의 다른 트랜잭션 관리자를 사용하는 서비스를 호출하므로,
+    // 자체적인 트랜잭션을 시작하지 않고 각 서비스의 트랜잭션에 위임한다.
+    public List<PlanResponse.CreatePlan> listRecommendPlans(Long currentPlanId, Long limit) {
+        // planEmbeddingService는 내부적으로 "pgTransactionManager"를 사용한다.
+        List<Plan> plans = planEmbeddingService.findSimilarEmbeddings(currentPlanId, limit);
+        
+        // DTO 변환 로직은 추가적인 DB 조회가 없으므로 트랜잭션이 필요 없다.
+        return plans.stream()
+                .map((plan) -> PlanResponse.CreatePlan.of(plan))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -44,7 +71,37 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(plan);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
+    public PageResponseDTO<PlanResponse.SimplePlan> getPlansByGroupAndStatus(Long groupId, Status status, Pageable pageable) {
+        Page<Plan> planPage = planCoreService.getPlansByGroupAndStatus(groupId, status, pageable);
+        return PageResponseDTO.from(planPage, PlanResponse.SimplePlan::of, 5);
+    }
+
+    public PlanResponse.Summary getPlanSummary(Long planId) {
+        Plan plan = planJpaRepository.findById(planId)
+                .orElseThrow(() -> new Exception404("해당 플랜을 찾을 수 없습니다."));
+
+        switch (plan.getSummaryStatus()) {
+            case NONE:
+                plan.setSummaryStatus(SummaryStatus.PROCESSING); // IN_PROGRESS -> PROCESSING
+                planJpaRepository.save(plan);
+                aiService.generateAndSaveSummary(planId);
+                return null; // 처리 중 상태로 변경 후 null 반환
+
+            case PROCESSING: // IN_PROGRESS -> PROCESSING
+                return null; // 여전히 처리 중이므로 null 반환
+
+            case COMPLETED:
+                return new PlanResponse.Summary(plan.getId(), plan.getTitle(), plan.getSummary());
+
+            case FAILED:
+                throw new Exception500("AI 요약 생성에 실패했습니다. 다시 시도해주세요.");
+
+            default:
+                throw new Exception500("알 수 없는 요약 상태입니다.");
+        }
+    }
+
     public PlanResponse.CreatePlan createPlan(
             Long creatorMemberId,
             String title,
@@ -52,7 +109,7 @@ public class PlanFacade {
             Status status,
             Long lateFineAmount
     ) {
-        Plan plan = planService.createPlan(
+        Plan plan = planCoreService.createPlan(
                 creatorMemberId,
                 title,
                 planDatetime,
@@ -64,7 +121,6 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(reloaded);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan updatePlan(
             Long planId,
             String title,
@@ -72,7 +128,7 @@ public class PlanFacade {
             Status status,
             List<String> tags
     ) {
-        Plan plan = planService.updatePlan(
+        Plan plan = planCoreService.updatePlan(
                 planId,
                 title,
                 planDatetime,
@@ -98,7 +154,7 @@ public class PlanFacade {
             plan.getPlanTags()
                     .stream()
                     .filter(planTag -> !newTagNames.contains(planTag.getTag()
-                                                                     .getName()))
+                            .getName()))
                     .forEach(planTagRepository::delete);
 
             // 4. 추가할 태그 식별 및 연결
@@ -108,9 +164,9 @@ public class PlanFacade {
                         // 태그를 찾거나 새로 생성
                         Tag tag = tagRepository.findByName(tagName)
                                 .orElseGet(() -> tagRepository.save(Tag.builder()
-                                                                            .name(tagName)
-                                                                            .createdAt(LocalDateTime.now())
-                                                                            .build()));
+                                        .name(tagName)
+                                        .createdAt(LocalDateTime.now())
+                                        .build()));
 
                         // PlanTag 생성 및 저장
                         PlanTag planTag = PlanTag.builder()
@@ -128,13 +184,12 @@ public class PlanFacade {
         return PlanResponse.CreatePlan.of(reloaded);
     }
 
-    @Transactional
     public PlanResponse.CreatePlan confirmPlace(
             Long planId,
             String placeName,
             Point location
     ) {
-        Plan plan = planService.confirmPlace(
+        Plan plan = planCoreService.confirmPlace(
                 planId,
                 placeName,
                 location
@@ -142,5 +197,36 @@ public class PlanFacade {
         Plan reloaded = planJpaRepository.findByIdWithParticipants(plan.getId())
                 .orElse(plan);
         return PlanResponse.CreatePlan.of(reloaded);
+    }
+
+    @Transactional(readOnly = true)
+    public void validatePlanAccess(Long planId, Long memberId) {
+        planCoreService.validatePlanAccess(planId, memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public void validatePlanCreator(Long planId, Long memberId) {
+        planCoreService.validatePlanCreator(planId, memberId);
+    }
+
+    public void deletePlan(Long planId) {
+        planCoreService.deletePlan(planId);
+    }
+
+    public Plan confirmFinalPlan(Long planId, Long requesterId) {
+        return planCoreService.confirmFinalPlan(planId, requesterId);
+    }
+
+    @Transactional(readOnly = true)
+    public Long calculateLateFine(Long participantId, Long requesterId) {
+        return planTrackingService.calculateLateFine(participantId, requesterId);
+    }
+
+    public Plan completePlanManually(Long planId, Long requesterId) {
+        return planTrackingService.completePlanManually(planId, requesterId);
+    }
+
+    public void markAllArrivedForTest(Long planId, Long requesterId) {
+        planTrackingService.markAllArrivedForTest(planId, requesterId);
     }
 }

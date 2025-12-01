@@ -1,13 +1,16 @@
 package com.oath.domain.plan.domain;
 
+import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.place_tag_plan.plan_tag.PlanTag;
 import com.oath.domain.plan.Status;
+import com.oath.domain.plan.SummaryStatus; // SummaryStatus import
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.geo.Point;
@@ -29,6 +32,10 @@ public class Plan {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_member_id", nullable = false)
     private Member creatorMember;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id") // nullable = false 제거
+    private Group group;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -52,6 +59,32 @@ public class Plan {
     @Column(name = "late_fine_amount")
     private Long lateFineAmount;
 
+    // --- 개별 약속 통계 필드 추가 ---
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalLateMinutes = 0;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalOnTimeArrivals = 0;
+
+    @ColumnDefault("0.0")
+    @Column(nullable = false)
+    private Double totalTravelDistance = 0.0;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer totalTravelTime = 0; // 분 단위
+
+    // --- AI 요약 보고서 필드 추가 ---
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "summary_status", nullable = false)
+    // @Builder.Default // 이 줄을 제거합니다.
+    private SummaryStatus summaryStatus = SummaryStatus.NONE;
+
     // 참가자 목록
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Participant> participants = new ArrayList<>();
@@ -68,13 +101,21 @@ public class Plan {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @Builder
-    public Plan(Member creatorMember, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount) {
+    public Plan(Member creatorMember, Group group, String title, LocalDateTime planDatetime, Status status, Long lateFineAmount,
+                String placeName, Double placeLatitude, Double placeLongitude) {
         this.creatorMember = creatorMember;
+        this.group = group;
         this.title = title;
         this.planDatetime = planDatetime;
         this.status = status;
         this.lateFineAmount = lateFineAmount;
+        this.placeName = placeName;
+        this.placeLatitude = placeLatitude;
+        this.placeLongitude = placeLongitude;
     }
 
     public void update(String title, LocalDateTime planDatetime, Status status) {
@@ -93,6 +134,32 @@ public class Plan {
             this.placeLatitude = location.getY();
             this.placeLongitude = location.getX();
         }
+    }
+
+    // 약속 완료 처리
+    public void complete() {
+        this.status = Status.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    // 약속 완료 여부 확인
+    public boolean isCompleted() {
+        return this.status == Status.COMPLETED && this.completedAt != null;
+    }
+
+    public void updateStatistics(Integer totalLateMinutes, Integer totalOnTimeArrivals, Double totalTravelDistance, Integer totalTravelTime) {
+        this.totalLateMinutes = totalLateMinutes;
+        this.totalOnTimeArrivals = totalOnTimeArrivals;
+        this.totalTravelDistance = totalTravelDistance;
+        this.totalTravelTime = totalTravelTime;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public void setSummaryStatus(SummaryStatus summaryStatus) {
+        this.summaryStatus = summaryStatus;
     }
 
     // 계산/조회 편의용: DB의 위도/경도를 Spring Data Point로 변환

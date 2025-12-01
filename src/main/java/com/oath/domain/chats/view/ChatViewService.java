@@ -3,7 +3,7 @@ package com.oath.domain.chats.view;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
 import com.oath.domain.groups.Group;
-import com.oath.domain.groups.groupRepository.GroupRepository;
+import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

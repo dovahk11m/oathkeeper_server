@@ -15,9 +15,20 @@ import com.oath.domain.plan.request.ParticipantResponse;
 import com.oath.domain.plan.request.PlanRequest;
 import com.oath.domain.plan.request.PlanResponse;
 import com.oath.domain.plan.service.PlanService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter; // Parameter 임포트
+import io.swagger.v3.oas.annotations.media.Content; // Content 임포트
+import io.swagger.v3.oas.annotations.media.ExampleObject; // ExampleObject 임포트
+import io.swagger.v3.oas.annotations.media.Schema; // Schema 임포트
+import io.swagger.v3.oas.annotations.parameters.RequestBody; // RequestBody 임포트
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.Point;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,13 +36,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+@Tag(name = "Plan API", description = "약속 관련 API")
 @RestController
 @RequestMapping("/api/plans")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "Bearer Authentication")
 public class PlanRestController {
 
-    private final PlanService planService;
     private final PlanFacade planFacade;
+    private final PlanService planService;
     private final ParticipantFacade participantFacade;
     private final MemberRepository memberRepository;
 
@@ -47,6 +60,11 @@ public class PlanRestController {
 
     // 플랜 목록조회
     @Auth
+    @Operation(summary = "플랜 목록 조회", description = "본인이 생성하거나 참여한 플랜 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "플랜 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @GetMapping
     public ResponseEntity<CommonResponse<List<PlanResponse.CreatePlan>>> listPlans(HttpServletRequest request) {
         Member currentMember = getCurrentMember(request);
@@ -54,17 +72,89 @@ public class PlanRestController {
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
+    // 추천 플랜 목록 조회
+    @Auth
+    @Operation(summary = "추천 플랜 목록 조회", description = "사용자에게 추천하는 플랜 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "추천 플랜 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @GetMapping("recommend")
+    public ResponseEntity<CommonResponse<List<PlanResponse.CreatePlan>>> listRecommendPlans(
+            @RequestParam("currentPlanId") Long currentPlanId,
+            @RequestParam("limit") Long limit
+    ) {
+
+        List<PlanResponse.CreatePlan> plans = planFacade.listRecommendPlans(
+                currentPlanId,
+                limit
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                plans,
+                plans.size() + "개의 플랜이 추천 검색되었습니다."
+        ));
+    }
+
     // 플랜 조회
     @Auth
+    @Operation(summary = "플랜 상세 조회", description = "특정 플랜의 상세 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "플랜 상세 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> getPlan(@PathVariable("id") Long id, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> getPlan(
+            @Parameter(description = "조회할 플랜의 ID", example = "2") @PathVariable("id") Long id, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        planService.validatePlanAccess(id, currentMember.getId());
+        planFacade.validatePlanAccess(
+                id,
+                currentMember.getId()
+        );
         PlanResponse.CreatePlan dto = planFacade.getPlanById(id);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
-    private Status parseStatusOrThrow(String statusStr, Status defaultStatus) {
+    @Auth
+    @Operation(summary = "AI 요약 보고서 제공 API", description = "AI가 생성한 약속 요약 보고서를 제공합니다. (폴링 방식)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AI 요약 보고서 조회 성공"),
+            @ApiResponse(responseCode = "202", description = "AI 요약 보고서 생성 중"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "AI 요약 생성 실패")
+    })
+    @GetMapping("/{planId}/summary")
+    public ResponseEntity<CommonResponse<PlanResponse.Summary>> getPlanSummary(
+            @Parameter(description = "요약 보고서를 조회할 플랜의 ID", example = "1") @PathVariable("planId") Long planId, // example 추가
+            HttpServletRequest request
+    ) {
+        Member currentMember = getCurrentMember(request);
+        planFacade.validatePlanAccess(
+                planId,
+                currentMember.getId()
+        );
+        PlanResponse.Summary summary = planFacade.getPlanSummary(planId);
+
+        if (summary == null) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(CommonResponse.success(
+                            null,
+                            "AI 요약 보고서가 생성 중입니다. 잠시 후 다시 시도해주세요."
+                    ));
+        } else {
+            return ResponseEntity.ok(CommonResponse.success(summary));
+        }
+    }
+
+    private Status parseStatusOrThrow(
+            String statusStr,
+            Status defaultStatus
+    ) {
         if (statusStr == null) return defaultStatus;
         try {
             return Status.valueOf(statusStr);
@@ -84,65 +174,156 @@ public class PlanRestController {
 
     // 플랜 생성
     @Auth
+    @Operation(summary = "플랜 생성", description = "새로운 플랜을 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "플랜 생성 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "멤버를 찾을 수 없음")
+    })
     @PostMapping
     public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> createPlan(@RequestBody PlanRequest.CreatePlanRequest req) {
         LocalDateTime dt = parseDateTimeOrThrow(req.planDatetime);
-        Status status = parseStatusOrThrow(req.status, Status.PLANNING);
-        PlanResponse.CreatePlan dto = planFacade.createPlan(req.creatorMemberId, req.title, dt, status, req.lateFineAmount);
+        Status status = parseStatusOrThrow(
+                req.status,
+                Status.PLANNING
+        );
+        PlanResponse.CreatePlan dto = planFacade.createPlan(
+                req.creatorMemberId,
+                req.title,
+                dt,
+                status,
+                req.lateFineAmount
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 플랜 수정
     @Auth
+    @Operation(summary = "플랜 수정", description = "특정 플랜의 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "플랜 수정 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "플랜 생성자만 수정 가능"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> updatePlan(@PathVariable("id") Long id,
-                                                                              @RequestBody PlanRequest.UpdatePlanRequest req,
-                                                                              HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> updatePlan(
+            @Parameter(description = "수정할 플랜의 ID", example = "1") @PathVariable("id") Long id, // example 추가
+            @RequestBody PlanRequest.UpdatePlanRequest req,
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        planService.validatePlanCreator(id, currentMember.getId());
+        planFacade.validatePlanCreator(
+                id,
+                currentMember.getId()
+        );
         LocalDateTime dt = parseDateTimeOrThrow(req.planDatetime);
         Status status = null;
-        if (req.status != null) status = parseStatusOrThrow(req.status, null);
-        PlanResponse.CreatePlan dto = planFacade.updatePlan(id, req.title, dt, status, req.tags);
+        if (req.status != null) status = parseStatusOrThrow(
+                req.status,
+                null
+        );
+        PlanResponse.CreatePlan dto = planFacade.updatePlan(
+                id,
+                req.title,
+                dt,
+                status,
+                req.tags
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 플랜 삭제
     @Auth
+    @Operation(summary = "플랜 삭제", description = "특정 플랜을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "플랜 삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "플랜 생성자만 삭제 가능"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<CommonResponse<Object>> deletePlan(@PathVariable("id") Long id, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<Object>> deletePlan(
+            @Parameter(description = "삭제할 플랜의 ID", example = "1") @PathVariable("id") Long id, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        planService.validatePlanCreator(id, currentMember.getId());
-        planService.deletePlan(id);
-        return ResponseEntity.ok(CommonResponse.success(null, "삭제되었습니다."));
+        planFacade.validatePlanCreator(
+                id,
+                currentMember.getId()
+        );
+        planFacade.deletePlan(id);
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                "삭제되었습니다."
+        ));
     }
 
     // 참가자 추가
     @Auth
+    @Operation(summary = "참가자 추가", description = "플랜에 참가자를 추가합니다. 플랜 생성자만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참가자 추가 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "플랜 생성자만 가능"),
+            @ApiResponse(responseCode = "404", description = "플랜 또는 멤버를 찾을 수 없음")
+    })
     @PostMapping("/{planId}/participants")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(@PathVariable Long planId,
-                                                                              @RequestBody PlanRequest.ParticipantAddRequest req,
-                                                                              HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> addParticipant(
+            @Parameter(description = "참가자를 추가할 플랜의 ID", example = "1") @PathVariable(name = "planId") Long planId, // example 추가
+            @RequestBody PlanRequest.ParticipantAddRequest req,
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        ParticipantResponse dto = participantFacade.addParticipant(planId, req.memberId, currentMember.getId());
+        ParticipantResponse dto = participantFacade.addParticipant(
+                planId,
+                req.memberId,
+                currentMember.getId()
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 참가자 삭제
     @Auth
+    @Operation(summary = "참가자 삭제", description = "플랜에서 참가자를 삭제합니다. 플랜 생성자 또는 본인만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참가자 삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
     @DeleteMapping("/{planId}/participants/{participantId}")
-    public ResponseEntity<CommonResponse<Object>> removeParticipant(@PathVariable Long participantId, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<Object>> removeParticipant(
+            @Parameter(description = "삭제할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        planService.removeParticipant(participantId, currentMember.getId());
-        return ResponseEntity.ok(CommonResponse.success(null, "참가자가 삭제되었습니다."));
+        participantFacade.removeParticipant(
+                participantId,
+                currentMember.getId()
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                null,
+                "참가자가 삭제되었습니다."
+        ));
     }
 
     // 참가자 상태 변경
     @Auth
+    @Operation(summary = "참가자 상태 변경", description = "참가자의 플랜 참여 상태(수락/거절 등)를 변경합니다. 본인만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참가자 상태 변경 성공"),
+            @ApiResponse(responseCode = "400", description = "상태 값이 올바르지 않음"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
     @PutMapping("/participants/{participantId}/status")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> changeParticipantStatus(@PathVariable Long participantId,
-                                                                                       @RequestBody PlanRequest.ParticipantStatusRequest req,
-                                                                                       HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> changeParticipantStatus(
+            @Parameter(description = "상태를 변경할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            @RequestBody PlanRequest.ParticipantStatusRequest req,
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
         ParticipantStatus status;
         try {
@@ -150,88 +331,208 @@ public class PlanRestController {
         } catch (IllegalArgumentException e) {
             throw new Exception400("상태 값이 올바르지 않습니다.");
         }
-        ParticipantResponse dto = participantFacade.changeParticipantStatus(participantId, status, currentMember.getId());
+        ParticipantResponse dto = participantFacade.changeParticipantStatus(
+                participantId,
+                status,
+                currentMember.getId()
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 참가자 목록
     @Auth
+    @Operation(summary = "참가자 목록 조회", description = "특정 플랜의 참가자 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참가자 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
+    })
     @GetMapping("/{planId}/participants")
-    public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(@PathVariable Long planId, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<List<ParticipantResponse>>> getParticipants(
+            @Parameter(description = "참가자 목록을 조회할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        planService.validatePlanAccess(planId, currentMember.getId());
+        planFacade.validatePlanAccess(
+                planId,
+                currentMember.getId()
+        );
         List<ParticipantResponse> dtos = participantFacade.getParticipants(planId);
         return ResponseEntity.ok(CommonResponse.success(dtos));
     }
 
     // 출발 스타트 (시간 기록)
     @Auth
+    @Operation(summary = "출발 시간 기록", description = "참가자가 약속 장소를 향해 출발한 시간을 기록합니다. 본인만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "출발 시간 기록 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
     @PostMapping("/participants/{participantId}/departure")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(@PathVariable Long participantId,
-                                                                               @RequestBody PlanRequest.TimeRecordRequest req,
-                                                                               HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> recordDeparture(
+            @Parameter(description = "출발 시간을 기록할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            @RequestBody PlanRequest.TimeRecordRequest req,
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        ParticipantResponse dto = participantFacade.recordDeparture(participantId, dt, currentMember.getId());
+        ParticipantResponse dto = participantFacade.recordDeparture(
+                participantId,
+                dt,
+                currentMember.getId()
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 도착 완료( 시간 기록)
     @Auth
+    @Operation(summary = "도착 시간 기록", description = "참가자가 약속 장소에 도착한 시간을 기록합니다. 본인만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "도착 시간 기록 성공"),
+            @ApiResponse(responseCode = "400", description = "플랜의 약속 시간이 설정되어 있지 않음"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
     @PostMapping("/participants/{participantId}/arrival")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(@PathVariable Long participantId,
-                                                                             @RequestBody PlanRequest.TimeRecordRequest req,
-                                                                             HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> recordArrival(
+            @Parameter(description = "도착 시간을 기록할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            @RequestBody(content = @Content(examples = @ExampleObject(value = "{\"time\": \"2025-11-21T18:00:00\"}"))) PlanRequest.TimeRecordRequest req, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
         LocalDateTime dt = parseDateTimeOrThrow(req.time);
-        ParticipantResponse dto = participantFacade.recordArrival(participantId, dt, currentMember.getId());
+        ParticipantResponse dto = participantFacade.recordArrival(
+                participantId,
+                dt,
+                currentMember.getId()
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 예상 출발 제안
     @Auth
+    @Operation(summary = "예상 출발 시간 제안", description = "참가자의 예상 출발 시간을 제안합니다. 본인만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "예상 출발 시간 제안 성공"),
+            @ApiResponse(responseCode = "400", description = "플랜의 약속 시간이 설정되어 있지 않음"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
     @PostMapping("/participants/{participantId}/suggest-departure")
-    public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(@PathVariable Long participantId,
-                                                                                @RequestBody PlanRequest.SuggestDepartureRequest req,
-                                                                                HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<ParticipantResponse>> suggestDeparture(
+            @Parameter(description = "예상 출발 시간을 제안할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            @RequestBody PlanRequest.SuggestDepartureRequest req,
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        ParticipantResponse dto = participantFacade.suggestExpectedDeparture(participantId, req.expectedTravelTimeMinutes, currentMember.getId());
+        ParticipantResponse dto = participantFacade.suggestExpectedDeparture(
+                participantId,
+                req.expectedTravelTimeMinutes,
+                currentMember.getId()
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 지각 벌금 조회
     @Auth
+    @Operation(summary = "지각 벌금 조회", description = "참가자의 지각 벌금을 조회합니다. 본인 또는 플랜 생성자만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "지각 벌금 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "참가자를 찾을 수 없음")
+    })
     @GetMapping("/participants/{participantId}/late-fine")
-    public ResponseEntity<CommonResponse<Long>> getLateFine(@PathVariable Long participantId, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<Long>> getLateFine(
+            @Parameter(description = "지각 벌금을 조회할 참가자의 ID", example = "1") @PathVariable Long participantId, // example 추가
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        Long fine = planService.calculateLateFine(participantId, currentMember.getId());
+        Long fine = planFacade.calculateLateFine(
+                participantId,
+                currentMember.getId()
+        );
         return ResponseEntity.ok(CommonResponse.success(fine));
     }
 
     // 장소 확정
     @Auth
+    @Operation(summary = "장소 확정", description = "플랜의 약속 장소를 확정합니다. 플랜 생성자만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "장소 확정 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "플랜 생성자만 가능"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
+    })
     @PostMapping("/{planId}/confirm-place")
-    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(@PathVariable Long planId,
-                                                                                @RequestBody PlanRequest.ConfirmPlaceRequest req,
-                                                                                HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> confirmPlace(
+            @Parameter(description = "장소를 확정할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
+            @RequestBody PlanRequest.ConfirmPlaceRequest req,
+            HttpServletRequest request
+    ) {
         Member currentMember = getCurrentMember(request);
-        planService.validatePlanCreator(planId, currentMember.getId());
-        Point loc = (req.longitude != null && req.latitude != null) ? new Point(req.longitude, req.latitude) : null;
-        PlanResponse.CreatePlan dto = planFacade.confirmPlace(planId, req.placeName, loc);
+        planFacade.validatePlanCreator(
+                planId,
+                currentMember.getId()
+        );
+        Point loc = (req.longitude != null && req.latitude != null) ? new Point(
+                req.longitude,
+                req.latitude
+        ) : null;
+        PlanResponse.CreatePlan dto = planFacade.confirmPlace(
+                planId,
+                req.placeName,
+                loc
+        );
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
 
     // 최종 확정
-    // TODO 나중에 수정 필요
+    @Auth
+    @Operation(summary = "플랜 최종 확정", description = "플랜을 최종 확정 상태로 변경합니다. 플랜 생성자만 가능합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "플랜 최종 확정 성공"),
+            @ApiResponse(responseCode = "400", description = "이미 확정되거나 완료된 약속, 장소가 확정되지 않음, 참여자가 없음"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "플랜 생성자만 가능"),
+            @ApiResponse(responseCode = "404", description = "플랜을 찾을 수 없음")
+    })
     @PostMapping("/{planId}/confirm")
-    public ResponseEntity<?> confirmPlan(@PathVariable Long planId) {
+    public ResponseEntity<?> confirmPlan(
+            @Parameter(description = "최종 확정할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
+            HttpServletRequest request
+    ) {
+        Plan confirmedPlan = planFacade.confirmFinalPlan(
+                planId,
+                getCurrentMember(request).getId()
+        );
+        return ResponseEntity.ok(CommonResponse.success(
+                confirmedPlan,
+                "약속이 최종 확정되었습니다."
+        ));
+    }
 
-        // TODO 생성자 ID 주입
-        Long creatorMemberId = 1L;
-
-        Plan confirmedPlan = planService.confirmFinalPlan(planId, creatorMemberId);
-
-        return ResponseEntity.ok(CommonResponse.success("약속이 최종 확정되었습니다."));
+    // 약속 완료 (생성자만 수동 완료 가능)
+    @Auth
+    @PostMapping("/{planId}/complete")
+    public ResponseEntity<CommonResponse<PlanResponse.CreatePlan>> completePlan(
+            @Parameter(description = "완료할 플랜의 ID", example = "1") @PathVariable Long planId, // example 추가
+            HttpServletRequest request
+    ) {
+        Member currentMember = getCurrentMember(request);
+        Plan completedPlan = planService.completePlan(
+                planId,
+                currentMember.getId()
+        );
+        PlanResponse.CreatePlan dto = planFacade.getPlanById(completedPlan.getId());
+        return ResponseEntity.ok(CommonResponse.success(
+                dto,
+                "약속이 완료되었습니다."
+        ));
     }
 }
-

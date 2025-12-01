@@ -1,52 +1,59 @@
 package com.oath.domain.members.service;
 
-import com.oath.domain.members.dto.AccessTokenDto;
+import com.oath.common.exception.Exception400;
+import com.oath.common.exception.Exception500;
 import com.oath.domain.members.dto.KakaoProfileDto;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
 public class KakaoService {
 
-    @Value("${oauth.kakao.client-id}")
-    private String kakaoClientId;
+    private final WebClient webClient = WebClient.create("https://kapi.kakao.com");
 
-    @Value("${oauth.kakao.redirect-uri}")
-    private String kakaoRedirectUri;
+    public KakaoProfileDto getKakaoProfile(String accessToken) {
 
-
-    public AccessTokenDto getAccessToken(String code) {
-        RestClient restClient = RestClient.create();
-
-        MultiValueMap<String,String> params = new LinkedMultiValueMap<>();
-        params.add("code", code);
-        params.add("client_id", kakaoClientId);
-        params.add("redirect_uri", kakaoRedirectUri);
-        params.add("grant_type", "authorization_code");
-
-        ResponseEntity<AccessTokenDto> response = restClient.post()
-                .uri("https://kauth.kakao.com/oauth/token")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .body(params)
-                .retrieve()
-                .toEntity(AccessTokenDto.class);
-
-        return response.getBody();
-    }
-
-    public KakaoProfileDto getKakaoProfile(String token) {
-        RestClient restClient = RestClient.create();
-
-        ResponseEntity<KakaoProfileDto> response = restClient.get()
-                .uri("https://kapi.kakao.com/v2/user/me")
-                .header("Authorization", "Bearer "+token)
-                .retrieve()
-                .toEntity(KakaoProfileDto.class);
-        System.out.println("profile JSON" + response.getBody());
-        return response.getBody();
+        try {
+            return webClient.get()
+                    .uri("/v2/user/me")
+                    .header(
+                            "Authorization",
+                            "Bearer " + accessToken
+                    )
+                    .retrieve()
+                    .onStatus(
+                            HttpStatusCode::is4xxClientError,
+                            response -> {
+                                log.error(
+                                        "카카오 프로필 요청 실패: {}",
+                                        response.statusCode()
+                                );
+                                return Mono.error(new Exception400("유효하지 않은 카카오 액세스 토큰입니다."));
+                            }
+                    )
+                    .onStatus(
+                            HttpStatusCode::is5xxServerError,
+                            response -> {
+                                log.error(
+                                        "카카오 서버 오류: {}",
+                                        response.statusCode()
+                                );
+                                return Mono.error(new Exception500("카카오 서버에 문제가 발생했습니다."));
+                            }
+                    )
+                    .bodyToMono(KakaoProfileDto.class)
+                    .block(); // 동기 호출
+        } catch (WebClientRequestException e) {
+            log.error(
+                    "카카오 API 요청 중 예외 발생",
+                    e
+            );
+            throw new Exception500("카카오 서버 요청 중 오류가 발생했습니다.");
+        }
     }
 }
