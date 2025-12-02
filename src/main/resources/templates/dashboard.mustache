@@ -39,7 +39,7 @@
             <div class="value">{{plan}}</div>
 
           </div>
-          <div class="icon-circle bg-white"><i class="fa-solid fa-heart fa-lg" style="color:#ef4444"></i></div>
+          <div class="icon-circle bg-white"><i class="fa-solid fa-note-sticky fa-lg" style="color:#ef4444"></i></div>
         </div>
       </div>
       <div class="col-12 col-sm-6 col-md-3">
@@ -49,7 +49,7 @@
             <div class="value">{{group}}</div>
 
           </div>
-          <div class="icon-circle bg-white"><i class="fa-solid fa-comments fa-lg" style="color:#059669"></i></div>
+          <div class="icon-circle bg-white"><i class="fa-solid fa-people-group fa-lg" style="color:#059669"></i></div>
         </div>
       </div>
       <div class="col-12 col-sm-6 col-md-3">
@@ -59,7 +59,7 @@
             <div class="value">{{chat}}</div>
 
           </div>
-          <div class="icon-circle bg-white"><i class="fa-solid fa-file-image fa-lg" style="color:#f97316"></i></div>
+          <div class="icon-circle bg-white"><i class="fa-solid fa-comments fa-lg" style="color:#f97316"></i></div>
         </div>
       </div>
     </div>
@@ -94,62 +94,66 @@
 </div>
 
 <script>
-    // Followers Chart
-    fetch('/api/admin/par-count')
-      .then(res => res.json())
-      .then(json => {
+// Followers Chart
+fetch('/api/admin/par-count')
+  .then(res => res.json())
+  .then(json => {
+    const data = json.data; // CommonResponse 적용!
 
-        const labels = json.map(item => item.monthweek);
-        const count = json.map(item => item.count);
+    const labels = data.map(item => item.monthweek);
+    const count = data.map(item => item.count);
 
-        new Chart(document.getElementById('chartFollowers'), {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: count,
-              borderWidth: 2,
-              tension: 0.4
-            }]
-          },
-          options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-        });
-      });
+    new Chart(document.getElementById('chartFollowers'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: count,
+          borderWidth: 2,
+          tension: 0.4
+        }]
+      },
+      options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  });
 
-    // Likes Chart
-    fetch('/api/admin/plan-count')
-      .then(res => res.json())
-      .then(json => {
+// Likes Chart
+fetch('/api/admin/plan-count')
+  .then(res => res.json())
+  .then(json => {
+    const data = json.data; // 👈 수정
 
-        const labels = json.map(item => item.monthweek);
-        const partcount = json.map(item => item.count);
+    const labels = data.map(item => item.monthweek);
+    const partcount = data.map(item => item.count);
 
-        new Chart(document.getElementById('chartLikes'), {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{ data: partcount }]
-          },
-          options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-        });
-      });
+    new Chart(document.getElementById('chartLikes'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ data: partcount }]
+      },
+      options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  });
 
-    // Tags Chart
-    fetch('/api/admin/plan-tag-pie')
-      .then(res => res.json())
-      .then(json => {
+// Tags Chart
+fetch('/api/admin/plan-tag-pie')
+  .then(res => res.json())
+  .then(json => {
+    const data = json.data; // 👈 수정
 
-        const labels = json.map(item => item.tagName);
-        const count = json.map(item => item.planCount);
+    const labels = data.map(item => item.tagName);
+    const count = data.map(item => item.planCount);
 
-        new Chart(document.getElementById('chartTags'), {
-          type: 'pie',
-          data: {
-            labels: labels,
-            datasets: [{ data: count}]
-          }
-        });
-      });
+    new Chart(document.getElementById('chartTags'), {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{ data: count }]
+      }
+    });
+  });
+
 </script>
 
 

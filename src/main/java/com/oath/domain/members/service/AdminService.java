@@ -116,11 +116,6 @@ public class AdminService {
         return chatMembers;
     }
 
-    public List<AdminResponse.MonthlyCount> getMonthlyCount() {
-        return adminRepository.getMonthlyCount();
-    }
-
-
 
     public List<AdminResponse.placeList> getPlaceList() {
         List<Place> places = placeRepository.findAll();
@@ -269,5 +264,9 @@ public class AdminService {
     public List<AdminResponse.ChatListDto> chatList(Long groupId) {
         List<AdminResponse.ChatListDto> chatListDtos = adminRepository.getChatList(groupId);
         return chatListDtos;
+    }
+
+    public void deletePlace(Long placeId) {
+        placeRepository.deleteById(placeId);
     }
 }

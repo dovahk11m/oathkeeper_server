@@ -1,6 +1,7 @@
 package com.oath.domain.members.controller;
 
 import com.oath.common.JwtTokenProvider;
+import com.oath.common.auth.Auth;
 import com.oath.common.exception.Exception401;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
@@ -16,6 +17,7 @@ import com.oath.domain.visitors.VisitorService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -62,6 +64,7 @@ public class AdminController {
 
     private final VisitorService visitorService;
 
+    @Auth
     @PostMapping("/ban-member")
     public String banMember(@RequestParam Long id, @RequestParam int days, @RequestParam int page){
         Member member = memberRepository.findById(id)
@@ -70,12 +73,14 @@ public class AdminController {
         return "redirect:/api/admin/member-list?page=" + page;
     }
 
+    @Auth
     @PostMapping("/update-role")
     public String updateRole(@RequestParam Long id, @RequestParam String role, @RequestParam int page) {
             adminService.updateRole(id, role);
             return "redirect:/api/admin/member-list?page=" + page;
     }
 
+    @Auth
     @GetMapping("/member-list")
     public String getMembers(@RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "5") int size,
@@ -98,6 +103,7 @@ public class AdminController {
         return "memberList";
     }
 
+    @Auth
     @GetMapping("/group-list")
     public String getGroupList(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size,
@@ -127,7 +133,6 @@ public class AdminController {
         model.addAttribute("isMember", "member".equals(type));
         model.addAttribute("isGroup", "group".equals(type));
 
-
         List<AdminResponse.PageDto> pages = IntStream.range(0, groupPage.getTotalPages())
                 .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
                 .collect(Collectors.toList());
@@ -136,6 +141,7 @@ public class AdminController {
         return "groupList";
     }
 
+    @Auth
     @GetMapping("/chat-list/{groupId}")
     public String getChat(@PathVariable Long groupId, Model model) throws IOException {
         List<AdminResponse.ChatMemberDto> chatMembers = adminService.chatMember(groupId);
@@ -167,18 +173,12 @@ public class AdminController {
     }
 
 
+    @Auth
     @GetMapping("/plan-tag-pie")
     @ResponseBody
-    public ResponseEntity<?> PlanTagPie() {
+    public ResponseEntity<CommonResponse<List<AdminResponse.PlanTagPie>>> PlanTagPie() {
         List<AdminResponse.PlanTagPie> PlanTagsPie = adminService.PlanTagPie();
-        return ResponseEntity.ok(PlanTagsPie);
-    }
-
-    @GetMapping("/monthly-count")
-    @ResponseBody
-    public ResponseEntity<?> getMonthlyCount() {
-        List<AdminResponse.MonthlyCount> dtos = adminService.getMonthlyCount();
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(CommonResponse.success(PlanTagsPie));
     }
 
     @GetMapping("/login")
@@ -188,7 +188,7 @@ public class AdminController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseEntity<?> adminLogin(@RequestBody MemberLoginDto dto) {
+    public ResponseEntity<CommonResponse<Object>> adminLogin(@RequestBody MemberLoginDto dto) {
         Member member = memberService.login(dto); // 공통 로그인 사용
         checkAdmin(member);
 
@@ -224,6 +224,7 @@ public class AdminController {
         }
     }
 
+    @Auth
     @PostMapping("/logout")
     public String logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("accessToken", null);
@@ -236,14 +237,14 @@ public class AdminController {
         return "redirect:/api/admin/login";
     }
 
+    @Auth
     @PostMapping("/check-password")
-    public ResponseEntity<?> checkPassword(
+    public ResponseEntity<CommonResponse<Object>> checkPassword(
             @CookieValue("accessToken") String token,
             @RequestBody Map<String, String> req) {
 
         if(token == null || token.isEmpty()) {
-            return ResponseEntity.status(401)
-                    .body(Map.of("success", false, "message", "로그인 필요"));
+            return new ResponseEntity<>(CommonResponse.error("로그인 필요"), HttpStatus.UNAUTHORIZED);
         }
 
         Long adminId = jwtTokenProvider.getMemberId(token); // JWT에서 ID 추출
@@ -254,9 +255,10 @@ public class AdminController {
 
         visitorService.saveVisitor(groupId, adminId);
 
-        return ResponseEntity.ok(valid);
+        return ResponseEntity.ok(CommonResponse.success(valid));
     }
 
+    @Auth
     @GetMapping("/dashboard")
     public String getDashBoard(Model model) {
         Long member= memberRepository.count();
@@ -272,97 +274,119 @@ public class AdminController {
         return "dashboard";
     }
 
+    @Auth
     @GetMapping("/tag-page")
     public String tagPage() {
         return "tagpage";
     }
 
+    @Auth
     @GetMapping("/tag")
     @ResponseBody
-    public ResponseEntity<?> getTagList() {
+    public ResponseEntity<CommonResponse<List<String>>> getTagList() {
         List<String> tags = adminService.getTagList();
-        return ResponseEntity.ok(tags);
+        return ResponseEntity.ok(CommonResponse.success(tags));
     }
 
+    @Auth
     @PostMapping("/tag")
-    public ResponseEntity<?> addTag(@RequestBody AdminRequest.TagRequest req) {
+    public ResponseEntity<CommonResponse<Object>> addTag(@RequestBody AdminRequest.TagRequest req) {
         adminService.addTag(req.getName());
         return ResponseEntity.ok(CommonResponse.success(null, "태그가 추가되었습니다."));
     }
 
+    @Auth
     @DeleteMapping("/tag/{name}")
-    public ResponseEntity<?> deleteTag(@PathVariable String name) {
+    public ResponseEntity<CommonResponse<Object>> deleteTag(@PathVariable String name) {
         adminService.deleteTag(name);
         return ResponseEntity.ok(CommonResponse.success(null, "태그가 삭제되었습니다."));
     }
 
+    @Auth
     @GetMapping("/place-page")
     public String getPlaceBoard(Model model) {
         return "placepage";
     }
 
+    @Auth
     @GetMapping("/place")
     @ResponseBody
-    public ResponseEntity<?> getPlaceList() {
+    public ResponseEntity<CommonResponse<List<AdminResponse.placeList>>> getPlaceList() {
         List<AdminResponse.placeList> places = adminService.getPlaceList();
-        return ResponseEntity.ok(places);
+        return ResponseEntity.ok(CommonResponse.success(places));
     }
 
+    @Auth
+    @DeleteMapping("/place/{placeId}")
+    public ResponseEntity<CommonResponse<Object>> deletePlace(@PathVariable Long placeId) {
+        adminService.deletePlace(placeId);
+        return ResponseEntity.ok(CommonResponse.success(null, "장소가 삭제되었습니다."));
+    }
+
+    @Auth
     @GetMapping("/place-tag")
     public String getPlaceTag(Model model) {
         return "placetag";
     }
 
+    @Auth
     @PostMapping("/place/desc/{placeId}")
-    public ResponseEntity<?> updateDescription (@PathVariable Long placeId, @RequestBody AdminRequest.updateDescription req) {
+    public ResponseEntity<CommonResponse<Object>> updateDescription (@PathVariable Long placeId, @RequestBody AdminRequest.updateDescription req) {
         adminService.updateDescription(placeId, req);
         return ResponseEntity.ok(CommonResponse.success(null, "장소 상세가 수정되었습니다."));
     }
 
+    @Auth
     @GetMapping("/place-tag-list")
     @ResponseBody
-    public ResponseEntity<?> getPlaceTag() {
+    public ResponseEntity<CommonResponse<List<AdminResponse.PlaceTag>>> getPlaceTag() {
         List<AdminResponse.PlaceTag> placeTags = adminService.getPlaceTag();
-        return ResponseEntity.ok(placeTags);
+        return ResponseEntity.ok(CommonResponse.success(placeTags));
     }
 
+    @Auth
     @PostMapping("/add/place-tags")
     @ResponseBody
-    public ResponseEntity<?> addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
+    public ResponseEntity<CommonResponse<List<AdminResponse.AddedTagDto>>> addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
         List<AdminResponse.AddedTagDto> tagDto = adminService.addPlaceTag(req);
-        return ResponseEntity.ok(tagDto);
+        return ResponseEntity.ok(CommonResponse.success(tagDto));
     }
 
+    @Auth
     @DeleteMapping("/place-tag/{placeId}/{tagId}")
     @ResponseBody
-    public ResponseEntity<?> deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
+    public ResponseEntity<CommonResponse<Object>> deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
         adminService.deletePlaceTag(placeId, tagId);
         return ResponseEntity.ok(CommonResponse.success(null, "장소-태그가 삭제되었습니다."));
     }
 
+    @Auth
     @GetMapping("/search")
     public String searchPlace(@RequestParam String keyword) {
         PlaceResponseDto.PlaceDto place = adminService.searchPlace(keyword);
         return "place";
     }
 
+    @Auth
     @PostMapping("/save")
-    public ResponseEntity<?> savePlace(@RequestBody AdminRequest.PlaceDto requestDto) {
+    public ResponseEntity<CommonResponse<Place>> savePlace(@RequestBody AdminRequest.PlaceDto requestDto) {
         Place place = adminService.savePlace(requestDto);
-        return ResponseEntity.ok(place);
+        return ResponseEntity.ok(CommonResponse.success(place));
     }
 
+    @Auth
     @GetMapping("/plan-count")
     @ResponseBody
-    public ResponseEntity<?> getPlanCount() {
+    public ResponseEntity<CommonResponse<List<AdminResponse.PlanCount>>> getPlanCount() {
         List<AdminResponse.PlanCount> planCount = adminService.getPlanCount();
-        return ResponseEntity.ok(planCount);
+        return ResponseEntity.ok(CommonResponse.success(planCount));
     }
 
+    @Auth
     @GetMapping("/par-count")
     @ResponseBody
-    public ResponseEntity<?> getParticipantCount() {
+    public ResponseEntity<CommonResponse<List<AdminResponse.ParticipantCount>>> getParticipantCount() {
         List<AdminResponse.ParticipantCount> participantCount = adminService.getParticipantCount();
-        return ResponseEntity.ok(participantCount);
+        return ResponseEntity.ok(CommonResponse.success(participantCount));
     }
 }

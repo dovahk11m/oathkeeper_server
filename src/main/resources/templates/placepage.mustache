@@ -30,17 +30,15 @@ window.onload = function() {
   kakao.maps.load(function(){
     const mapContainer = document.getElementById('map');
     const mapOption = {
-      center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+      center: new kakao.maps.LatLng(37.5665, 126.9780),
       level: 3
     };
 
     map = new kakao.maps.Map(mapContainer, mapOption);
     ps = new kakao.maps.services.Places();
 
-    // 검색 버튼
     document.getElementById('searchBtn').addEventListener('click', searchPlaces);
 
-    // 지도 클릭 시 말풍선 닫기
     kakao.maps.event.addListener(map, 'click', function() {
       if (openedInfowindow) {
         openedInfowindow.close();
@@ -48,12 +46,10 @@ window.onload = function() {
       }
     });
 
-    // 초기 장소 리스트 렌더링
     loadPlaceList();
   });
 };
 
-// 장소 검색
 function searchPlaces() {
   const keyword = document.getElementById('keyword').value.trim();
   if (!keyword) {
@@ -63,7 +59,6 @@ function searchPlaces() {
   ps.keywordSearch(keyword, placesSearchCB);
 }
 
-// 검색 결과 콜백
 function placesSearchCB(data, status) {
   if (status === kakao.maps.services.Status.OK) {
     const bounds = new kakao.maps.LatLngBounds();
@@ -77,7 +72,6 @@ function placesSearchCB(data, status) {
   }
 }
 
-// 마커 표시
 function displayMarker(place) {
   const marker = new kakao.maps.Marker({
     map: map,
@@ -91,12 +85,12 @@ function displayMarker(place) {
       openedInfowindow.close();
     }
 
-const content = `
-  <div style="padding:5px;font-size:12px; display:flex; flex-direction:column; gap:5px; max-width:150px; word-break:break-all;">
-    <span>${place.place_name}</span>
-    <button onclick="savePlace('${place.place_name}','${place.address_name}', '${place.y}', '${place.x}')">저장</button>
-  </div>
-`;
+    const content = `
+      <div style="padding:5px;font-size:12px; display:flex; flex-direction:column; gap:5px; max-width:150px; word-break:break-all;">
+        <span>${place.place_name}</span>
+        <button onclick="savePlace('${place.place_name}','${place.address_name}', '${place.y}', '${place.x}')">저장</button>
+      </div>
+    `;
 
     infowindow.setContent(content);
     infowindow.open(map, marker);
@@ -104,7 +98,6 @@ const content = `
   });
 }
 
-// 장소 저장
 function savePlace(name, address, lat, lng) {
   fetch('/api/admin/save', {
     method: 'POST',
@@ -112,27 +105,27 @@ function savePlace(name, address, lat, lng) {
     body: JSON.stringify({ name, address, lat, lng })
   })
   .then(res => res.json())
-  .then(savedPlace => {
+  .then(json => {
+    if (!json.success) return alert("저장 실패");
+    const savedPlace = json.data;
     alert(savedPlace.name + ' 장소가 저장되었습니다!');
-    addPlaceToList(savedPlace); // 바로 리스트에 추가
+    addPlaceToList(savedPlace);
   });
 }
 
-// 장소 리스트 불러오기
 function loadPlaceList() {
   fetch('/api/admin/place')
     .then(res => res.json())
-    .then(places => {
-      places.sort((a,b)=>b.id - a.id); // ID 역순
+    .then(json => {
+      if (!json.success) return alert("장소 불러오기 실패");
+      const places = json.data;
+      places.sort((a,b)=>b.id - a.id);
       const list = document.getElementById('place-list');
       list.innerHTML = '';
-      places.forEach(p => {
-        addPlaceToList(p, false); // false = append, 초기 로딩
-      });
+      places.forEach(p => addPlaceToList(p, false));
     });
 }
 
-// 리스트에 항목 추가 (기존/새로 저장된 장소)
 function addPlaceToList(place, prepend = true) {
   const list = document.getElementById('place-list');
   const li = document.createElement('li');
@@ -154,7 +147,6 @@ function addPlaceToList(place, prepend = true) {
   setupDeleteButton(li);
 }
 
-// 수정/추가 버튼 이벤트 설정
 function setupEditButton(li) {
   const editBtn = li.querySelector('.edit-btn');
   const descText = li.querySelector('.desc-text');
@@ -171,7 +163,6 @@ function setupEditButton(li) {
       descInput.style.display = 'none';
       editBtn.textContent = descInput.value ? '수정' : '추가';
 
-      // 서버 업데이트
       const placeId = li.querySelector('.col.id').textContent;
       fetch(`/api/admin/place/desc/${placeId}`, {
         method: 'POST',
@@ -179,24 +170,26 @@ function setupEditButton(li) {
         body: JSON.stringify({ description: descInput.value })
       })
       .then(res => res.json())
-      .then(data => console.log(data));
+      .then(json => {
+        if (!json.success) alert("설명 수정 실패");
+      });
     }
   });
 }
 
-// 삭제 버튼 이벤트 설정
 function setupDeleteButton(li) {
   const delBtn = li.querySelector('.delete-btn');
   delBtn.addEventListener('click', () => {
     const placeId = li.querySelector('.col.id').textContent;
-    fetch(`/api/admin/place/${placeId}/delete`, { method: 'POST' })
+    fetch(`/api/admin/place/${placeId}`, { method: 'DELETE' })
       .then(res => res.json())
-      .then(data => {
+      .then(json => {
+        if (!json.success) return alert("삭제 실패");
         li.remove();
-        console.log('삭제 완료', data);
       });
   });
 }
+
 </script>
 </body>
 </html>
