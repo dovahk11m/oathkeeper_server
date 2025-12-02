@@ -4,12 +4,12 @@ let selectedPlaces = [];
 
 async function loadData() {
     // 태그 리스트
-    const tagRes = await fetch("/api/admin/tag");
+    const tagRes = await fetch("/api/admin/labels");
     const tagJson = await tagRes.json();
     tags = tagJson.data;
 
     // 장소 + 태그 리스트
-    const placeRes = await fetch("/api/admin/place-tag-list");
+    const placeRes = await fetch("/api/admin/spots/labels");
     const placeJson = await placeRes.json();
     places = placeJson.data;
 
@@ -70,7 +70,7 @@ function renderPlaces() {
 
 
 function removeTag(placeId, tagId) {
-  fetch(`/api/admin/place-tag/${placeId}/${tagId}`, {
+  fetch(`/api/admin/spots/${placeId}/labels/${tagId}`, {
     method: "DELETE"
   })
   .then(res => {
@@ -131,7 +131,7 @@ document.getElementById("saveTags").onclick = async () => {
   };
 
   try {
-    const res = await fetch("/api/admin/add/place-tags", {
+    const res = await fetch("/api/admin/spots/labels", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)

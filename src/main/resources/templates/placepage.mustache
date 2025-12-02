@@ -99,7 +99,7 @@ function displayMarker(place) {
 }
 
 function savePlace(name, address, lat, lng) {
-  fetch('/api/admin/save', {
+  fetch('/api/admin/spots', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, address, lat, lng })
@@ -114,7 +114,7 @@ function savePlace(name, address, lat, lng) {
 }
 
 function loadPlaceList() {
-  fetch('/api/admin/place')
+  fetch('/api/admin/spots')
     .then(res => res.json())
     .then(json => {
       if (!json.success) return alert("장소 불러오기 실패");
@@ -164,7 +164,7 @@ function setupEditButton(li) {
       editBtn.textContent = descInput.value ? '수정' : '추가';
 
       const placeId = li.querySelector('.col.id').textContent;
-      fetch(`/api/admin/place/desc/${placeId}`, {
+      fetch(`/api/admin/spots/${placeId}/description`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: descInput.value })
@@ -181,7 +181,7 @@ function setupDeleteButton(li) {
   const delBtn = li.querySelector('.delete-btn');
   delBtn.addEventListener('click', () => {
     const placeId = li.querySelector('.col.id').textContent;
-    fetch(`/api/admin/place/${placeId}`, { method: 'DELETE' })
+    fetch(`/api/admin/spots/${placeId}`, { method: 'DELETE' })
       .then(res => res.json())
       .then(json => {
         if (!json.success) return alert("삭제 실패");

@@ -46,7 +46,7 @@
                 <button class="page-btn" disabled>{{number}}</button>
             {{/isCurrent}}
             {{^isCurrent}}
-                <a href="/api/admin/group-list?page={{pageIndex}}">
+                <a href="/admin/groups?page={{pageIndex}}">
                     <button class="page-btn">{{number}}</button>
                 </a>
             {{/isCurrent}}
@@ -69,7 +69,7 @@ list.addEventListener("click", (e) => {
 
     const groupId = li.dataset.groupId;
     if (groupId) {
-        window.location.href = `/api/admin/chat-list/${groupId}`;
+        window.location.href = `/admin/groups/${groupId}/chats`;
     }
 });
 
@@ -78,7 +78,7 @@ searchBtn.addEventListener("click", () => {
     const keyword = searchInput.value.trim();
     const type = searchType.value;
     const currentPage = 0;
-    window.location.href = `/api/admin/group-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
+    window.location.href = `/admin/groups?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
 });
 
 

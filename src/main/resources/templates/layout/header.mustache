@@ -106,12 +106,12 @@ body {
     <h3 class="fw-bold">Admin Dashboard</h3>
 
     <div class="menu-title">MAIN</div>
-    <a href="/api/admin/dashboard"><i class="fa-solid fa-chart-line me-2"></i> 통계페이지</a>
-    <a href="/api/admin/member-list"><i class="fa-solid fa-user-group me-2"></i> 회원 관리</a>
-    <a href="/api/admin/group-list"><i class="fa-solid fa-comments me-2"></i> 채팅 관리</a>
-    <a href="/api/admin/place-page"><i class="fa-solid fa-location-dot me-2"></i> 장소 관리</a>
-    <a href="/api/admin/tag-page"><i class="fa-solid fa-tag me-2"></i> 태그 관리</a>
-    <a href="/api/admin/place-tag"><i class="fa-solid fa-tags me-2"></i> 장소-태그 관리</a>
+    <a href="/admin/dashboard"><i class="fa-solid fa-chart-line me-2"></i> 통계페이지</a>
+    <a href="/admin/members"><i class="fa-solid fa-user-group me-2"></i> 회원 관리</a>
+    <a href="/admin/groups"><i class="fa-solid fa-comments me-2"></i> 채팅 관리</a>
+    <a href="/admin/spots"><i class="fa-solid fa-location-dot me-2"></i> 장소 관리</a>
+    <a href="/admin/labels"><i class="fa-solid fa-tag me-2"></i> 태그 관리</a>
+    <a href="/admin/spots/labels"><i class="fa-solid fa-tags me-2"></i> 장소-태그 관리</a>
   </div>
 
   <!-- Main content -->
@@ -122,7 +122,7 @@ body {
       <div class="d-flex align-items-center">
           <div class="fw-light fs-6 me-2">어서오세요, {{adminName}}님. 관리자 대시보드입니다.</div>
 
-        <form action="/api/admin/logout" method="POST">
+        <form action="/admin/logout" method="POST">
           <button class="logout-btn">로그아웃</button>
         </form>
       </div>

@@ -50,7 +50,7 @@
                             {{^isAdmin}}<span class="badge bg-success">회원</span>{{/isAdmin}}
                         </td>
                         <td>
-                            <form action="/api/admin/update-role" method="post" style="display:flex; gap:5px; align-items:center;">
+                            <form action="/admin/members/role" method="post" style="display:flex; gap:5px; align-items:center;">
                                 <input type="hidden" name="id" value="{{id}}">
                                 <input type="hidden" name="page" value="{{currentPage}}">
                                 <label><input type="radio" name="role" value="USER"> 회원</label>
@@ -62,7 +62,7 @@
                         <td>{{lastLogin}}</td>
                         <td>{{bannedUntil}}</td>
                         <td>
-                            <form action="/api/admin/ban-member" method="post" style="display:flex; gap:5px; align-items:center;">
+                            <form action="/admin/members/ban" method="post" style="display:flex; gap:5px; align-items:center;">
                                 <input type="hidden" name="id" value="{{id}}">
                                 <input type="hidden" name="page" value="{{currentPage}}">
                                 <input type="text" name="days" placeholder="일자" style="width:70px; padding:5px;">
@@ -83,7 +83,7 @@
                         <li class="active"><span>{{number}}</span></li>
                     {{/isCurrent}}
                     {{^isCurrent}}
-                        <li><a href="/api/admin/member-list?page={{pageIndex}}">{{number}}</a></li>
+                        <li><a href="/admin/members?page={{pageIndex}}">{{number}}</a></li>
                     {{/isCurrent}}
                 {{/pages}}
             </ul>
@@ -99,7 +99,7 @@ searchBtn.addEventListener("click", () => {
     const keyword = searchInput.value.trim();
     const type = searchType.value;
     const currentPage = 0;
-    window.location.href = `/api/admin/member-list?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
+    window.location.href = `/admin/members?page=${currentPage}&keyword=${encodeURIComponent(keyword)}&type=${type}`;
 });
 
 

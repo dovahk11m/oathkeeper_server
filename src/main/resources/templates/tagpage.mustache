@@ -21,7 +21,7 @@ let tags = [];
 // 🔹 페이지 로드하면 서버에서 태그 목록 불러오기
 async function loadTags() {
     try {
-        const res = await fetch("/api/admin/tag");
+        const res = await fetch("/api/admin/labels");
         const json = await res.json();   // { success: true, data: [...] }
 
         if (json.success) {
@@ -65,7 +65,7 @@ async function addTag() {
     if (!value) return;
 
     try {
-        const res = await fetch("/api/admin/tag", {
+        const res = await fetch("/api/admin/labels", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name: value })
@@ -86,7 +86,7 @@ async function addTag() {
 
 async function deleteTag(tag) {
     try {
-        const res = await fetch(`/api/admin/tag/${encodeURIComponent(tag)}`, {
+        const res = await fetch(`/api/admin/labels/${encodeURIComponent(tag)}`, {
             method: "DELETE"
         });
         const json = await res.json();
