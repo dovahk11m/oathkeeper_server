@@ -1,5 +1,11 @@
 package com.oath.initializer.scenario;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.locationevents.domain.LocationTrack;
@@ -18,11 +24,6 @@ import com.oath.domain.plan.repository.ParticipantRepository;
 import com.oath.domain.plan.repository.PlanJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @Component
@@ -36,7 +37,7 @@ public class PlanScenario03_Pending {
     private final LocationTrackRepository locationTrackRepository;
     private final PlaceRepository placeRepository;
 
-    @Transactional
+    @Transactional("h2TransactionManager")
     public void create() {
         log.info("👷‍♂️ [Scenario 3] '대기중인 약속' 샘플 데이터 생성 시작");
 
@@ -44,20 +45,15 @@ public class PlanScenario03_Pending {
         Member user2 = memberRepository.findByEmail("user2@test.com").orElseThrow();
         Member user3 = memberRepository.findByEmail("user3@test.com").orElseThrow();
         Member user4 = memberRepository.findByEmail("user4@test.com").orElseThrow();
-        Group sampleGroup = groupRepository.findByName("샘플 그룹").orElseThrow(() -> new RuntimeException("샘플 그룹을 찾을 수 없습니다."));
-        Place seomyeon = placeRepository.findByName("서면역").orElseThrow(() -> new RuntimeException("서면역 장소를 찾을 수 없습니다."));
+        Group sampleGroup = groupRepository.findByName("샘플 그룹")
+                .orElseThrow(() -> new RuntimeException("샘플 그룹을 찾을 수 없습니다."));
+        Place seomyeon = placeRepository.findByName("서면역")
+                .orElseThrow(() -> new RuntimeException("서면역 장소를 찾을 수 없습니다."));
 
-        Plan pendingPlan = Plan.builder()
-                .creatorMember(user1)
-                .group(sampleGroup)
-                .title("주말 점심 식사")
-                .planDatetime(LocalDateTime.now().plusHours(2))
-                .status(Status.CONFIRMED)
-                .placeName(seomyeon.getName())
-                .placeLatitude(seomyeon.getLat())
-                .placeLongitude(seomyeon.getLng())
-                .lateFineAmount(500L)
-                .build();
+        Plan pendingPlan = Plan.builder().creatorMember(user1).group(sampleGroup).title("주말 점심 식사")
+                .planDatetime(LocalDateTime.now().plusHours(2)).status(Status.CONFIRMED)
+                .placeName(seomyeon.getName()).placeLatitude(seomyeon.getLat())
+                .placeLongitude(seomyeon.getLng()).lateFineAmount(500L).build();
         planJpaRepository.save(pendingPlan);
 
         Participant p1 = createParticipant(pendingPlan, user1, null, MovementStatus.MOVING, true);
@@ -73,14 +69,11 @@ public class PlanScenario03_Pending {
         log.info("👷‍♂️ [Scenario 3] '대기중인 약속' 샘플 데이터 생성 완료 (Plan ID: {})", pendingPlan.getId());
     }
 
-    private Participant createParticipant(Plan plan, Member member, LocalDateTime arrivalDt, MovementStatus movementStatus, Boolean isShareLocation) {
-        Participant.ParticipantBuilder builder = Participant.builder()
-                .plan(plan)
-                .member(member)
-                .participantStatus(ParticipantStatus.ACCEPTED)
-                .actualArrivalTime(arrivalDt)
-                .movementStatus(movementStatus)
-                .isShareLocation(isShareLocation);
+    private Participant createParticipant(Plan plan, Member member, LocalDateTime arrivalDt,
+            MovementStatus movementStatus, Boolean isShareLocation) {
+        Participant.ParticipantBuilder builder = Participant.builder().plan(plan).member(member)
+                .participantStatus(ParticipantStatus.ACCEPTED).actualArrivalTime(arrivalDt)
+                .movementStatus(movementStatus).isShareLocation(isShareLocation);
 
         if (arrivalDt != null) {
             long minutesDiff = ChronoUnit.MINUTES.between(plan.getPlanDatetime(), arrivalDt);
@@ -95,19 +88,20 @@ public class PlanScenario03_Pending {
         return participantRepository.save(builder.build());
     }
 
-    private void createLocationTracks(Participant participant, double startLat, double startLng, double endLat, double endLng) {
+    private void createLocationTracks(Participant participant, double startLat, double startLng,
+            double endLat, double endLng) {
         LocalDateTime startTime = participant.getPlan().getPlanDatetime().minusHours(1);
+
+        List<LocationTrack> tracks = new ArrayList<>();
         for (int i = 0; i <= 10; i++) {
             double progress = (double) i / 10;
             double lat = startLat + (endLat - startLat) * progress;
             double lng = startLng + (endLng - startLng) * progress;
-            LocationTrack track = LocationTrack.builder()
-                    .participantId(participant.getId())
-                    .lat(lat)
-                    .lng(lng)
-                    .ts(startTime.plusMinutes(i * 5))
-                    .build();
-            locationTrackRepository.save(track);
+            LocationTrack track = LocationTrack.builder().participantId(participant.getId())
+                    .lat(lat).lng(lng).ts(startTime.plusMinutes(i * 5)).build();
+            tracks.add(track);
         }
+
+        locationTrackRepository.saveAll(tracks); // 배치 저장!
     }
 }
