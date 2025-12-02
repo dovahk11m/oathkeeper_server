@@ -181,7 +181,7 @@ function setupDeleteButton(li) {
   const delBtn = li.querySelector('.delete-btn');
   delBtn.addEventListener('click', () => {
     const placeId = li.querySelector('.col.id').textContent;
-    fetch(`/api/admin/place/${placeId}/delete`, { method: 'POST' })
+    fetch(`/api/admin/place/${placeId}`, { method: 'DELETE' })
       .then(res => res.json())
       .then(json => {
         if (!json.success) return alert("삭제 실패");

@@ -317,6 +317,13 @@ public class AdminController {
     }
 
     @Auth
+    @DeleteMapping("/place/{placeId}")
+    public ResponseEntity<CommonResponse<Object>> deletePlace(@PathVariable Long placeId) {
+        adminService.deletePlace(placeId);
+        return ResponseEntity.ok(CommonResponse.success(null, "장소가 삭제되었습니다."));
+    }
+
+    @Auth
     @GetMapping("/place-tag")
     public String getPlaceTag(Model model) {
         return "placetag";

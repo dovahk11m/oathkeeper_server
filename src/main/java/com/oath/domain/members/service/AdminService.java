@@ -265,4 +265,8 @@ public class AdminService {
         List<AdminResponse.ChatListDto> chatListDtos = adminRepository.getChatList(groupId);
         return chatListDtos;
     }
+
+    public void deletePlace(Long placeId) {
+        placeRepository.deleteById(placeId);
+    }
 }
