@@ -1,5 +1,10 @@
 package com.oath.initializer;
 
+import java.util.List;
+// import org.springframework.boot.CommandLineRunner; // 제거
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import com.oath.domain.groups.Group;
 import com.oath.domain.groups.GroupMember;
 import com.oath.domain.groups.dto.GroupCreateRequest;
@@ -9,20 +14,13 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-// import org.springframework.boot.CommandLineRunner; // 제거
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Transactional
+// @Transactional 제거 - 규칙 1: 트랜잭션 매니저 명시적 지정
 @Profile("local")
-@Order(4)
+// @Order 제거 - MasterDataInitializer에서 순서 통제
 public class DataInitializer4_Group {
 
     private final MemberRepository memberRepository;
@@ -31,7 +29,7 @@ public class DataInitializer4_Group {
 
 
     // @Override 제거
-    @Transactional
+    @Transactional("h2TransactionManager")
     public void initialize(String... args) throws Exception {
         log.info("👷‍♂️ 샘플 그룹 데이터 생성 시작");
 
@@ -43,20 +41,25 @@ public class DataInitializer4_Group {
 
         List<Member> memberList = List.of(user2, user3, user4, user5);
 
-        Group sampleGroup1 = groupService.createGroup(new GroupCreateRequest("샘플 그룹1"), user1.getEmail());
-        Group sampleGroup2 = groupService.createGroup(new GroupCreateRequest("샘플 그룹2"), user1.getEmail());
-        Group sampleGroup3 = groupService.createGroup(new GroupCreateRequest("샘플 그룹3"), user1.getEmail());
-        Group sampleGroup4 = groupService.createGroup(new GroupCreateRequest("샘플 그룹4"), user1.getEmail());
-        Group sampleGroup5 = groupService.createGroup(new GroupCreateRequest("샘플 그룹5"), user1.getEmail());
-        Group sampleGroup6 = groupService.createGroup(new GroupCreateRequest("샘플 그룹6"), user1.getEmail());
+        Group sampleGroup1 =
+                groupService.createGroup(new GroupCreateRequest("샘플 그룹1"), user1.getEmail());
+        Group sampleGroup2 =
+                groupService.createGroup(new GroupCreateRequest("샘플 그룹2"), user1.getEmail());
+        Group sampleGroup3 =
+                groupService.createGroup(new GroupCreateRequest("샘플 그룹3"), user1.getEmail());
+        Group sampleGroup4 =
+                groupService.createGroup(new GroupCreateRequest("샘플 그룹4"), user1.getEmail());
+        Group sampleGroup5 =
+                groupService.createGroup(new GroupCreateRequest("샘플 그룹5"), user1.getEmail());
+        Group sampleGroup6 =
+                groupService.createGroup(new GroupCreateRequest("샘플 그룹6"), user1.getEmail());
 
         groupMemberRepository.save(GroupMember.of(sampleGroup1, user2));
         groupMemberRepository.save(GroupMember.of(sampleGroup2, user2));
         groupMemberRepository.flush();
 
         groupMemberRepository.saveAll(
-                memberList.stream().map((member) -> GroupMember.of(sampleGroup1, member)).toList()
-        );
+                memberList.stream().map((member) -> GroupMember.of(sampleGroup1, member)).toList());
 
         log.info("👷‍♂️ 샘플 그룹 데이터 생성 완료");
 

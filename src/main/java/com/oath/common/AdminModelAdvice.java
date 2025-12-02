@@ -24,18 +24,16 @@ public class AdminModelAdvice {
         String token = extractToken(request);
         if (token != null && jwtTokenProvider.validateToken(token)) {
             Long userId = jwtTokenProvider.getMemberId(token); // JWT에서 userId 추출
-            Member admin = memberRepository.findById(userId)
-                    .orElseThrow();// DB에서 Admin 조회
+            Member admin = memberRepository.findById(userId).orElseThrow();// DB에서 Admin 조회
             model.addAttribute("adminName", admin.getUsername());
         }
     }
 
     private String extractToken(HttpServletRequest request) {
-        if (request.getCookies() == null) return null;
+        if (request.getCookies() == null)
+            return null;
         return java.util.Arrays.stream(request.getCookies())
-                .filter(c -> "accessToken".equals(c.getName()))
-                .map(c -> c.getValue())
-                .findFirst()
+                .filter(c -> "accessToken".equals(c.getName())).map(c -> c.getValue()).findFirst()
                 .orElse(null);
     }
 }

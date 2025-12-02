@@ -140,7 +140,7 @@ public class MetricsPushService {
         planJpaRepository.findById(planId).ifPresent(plan -> {
             plan.setSummary("AI 요약 생성에 실패했습니다: " + e.getMessage());
             plan.setSummaryStatus(SummaryStatus.FAILED);
-            planJpaRepository.save(plan);
+            // JPA 변경 감지(dirty checking)로 자동 저장되므로 save() 호출 불필요
         });
     }
 }

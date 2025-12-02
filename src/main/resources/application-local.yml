@@ -167,11 +167,10 @@ ai:
     summary-fetch-delay-ms: 5000 # 5초
 
 kakao:
-  rest-api-key: ${KAKAO_REST_API_KEY}
-  js-key: ${KAKAO_JS_KEY}
+  rest-api-key: ${KAKAO_REST_API_KEY:FAKE_KAKAO_KEY}
+  js-key: ${KAKAO_JS_KEY:FAKE_KAKAO_JS_KEY}
 
 huggingface:
   api:
-    key: ${HUGGINGFACE_API_KEY}
+    key: ${HUGGINGFACE_API_KEY:FAKE_HUGGINGFACE_KEY}
     url: "https://router.huggingface.co/hf-inference/models/eenzeenee/t5-base-korean-summarization"
-
