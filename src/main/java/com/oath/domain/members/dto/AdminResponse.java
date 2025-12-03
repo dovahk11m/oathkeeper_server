@@ -1,7 +1,6 @@
 package com.oath.domain.members.dto;
 
 import com.oath.domain.chats.Chat;
-import com.oath.domain.groups.Group;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.SocialType;

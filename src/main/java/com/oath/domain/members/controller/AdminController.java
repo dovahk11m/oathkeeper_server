@@ -3,43 +3,26 @@ package com.oath.domain.members.controller;
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.auth.Auth;
 import com.oath.common.exception.Exception401;
-import com.oath.domain.chats.Chat;
-import com.oath.domain.chats.ChatRepository;
-import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.dto.MemberLoginDto;
 import com.oath.domain.members.service.MemberService;
-import com.oath.domain.members.service.SummaryService;
 import com.oath.domain.place_tag_plan.place.Place;
-import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
-import com.oath.domain.plan.repository.PlanJpaRepository;
 import com.oath.domain.visitors.VisitorService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import com.oath.common.CommonResponse;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.dto.AdminRequest;
 import com.oath.domain.members.dto.AdminResponse;
-import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.members.service.AdminService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/api/admin")
@@ -53,7 +36,6 @@ public class AdminController {
     private final JwtTokenProvider jwtTokenProvider;
 
     private final VisitorService visitorService;
-
 
     @PostMapping("/login")
     @ResponseBody

@@ -1,11 +1,6 @@
 package com.oath.domain.members.service;
 
-import com.oath.common.exception.Exception401;
-import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
-import com.oath.domain.groups.Group;
-import com.oath.domain.groups.repository.GroupMemberRepository;
-import com.oath.domain.groups.repository.GroupRepository;
 import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.domain.Role;
 import com.oath.domain.members.domain.Status;
@@ -33,14 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
-import java.awt.*;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 @Transactional

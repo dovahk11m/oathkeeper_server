@@ -1,6 +1,5 @@
 package com.oath.domain.members.controller;
 
-import com.oath.common.JwtTokenProvider;
 import com.oath.common.auth.Auth;
 import com.oath.domain.chats.Chat;
 import com.oath.domain.chats.ChatRepository;
@@ -9,11 +8,9 @@ import com.oath.domain.members.domain.Member;
 import com.oath.domain.members.dto.AdminResponse;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.members.service.AdminService;
-import com.oath.domain.members.service.MemberService;
 import com.oath.domain.members.service.SummaryService;
 import com.oath.domain.place_tag_plan.place.PlaceResponseDto;
 import com.oath.domain.plan.repository.PlanJpaRepository;
-import com.oath.domain.visitors.VisitorService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

@@ -1,10 +1,7 @@
 package com.oath.domain.members.dto;
 
-
 import lombok.Data;
-
 import java.util.List;
-
 
 public class AdminRequest {
 
@@ -50,6 +47,5 @@ public class AdminRequest {
         private Double lat;
         private Double lng;
     }
-
 
 }
