@@ -115,7 +115,7 @@ public class AdminController {
     }
 
     @Auth
-    @GetMapping("/labels")
+    @GetMapping("/tags")
     @ResponseBody
     public ResponseEntity<CommonResponse<List<String>>> getTagList() {
         List<String> tags = adminService.getTagList();
@@ -123,21 +123,21 @@ public class AdminController {
     }
 
     @Auth
-    @PostMapping("/labels")
+    @PostMapping("/tags")
     public ResponseEntity<CommonResponse<Object>> addTag(@RequestBody AdminRequest.TagRequest req) {
         adminService.addTag(req.getName());
         return ResponseEntity.ok(CommonResponse.success(null, "태그가 추가되었습니다."));
     }
 
     @Auth
-    @DeleteMapping("/labels/{name}")
+    @DeleteMapping("/tags/{name}")
     public ResponseEntity<CommonResponse<Object>> deleteTag(@PathVariable String name) {
         adminService.deleteTag(name);
         return ResponseEntity.ok(CommonResponse.success(null, "태그가 삭제되었습니다."));
     }
 
     @Auth
-    @GetMapping("/spots")
+    @GetMapping("/places")
     @ResponseBody
     public ResponseEntity<CommonResponse<List<AdminResponse.placeList>>> getPlaceList() {
         List<AdminResponse.placeList> places = adminService.getPlaceList();
@@ -145,28 +145,28 @@ public class AdminController {
     }
 
     @Auth
-    @PostMapping("/spots")
+    @PostMapping("/places")
     public ResponseEntity<CommonResponse<Place>> savePlace(@RequestBody AdminRequest.PlaceDto requestDto) {
         Place place = adminService.savePlace(requestDto);
         return ResponseEntity.ok(CommonResponse.success(place));
     }
 
     @Auth
-    @DeleteMapping("/spots/{placeId}")
+    @DeleteMapping("/places/{placeId}")
     public ResponseEntity<CommonResponse<Object>> deletePlace(@PathVariable Long placeId) {
         adminService.deletePlace(placeId);
         return ResponseEntity.ok(CommonResponse.success(null, "장소가 삭제되었습니다."));
     }
 
     @Auth
-    @PostMapping("/spots/{placeId}/description")
+    @PostMapping("/places/{placeId}/description")
     public ResponseEntity<CommonResponse<Object>> updateDescription (@PathVariable Long placeId, @RequestBody AdminRequest.updateDescription req) {
         adminService.updateDescription(placeId, req);
         return ResponseEntity.ok(CommonResponse.success(null, "장소 상세가 수정되었습니다."));
     }
 
     @Auth
-    @GetMapping("/spots/labels")
+    @GetMapping("/places/tags")
     @ResponseBody
     public ResponseEntity<CommonResponse<List<AdminResponse.PlaceTag>>> getPlaceTag() {
         List<AdminResponse.PlaceTag> placeTags = adminService.getPlaceTag();
@@ -174,7 +174,7 @@ public class AdminController {
     }
 
     @Auth
-    @PostMapping("/spots/labels")
+    @PostMapping("/places/tags")
     @ResponseBody
     public ResponseEntity<CommonResponse<List<AdminResponse.AddedTagDto>>> addPlaceTag(@RequestBody AdminRequest.PlaceTag req) {
         List<AdminResponse.AddedTagDto> tagDto = adminService.addPlaceTag(req);
@@ -182,7 +182,7 @@ public class AdminController {
     }
 
     @Auth
-    @DeleteMapping("/spots/{placeId}/labels/{tagId}")
+    @DeleteMapping("/places/{placeId}/tags/{tagId}")
     @ResponseBody
     public ResponseEntity<CommonResponse<Object>> deletePlaceTag(@PathVariable Long placeId, @PathVariable Long tagId) {
         adminService.deletePlaceTag(placeId, tagId);

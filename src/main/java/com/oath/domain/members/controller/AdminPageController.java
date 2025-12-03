@@ -190,19 +190,19 @@ public class AdminPageController {
     }
 
     @Auth
-    @GetMapping("/labels")
+    @GetMapping("/tags")
     public String tagPage() {
         return "tagpage";
     }
 
     @Auth
-    @GetMapping("/spots")
+    @GetMapping("/places")
     public String getPlaceBoard(Model model) {
         return "placepage";
     }
 
     @Auth
-    @GetMapping("/spots/labels")
+    @GetMapping("/places/tags")
     public String getPlaceTag(Model model) {
         return "placetag";
     }
