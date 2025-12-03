@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter; // Parameter 임포트
 import io.swagger.v3.oas.annotations.media.Content; // Content 임포트
 import io.swagger.v3.oas.annotations.media.ExampleObject; // ExampleObject 임포트
-import io.swagger.v3.oas.annotations.media.Schema; // Schema 임포트
 import io.swagger.v3.oas.annotations.parameters.RequestBody; // RequestBody 임포트
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

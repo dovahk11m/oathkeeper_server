@@ -2,6 +2,8 @@ package com.oath.initializer.scenario;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import com.oath.domain.groups.Group;
@@ -36,7 +38,7 @@ public class PlanScenario01_Completed {
         private final LocationTrackRepository locationTrackRepository;
         private final PlaceRepository placeRepository;
 
-        @Transactional
+        @Transactional("h2TransactionManager")
         public void create() {
                 log.info("👷‍♂️ [Scenario 1] '완료된 약속' 샘플 데이터 생성 시작");
 
@@ -150,6 +152,8 @@ public class PlanScenario01_Completed {
         private void createLocationTracks(Participant participant, double startLat, double startLng,
                         double endLat, double endLng) {
                 LocalDateTime startTime = participant.getPlan().getPlanDatetime().minusHours(1);
+
+                List<LocationTrack> tracks = new ArrayList<>();
                 for (int i = 0; i <= 10; i++) {
                         double progress = (double) i / 10;
                         double lat = startLat + (endLat - startLat) * progress;
@@ -157,7 +161,9 @@ public class PlanScenario01_Completed {
                         LocationTrack track = LocationTrack.builder()
                                         .participantId(participant.getId()).lat(lat).lng(lng)
                                         .ts(startTime.plusMinutes(i * 5)).build();
-                        locationTrackRepository.save(track);
+                        tracks.add(track);
                 }
+
+                locationTrackRepository.saveAll(tracks); // 배치 저장!
         }
 }

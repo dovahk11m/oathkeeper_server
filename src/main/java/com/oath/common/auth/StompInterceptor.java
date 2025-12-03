@@ -1,18 +1,18 @@
 package com.oath.common.auth;
 
-import com.oath.common.JwtTokenProvider;
-import com.oath.domain.members.domain.Role;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import com.oath.common.JwtTokenProvider;
+import com.oath.domain.members.domain.Role;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * WebSocket 연결 시 STOMP 헤더의 JWT 토큰을 검증하는 인터셉터
@@ -27,14 +27,16 @@ public class StompInterceptor implements ChannelInterceptor {
     private static final String BEARER_PREFIX = "Bearer ";
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
+        StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         // STOMP 연결 요청일 때만 토큰 검증
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader(AUTHORIZATION_HEADER);
 
-            if (StringUtils.hasText(authHeader) && authHeader.startsWith(BEARER_PREFIX)) {
+            // authHeader가 null이 아니고 Bearer로 시작하는지 확인
+            if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
                 validateAndSetAuthentication(authHeader, accessor);
             } else {
                 log.warn("STOMP connection failed: Missing or invalid Authorization header.");

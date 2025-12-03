@@ -1,7 +1,6 @@
 package com.oath.domain.place_tag_plan.place.dto;
 
 import com.oath.domain.place_tag_plan.place.Place;
-import com.oath.domain.plan.domain.Participant;
 import com.oath.domain.plan.request.ParticipantResponse;
 import lombok.Builder;
 import lombok.Data;

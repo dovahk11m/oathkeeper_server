@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "group_member_tb")
@@ -29,7 +28,7 @@ public class GroupMember {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime joinedAt;
-    
+
     /**
      * 새로운 GroupMember 엔티티를 생성하는 정적 팩토리 메서드입니다.
      */
