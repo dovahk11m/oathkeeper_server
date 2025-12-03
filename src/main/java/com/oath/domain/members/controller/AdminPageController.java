@@ -73,9 +73,11 @@ public class AdminPageController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         Page<AdminResponse.MemberDto> memberPage = adminService.getMembers(type, keyword, pageable);
+        long count = memberPage.getTotalElements();
 
         model.addAttribute("members", memberPage.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("memberCount", count);
 
         List<AdminResponse.PageDto> pages = IntStream.range(0, memberPage.getTotalPages())
                 .mapToObj(i -> new AdminResponse.PageDto(i + 1, i, i == page))
