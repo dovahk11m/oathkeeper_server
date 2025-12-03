@@ -44,7 +44,7 @@ async function checkPassword() {
 
     // 단순 예시: 서버에 POST 요청
     try {
-        const res = await fetch('/api/admin/check-password', {
+        const res = await fetch('/api/admin/chat-access/verify', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password, groupId})
@@ -52,7 +52,7 @@ async function checkPassword() {
 
         const data = await res.json();
 
-        if(data.success) {
+        if(data.data) {
             // 비밀번호 맞음 → 채팅 목록 표시
             document.getElementById('passwordSection').classList.add('hidden');
             document.getElementById('chatSection').classList.remove('hidden');

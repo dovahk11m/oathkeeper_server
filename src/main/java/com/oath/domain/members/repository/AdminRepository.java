@@ -1,17 +1,13 @@
 package com.oath.domain.members.repository;
 
 import com.oath.domain.members.domain.Member;
-import com.oath.domain.members.dto.ActiveChartDto;
 import com.oath.domain.members.dto.AdminResponse;
-import com.oath.domain.visitors.VisitorResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,9 +38,6 @@ public interface AdminRepository extends JpaRepository<Member, Long> {
             WHERE gm.group.id = :groupId
             """)
     List<AdminResponse.ChatMemberDto> chatMember(@Param("groupId") Long groupId);
-
-
-
 
     @Query("""
     SELECT new com.oath.domain.members.dto.AdminResponse$GroupList(

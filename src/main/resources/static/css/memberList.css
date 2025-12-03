@@ -93,3 +93,17 @@ background: #f1f1f1;
     list-style: none; /* 점 제거 */
     padding: 0;
 }
+
+button {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #4f46e5;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background-color: #4338ca;
+}
