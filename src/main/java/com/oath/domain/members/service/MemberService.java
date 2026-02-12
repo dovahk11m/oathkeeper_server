@@ -1,24 +1,21 @@
 package com.oath.domain.members.service;
 
-import com.oath.common.exception.Exception401;
-import com.oath.common.exception.Exception404;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.oath.common.JwtTokenProvider;
 import com.oath.common.exception.Exception400;
+import com.oath.common.exception.Exception401;
+import com.oath.common.exception.Exception404;
 import com.oath.common.exception.Exception409;
 import com.oath.common.exception.Exception500;
 import com.oath.domain.members.domain.Member;
@@ -34,7 +31,6 @@ import com.oath.domain.members.memberEvent.PasswordResetEvent;
 import com.oath.domain.members.memberEvent.SocialSignupEvent;
 import com.oath.domain.members.repository.MemberRepository;
 import com.oath.domain.terms.TermService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,16 +54,11 @@ public class MemberService {
             throw new Exception409("이미 사용 중인 이메일입니다.");
         }
 
-        Member member = Member.builder()
-                .username(memberCreateDto.getUsername())
+        Member member = Member.builder().username(memberCreateDto.getUsername())
                 .email(memberCreateDto.getEmail())
-                .password(passwordEncoder.encode(memberCreateDto.getPassword()))
-                .role(Role.USER)
-                .status(Status.INACTIVE)
-                .socialType(SocialType.LOCAL)
-                .lastLogin(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .build();
+                .password(passwordEncoder.encode(memberCreateDto.getPassword())).role(Role.USER)
+                .status(Status.INACTIVE).socialType(SocialType.LOCAL).lastLogin(LocalDateTime.now())
+                .createdAt(LocalDateTime.now()).build();
 
         member.generateEmailVerificationToken();
         Member savedMember = memberRepository.save(member);
@@ -75,8 +66,8 @@ public class MemberService {
         termService.agreeTerms(memberCreateDto.getAgreedTermIds(), savedMember);
 
         // 이메일 가입 이벤트 발행
-        eventPublisher.publishEvent(new MemberSignupEvent(savedMember.getEmail(), savedMember.getUsername(),
-                savedMember.getEmailVerificationToken()));
+        eventPublisher.publishEvent(new MemberSignupEvent(savedMember.getEmail(),
+                savedMember.getUsername(), savedMember.getEmailVerificationToken()));
 
         return savedMember;
     }
@@ -91,6 +82,9 @@ public class MemberService {
         }
 
         member.activate();
+        memberRepository.save(member); // 명시적 저장으로 안정성 확보
+
+        log.info("[이메일 인증 완료: 사용자='{}', 이메일='{}']", member.getUsername(), member.getEmail());
     }
 
     @Transactional(readOnly = true)
@@ -148,16 +142,11 @@ public class MemberService {
         return member;
     }
 
-    public Member createOauth(String socialId, String email, SocialType socialType, String nickname) {
-        Member member = Member.builder()
-                .username(nickname)
-                .email(email)
-                .socialType(socialType)
-                .socialId(socialId)
-                .status(Status.ACTIVE)
-                .lastLogin(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .build();
+    public Member createOauth(String socialId, String email, SocialType socialType,
+            String nickname) {
+        Member member = Member.builder().username(nickname).email(email).socialType(socialType)
+                .socialId(socialId).status(Status.ACTIVE).lastLogin(LocalDateTime.now())
+                .createdAt(LocalDateTime.now()).build();
         Member savedMember = memberRepository.save(member);
 
         // 소셜 가입 이벤트 발행
@@ -176,7 +165,8 @@ public class MemberService {
     public MemberResponse.DTO updateMember(Long memberId, MemberRequest.Update request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new Exception404("일치하는 회원이 없습니다."));
-        member.updateInfo(request.getUsername(), request.getProfileImageUrl(), request.getDefaultAddress());
+        member.updateInfo(request.getUsername(), request.getProfileImageUrl(),
+                request.getDefaultAddress());
         return new MemberResponse.DTO(member);
     }
 
@@ -211,20 +201,18 @@ public class MemberService {
     }
 
     public void sendTemporaryPassword(MemberRequest.FindPassword request) {
-        memberRepository.findByEmail(request.getEmail())
-                .ifPresentOrElse(
-                        m -> {
-                            String tempPassword = generateTempPassword();
-                            m.updatePassword(passwordEncoder.encode(tempPassword));
+        memberRepository.findByEmail(request.getEmail()).ifPresentOrElse(m -> {
+            String tempPassword = generateTempPassword();
+            m.updatePassword(passwordEncoder.encode(tempPassword));
 
-                            // 비밀번호 재설정 이벤트 발행
-                            eventPublisher
-                                    .publishEvent(new PasswordResetEvent(m.getEmail(), m.getUsername(), tempPassword));
-                        },
+            // 비밀번호 재설정 이벤트 발행
+            eventPublisher.publishEvent(
+                    new PasswordResetEvent(m.getEmail(), m.getUsername(), tempPassword));
+        },
 
-                        () -> {
-                            throw new Exception404("일치하는 회원이 없습니다.");
-                        });
+                () -> {
+                    throw new Exception404("일치하는 회원이 없습니다.");
+                });
     }
 
     public String uploadProfileImage(MultipartFile image, Long memberId) throws IOException {
